@@ -1,0 +1,202 @@
+.facet-bar {
+  font-size: @facet_font_size;
+  line-height: @facet_line_height;
+  padding: 0;
+  background-color: #FAFAFA;
+
+  /* current search */
+  .block-current-search {
+    padding-bottom: 10px;
+    //    background-color: #F6FBF4;
+
+    h2 {
+      margin: 5px;
+    }
+
+    .block-content {
+      padding-left: 7px;
+    }
+
+    @current-search-padding-left: 5px;
+
+    h3 {
+      margin: 0;
+      font-size: @baseFontSize;
+      line-height: @facet_line_height;
+      font-weight: normal;
+      padding-left: @current-search-padding-left;
+      display: inline;
+    }
+
+    h4.current-search-group-title {
+      line-height: @facet_line_height;
+      margin: 0;
+      padding-left: @current-search-padding-left;
+      font-weight: normal;
+    }
+
+    .current-search-group ul {
+      margin-left: 0;
+      margin-bottom: 0;
+
+      li {
+        line-height: @facet_line_height;
+      }
+    }
+  }
+
+  /* regular facets */
+  .block-facetapi {
+
+    h2 {
+      font-size: @facet_font_size;
+      text-transform: uppercase;
+      margin: 0;
+      padding: 2px 5px;
+      background-color: @block_title_background_color;
+
+      a {
+        padding-left: 12px;
+        color: @textColor;
+      }
+
+      &.collapsiblock a {
+        background: url('../img/expanded.png') no-repeat scroll left center transparent;
+      }
+      &.collapsiblockCollapsed a {
+        background: url('../img/collapsed.png') no-repeat scroll left center transparent;
+      }
+    }
+
+    .block-content {
+      padding: 3px 0;
+    }
+
+    a.facetapi-limit-link {
+      margin-left: 10px;
+    }
+
+    ul.facetapi-facetapi-checkbox-links {
+      margin-bottom: 0;
+      margin-left: 10px;
+
+      li {
+        list-style: none;
+
+        input {
+          margin-right: 5px;
+          margin-top: -2px;
+        }
+      }
+    }
+  }
+
+  /* range facets */
+  .search-api-ranges-widget {
+
+    form {
+      margin-bottom: 5px;
+    }
+
+    p.text-range,
+    .range-slider-box {
+      display: none;
+    }
+
+    input.form-submit,
+    .yui3-g,
+    .range-box {
+      display: inline-block;
+    }
+
+    .form-item-range-from,
+    .form-item-range-to {
+      margin: 0;
+    }
+
+    .yui3-g {
+      margin-bottom: 0;
+      padding-left: 10px;
+    }
+
+    input[type="text"] {
+      width: 80px;
+      padding: 2px 3px;
+      font-size: @facet_font_size;
+    }
+
+    label {
+      margin-bottom: 0;
+      font-size: @facet_font_size;
+    }
+
+    button {
+      .btn;
+      .btn-primary;
+      padding: 2px 6px;
+      font-size: @facet_font_size;
+      margin-top: -12px;
+    }
+
+  }
+
+}
+
+body.page-studies-search,
+body.page-variable-search,
+body.page-variables-dimensions {
+  .region-sidebar-first {
+    .facet-bar;
+  }
+}
+
+#block-mica-mica-search-filters {
+
+  h2 {
+    .h2-section;
+  }
+
+  tbody {
+    border: none;
+  }
+
+  .control-group {
+    margin-bottom: 0;
+
+    input#edit-search-filter {
+      max-width: 150px;
+    }
+  }
+
+  #mica-search-filters-form #edit-block {
+    border: 1px solid #DDDDDD;
+    padding: 0;
+    margin-bottom: 5px;
+    margin-top: -26px;
+    position: absolute;
+    z-index: 1000;
+    width: 400px;
+    background-color: @block_title_background_color;
+
+    .fieldset-wrapper {
+      max-height: 250px;
+      overflow-y: auto;
+    }
+
+    .form-item {
+      padding-left: 15px;
+      padding-right: 5px;
+      margin-top: 2px;
+      margin-bottom: 2px;
+
+      label {
+        padding-left: 10px;
+      }
+    }
+  }
+
+  .advanced {
+    font-size: @h5_font_size;
+  }
+
+}

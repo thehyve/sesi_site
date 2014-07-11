@@ -1,0 +1,324 @@
+body {
+  background-color: @bodyBackground;
+}
+
+h1 { font-size: @h1_font_size; }
+
+h2 { font-size: @h2_font_size; }
+
+h3 { font-size: @h3_font_size; }
+
+h4 { font-size: @h4_font_size; }
+
+h5 { font-size: @h5_font_size; }
+
+h6 { font-size: @h6_font_size; }
+
+h1 small { font-size: @h3_font_size; }
+
+h2, h3, h4 {
+  small { font-size: @h4_font_size; }
+}
+
+.h2-section {
+  font-size: @h3_font_size;
+  line-height: 20px;
+  margin-bottom: 0;
+}
+
+.block-title,
+.pane-title {
+  .h2-section;
+}
+
+header#navbar {
+  @navbar-font-size: 14px;
+  font-size: @navbar-font-size;
+
+  .btn-group > .btn,
+  .btn-group > .dropdown-menu {
+    font-size: @navbar-font-size;
+  }
+
+  a.logo img {
+    width: 30px;
+    height: 30px;
+  }
+
+  form.search-form {
+    margin-bottom: 0;
+    .form-item, .form-actions {
+      margin-top: 0;
+    }
+  }
+}
+
+.page-header {
+  margin-bottom: 20px;
+}
+
+ul.action-links {
+  .clearfix;
+  margin-bottom: 20px !important;
+  li {
+    padding-right: 0 !important;
+    a {
+      margin-right: 20px;
+      &.highlight {
+        .btn;
+        .btn-primary;
+        .pull-right;
+        margin: -4px 5px 10px 5px;
+
+        i {
+          display: none;
+        }
+      }
+    }
+  }
+}
+
+ul.inline {
+  display: inline;
+  padding-left: 0;
+
+  li {
+    display: inline;
+    list-style-type: none;
+    padding-left: 5px;
+  }
+}
+
+.view-header {
+  margin-bottom: 10px;
+}
+
+.node .field-label-above .field-items,
+.panel-pane .field-label-above .field-items,
+.panel-pane.pane-custom .pane-content {
+  margin-left: @items_margin_left;
+
+  pre.prettyprint,
+  code.prettyprint {
+    margin-right: @items_margin_left;
+  }
+}
+
+.field {
+  margin-top: 8px;
+}
+
+fieldset {
+  margin-top: 8px;
+  margin-bottom: 10px;
+  background-color: @fieldset_bkg_color;
+
+  legend {
+    font-size: @h3_font_size;
+    background-color: @fieldset_legend_bkg_color;
+    color: @fieldset_legend_color;
+    margin-bottom: 0;
+  }
+
+  legend .fieldset-legend {
+    padding-left: 5px;
+  }
+
+  .fieldset-wrapper {
+    padding: 0 10px 10px 10px;
+  }
+
+  .collapsible-fieldset-icon(@icon: 0) {
+    background: url(@icon) no-repeat scroll left center transparent;
+    padding-left: 15px;
+    background-position: 5px 55%;
+  }
+
+  &.collapsible legend .fieldset-legend {
+    .collapsible-fieldset-icon("../img/expanded.png");
+  }
+
+  &.collapsed legend .fieldset-legend {
+    .collapsible-fieldset-icon("../img/collapsed.png");
+  }
+
+}
+
+pre {
+  line-height: @baseFontSize - 1;
+}
+
+@drag-bkg-color: #fe7;
+@drag-previous-bkg-color: #ffb;
+
+.table-striped {
+
+  tr {
+    &.even,
+    &.odd {
+      background-color: transparent;
+      border-bottom: none;
+    }
+
+    &.drag,
+    &.drag th,
+    &.drag td {
+      background-color: @drag-bkg-color !important;
+    }
+
+    &.drag-previous,
+    &.drag-previous th,
+    &.drag-previous td {
+      background-color: @drag-previous-bkg-color !important;
+    }
+  }
+
+  th {
+    border-bottom: none;
+  }
+}
+
+tr.drag {
+  background-color: @drag-bkg-color;
+}
+
+tr.drag-previous {
+  background-color: @drag-previous-bkg-color;
+}
+
+.views-exposed-form {
+  .views-submit-button button {
+    margin-top: 25px !important;
+  }
+  .views-operator {
+    margin-bottom: 10px;
+  }
+}
+
+a.download-link {
+  color: @textColor;
+  &:hover {
+    color: @textColor;
+  }
+}
+
+.field-group-more {
+  & > h3 {
+    font-size: @baseFontSize;
+    line-height: @baseLineHeight;
+    margin: 5px 0 0 20px;
+    font-weight: normal;
+  }
+
+  &.collapsible > h3 i.icon-chevron-right {
+    .icon-chevron-down;
+  }
+  &.collapsed > h3 i.icon-chevron-right {
+    .icon-chevron-right;
+  }
+
+  .field-group-format-wrapper {
+    .field {
+      margin-top: 0;
+    }
+    .field-item {
+      margin-left: 20px;
+    }
+  }
+}
+
+table {
+  thead tr th.views-field {
+    vertical-align: middle;
+  }
+}
+
+/* Hide value container of autocomplete deluxe */
+.autocomplete-deluxe-value-container {
+  display: none;
+}
+
+body.page-variables-dimensions {
+  div[class*="form-item-bundle-variable-show-value"] {
+    width: 400px;
+  }
+}
+
+.select-width-large {
+  width: 600px;
+}
+
+.view .date-nav-wrapper .date-prev {
+  right: 83px;
+}
+
+form.node-form {
+
+  input.form-text {
+    .input-xlarge;
+  }
+
+  .field-type-datetime {
+
+    fieldset {
+      margin: 0;
+      padding: 0;
+      legend .fieldset-legend {
+        font-size: @baseFontSize;
+        padding-left: 0;
+      }
+      .fieldset-wrapper {
+        padding: 0;
+      }
+      input {
+        .input-medium;
+      }
+    }
+  }
+
+}
+
+//Mica 927 ; conflict with progress bar drupal and bootsrap
+.progress .filled {
+  display: none !important;
+}
+
+// MICA-1006
+.form-search .input-append .search-query {
+  padding-top: 6.5px;
+  padding-bottom: 6.5px;
+  padding-bottom: -moz-calc(5px);
+}
+
+// MICA-1040
+.views-row {
+  h2 {
+    font-size: 1.25em;
+  }
+
+  article {
+    margin-bottom: 20px;
+  }
+}
+
+form .field-add-more-submit {
+  margin: .5em 0;
+}
+
+.block-mica-studies {
+  background-color: #eed5d2;
+}
+
+.pop-dce .node-unpublished > td,
+.block-mica-studies .node-unpublished {
+  background-color: #eed5d2 !important;
+}
+
+.block-mica-studies .node-unpublished header:before,
+.block-mica-studies span.node-unpublished > a:before,
+{
+  content: "Draft version ";
+  background-color: #eed5d2;
+  font-weight: bold;
+  font-style: italic;
+}
