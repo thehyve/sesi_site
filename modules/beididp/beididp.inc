@@ -371,13 +371,15 @@ function beididp_authentication($response) {
   user_login_submit(array(), $form_state);
   unset($_GET['destination']);
   
-  
+  /*
   if(!valid_email_address($account->mail)) {
     drupal_goto('user/register');
   } else {
-    drupal_goto();
-  }
-  
+    */
+   drupal_goto();
+   
+  //}
+    
   /*
   $account = user_external_load($identity);
   if (!isset($account->uid)) {
