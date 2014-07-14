@@ -1,0 +1,35 @@
+<?php
+
+/**
+ * @file
+ * Test checking roles
+ */
+
+class BeididpCheckroleTestCase extends DrupalWebTestCase {
+  protected $admin;
+
+  public static function getInfo() {
+    return array(
+      'name' => t('BeidIDP Check Role'),
+      'description' => t('Test BeidIDP Check Role functions'),
+      'group' => t('BeidIDP'),
+    );
+  }
+
+  /**
+   * Implements setUp().
+   */
+  public function setUp() {
+    parent::setUp(array('beididp', 'beididp_checkrole'));
+    $this->admin = $this->drupalCreateUser(array('administer beididp'));
+  }
+
+  /**
+   * Test checkrole page.
+   */
+  public function testCheckrolePage() {
+    $this->drupalLogin($this->admin);
+    $this->drupalGet('admin/config/beididp/checkrole');
+    $this->assertResponse('200', 'Page exists and admin user can view it');
+  }
+}

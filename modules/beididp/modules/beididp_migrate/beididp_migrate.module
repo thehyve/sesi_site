@@ -1,0 +1,62 @@
+<?php
+/**
+ * @file
+ * Updates URL of eID identities when migrating from one IDP to another.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function beididp_migrate_menu() {
+  $items = array();
+
+  $items['admin/config/beididp/migrate'] = array(
+    'title' => 'Migrate',
+    'description' => 'Updates URL of eID identities',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('beididp_migrate_form'),
+    'access arguments' => array('administer beididp'),
+    'file' => 'beididp_migrate.admin.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Gets the URL(s) of the IDP(s) being used.
+ *
+ * @return array
+ *   Array of current IDP(s)
+ */
+function beididp_migrate_current_idps() {
+  $idps = array();
+
+  $result = db_query("SELECT DISTINCT SUBSTRING(authname FROM 1 FOR POSITION('?' IN authname) - 1) AS idp FROM {authmap} WHERE module='beididp'");
+  foreach ($result as $row) {
+    $idps[] = $row->idp;
+  }
+  return $idps;
+}
+
+/**
+ * Updates the URLs of the IDP identities in the database.
+ *
+ * @param string $old_idp
+ *   The URL of the current / old IDP.
+ * @param string $new_idp
+ *   The URL of the new IDP.
+ *
+ * @return bool
+ *   Return FALSE upon failure.
+ */
+function beididp_migrate_update_idp($old_idp, $new_idp) {
+  $query = db_update('authmap')
+    ->expression('authname', "CONCAT(:new, SUBSTRING(authname FROM POSITION('?' IN authname)))", array(':new' => $new_idp))
+    ->condition('module', 'beididp')
+    ->where('POSITION(:old IN authname) = 1', array(':old' => $old_idp))
+    ->execute();
+
+  watchdog('beididp', 'Updated IDP URL %old to %new', array('%old' => $old_idp, '%new' => $new_idp));
+
+  return ($query > 0);
+}

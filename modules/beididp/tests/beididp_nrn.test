@@ -1,0 +1,40 @@
+<?php
+
+/**
+ * @file
+ * Test checking roles
+ */
+
+class BeididpTestCaseNRN extends DrupalWebTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => t('BeidIDP: NRN tests'),
+      'description' => t('Test BeidIDP National Registry Number functions'),
+      'group' => t('BeidIDP'),
+    );
+  }
+
+  /**
+   * Implements setUp().
+   */
+  public function setUp() {
+    parent::setUp(array('beididp'));
+  }
+
+  /**
+   * Test parsing NRN numbers.
+   */
+  public function testNRNParser() {
+    $nrn = beididp_nrn_parse('72020290081');
+    $this->assertEqual($nrn, '72020290081', 'Numeric value equals NRN');
+
+    $nrn = beididp_nrn_parse('72.02.02-900.81');
+    $this->assertEqual($nrn, '72020290081', 'String with punctuation removed equals NRN');
+
+    $nrn = beididp_nrn_parse('00012556777');
+    $this->assertEqual($nrn, '00012556777', 'Numeric value (born in year 2000) equals NRN');
+
+    $nrn = beididp_nrn_parse('721302290081');
+    $this->assertFalse($nrn, 'Invalid NRN');
+  }
+}

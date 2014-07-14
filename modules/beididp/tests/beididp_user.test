@@ -1,0 +1,62 @@
+<?php
+
+/**
+ * @file
+ * Test checking roles
+ */
+
+class BeididpTestCaseUser extends DrupalWebTestCase {
+  protected $user;
+  protected $url;
+
+  public static function getInfo() {
+    return array(
+      'name' => t('BeidIDP: user tests'),
+      'description' => t('Test BeidIDP user name functions'),
+      'group' => t('BeidIDP'),
+    );
+  }
+
+  /**
+   * Implements setUp().
+   */
+  public function setUp() {
+    parent::setUp(array('beididp'));
+
+    $this->user = $this->drupalCreateUser(array());
+    $this->user->name = 'JohnDoe';
+    user_save($this->user);
+
+    $this->url = 'http://www.a.fake.example.com/demo/?id=12345678';
+  }
+
+  /**
+   * Test generation of a new user name when a duplicate is detected.
+   */
+  public function testDuplicateUsername() {
+    $new = beididp_name_nick('John', 'Doe');
+    $this->assertEqual($new, 'JohnDoe1', 'Value equals "JohnDoe1"');
+  }
+
+  /**
+   * Test storing an deleting eID identity.
+   */
+  public function testStoreDeleteIdentity() {
+    // Store eID identity.
+    $this->assertTrue(beididp_authname_store($this->url, $this->user->uid),
+      'Stored eID identity');
+    $this->assertTrue(beididp_authname_exists($this->url),
+      'Checked existing eID identity');
+    $this->assertFalse(beididp_authname_exists('dummy'),
+      'Checked non-existing eID identity');
+
+    // Delete eID identity.
+    $result = beididp_authname_all($this->user->uid);
+    while ($id = $result->fetchObject()) {
+      $this->assertTrue(beididp_authname_del($this->user->uid, $id->aid),
+        'Deleted eID identity');
+    }
+    $this->assertFalse(beididp_authname_exists($this->url),
+      'Checked removed eID identity');
+  }
+}

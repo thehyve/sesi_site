@@ -1,0 +1,15 @@
+name = Belgian eID IDP Integration
+description = "Allows users to authenticate with their Belgian eID card, using Fedict's OpenID Identity provider."
+package = Belgian eID
+core = 7.x
+dependencies[] = variable
+files[] = tests/beididp_user.test
+files[] = tests/beididp_nrn.test
+configure = admin/config/beididp
+
+; Information added by Drupal.org packaging script on 2014-01-20
+version = "7.x-1.0-alpha4"
+core = "7.x"
+project = "beididp"
+datestamp = "1390207705"
+

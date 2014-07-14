@@ -1,0 +1,150 @@
+<?php
+/**
+ * @file
+ * The beididp fields module file, containing the code to map eID attributes
+ * Drupal user fields
+ *
+ * The attributes are provided by the Belgian eID Identity Provider, using
+ * the OpenID protocol
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function beididp_fields_menu() {
+  $items = array();
+
+  $items['admin/config/beididp/userfields'] = array(
+    'title' => 'Fields mapping',
+    'description' => 'Fields mappings for the Belgian eID Identity Provider',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('beididp_fields_admin'),
+    'access arguments' => array('administer beididp'),
+    'file' => 'beididp_fields.admin.inc',
+  );
+
+  return $items;
+}
+
+
+/**
+ * Implements hook_beidip_auth_request().
+ *
+ * Alter request to include eID attributes
+ */
+function beididp_fields_beididp_auth_request($request) {
+  $attr = array();
+  $required = '';
+  $optional = '';
+
+  if (variable_get('beididp_fields_gender', FALSE)) {
+    $attr['gender'] = 'person/gender';
+    $required .= ',gender';
+  }
+  if (variable_get('beididp_fields_streetno', FALSE)) {
+    $attr['streetno'] = 'contact/postalAddress/home';
+    $attr['postal'] = 'contact/postalCode/home';
+    $attr['city'] = 'contact/city/home';
+    $required .= ',streetno,postal,city';
+  }
+  if (variable_get('beididp_fields_birthdate', FALSE)) {
+    $attr['birthdate'] = 'birthDate';
+    $required .= ',birthdate';
+  }
+  if (variable_get('beididp_fields_birthplace', FALSE)) {
+    $attr['birthplace'] = 'eid/pob';
+    $required .= ',birthplace';
+  }
+  if (variable_get('beididp_fields_nationality', FALSE)) {
+    $attr['nationality'] = 'eid/nationality';
+    $required .= ',nationality';
+  }
+
+  foreach ($attr as $type => $value) {
+    $axtype = 'openid.ax.type.' . $type;
+    $request[$axtype] = 'http://axschema.org/' . $value;
+  }
+
+  $request['openid.ax.required'] .= $required;
+  $request['openid.ax.if_available'] .= $optional;
+
+  return $request;
+}
+
+
+/**
+ * Names of eID attributes that can be mapped to drupal profile fields.
+ *
+ * @return array
+ *   Array with the eID attribute names
+ */
+function beididp_fields_get_fields() {
+  return array(
+    'fname',
+    'lname',
+    'gender',
+    'streetno',
+    'postal',
+    'city',
+    'birthdate',
+    'birthplace',
+    'nationality',
+  );
+}
+
+
+/**
+ * Gets the type of the field.
+ *
+ * @param string $field
+ *   Field.
+ *
+ * @return string
+ *   Type of the field.
+ */
+function beididp_fields_field_type(&$field) {
+  $class = $field['#attributes']['class'];
+  if (in_array('field-type-datetime', $class)) {
+    return 'date';
+  }
+  return 'text';
+}
+
+
+/**
+ * Implements hook_form_FORM_ID_alter() for user_register_form().
+ *
+ * Alter user registration form containing Drupal user fields
+ */
+function beididp_fields_form_user_register_form_alter(&$form, &$form_state) {
+  if (isset($_SESSION['beididp']['values'])) {
+    module_load_include('inc', 'openid');
+
+    $response = $_SESSION['beididp']['values']['response'];
+    $ax_values = openid_extract_namespace($response, BEIDIDP_NS_AX, 'ax');
+
+    $profile_fields = beididp_fields_get_fields();
+    foreach ($profile_fields as $item) {
+      $mapped = variable_get('beididp_fields_' . $item, '');
+
+      if (!empty($mapped)) {
+        $idpvalue = $ax_values['value.' . $item];
+        if (!empty($idpvalue)) {
+          $lang = $form[$mapped]['#language'];
+          $value = check_plain($idpvalue);
+
+          switch (beididp_fields_field_type($form[$mapped])) {
+            case 'text':
+              $form[$mapped][$lang][0]['value']['#default_value'] = $value;
+              break;
+
+            case 'date':
+              $form[$mapped][$lang][0]['#default_value']['value'] = $value;
+              break;
+          }
+        }
+      }
+    }
+  }
+  return $form;
+}

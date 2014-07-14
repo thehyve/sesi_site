@@ -1,0 +1,15 @@
+<?php
+/**
+ * @file
+ * Install, update and uninstall functions for the beididp_fields module.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function beididp_profile_uninstall() {
+  $fields = beididp_profile_get_fields();
+  foreach ($fields as $field) {
+    variable_del('beididp_fields_' . $field);
+  }
+}

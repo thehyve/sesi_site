@@ -1,0 +1,14 @@
+name = Belgian eID IDP Button 
+description = Add eID button to user login forms 
+package = Belgian eID
+core = 7.x
+dependencies[] = beididp
+dependencies[] = variable
+configure = admin/config/beididp/button
+
+; Information added by Drupal.org packaging script on 2014-01-20
+version = "7.x-1.0-alpha4"
+core = "7.x"
+project = "beididp"
+datestamp = "1390207705"
+

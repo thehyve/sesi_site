@@ -1,0 +1,98 @@
+7.x-1.0-alpha4
+--------------
+ Issue #2176885: align with openid code
+ Issue #2128701: moved beididp_pape into main module
+ Issue #2136067: use Variable API
+ Issue #2126127: initial module for signing up with NRN
+
+7.x-1.0-alpha3
+--------------
+ Issue #2116661: don't use eID when negative button coordinates are passed
+ Issue #2126135: removed "admin can always log in" option
+ Issue #1967624: added simpletest
+ Issue #2127039: moved some db functions to beididp.inc
+ Issue #2129331: various code cleanup actions
+ Issue #2131789: don't show eid button on admin/people/create
+
+7.x-1.0-alpha2
+--------------
+ Issue #2090329: removed country mapping (not provided by eID IDP)
+ Issue #1974836: corrected type in watchdog message
+ Issue #1966784: added initial date (day of birth) mapping
+ Issue #1966596: added button to create new account page
+
+7.x-1.0-alpha1
+--------------
+ Issue #1965462: corrected email verification skipping for eID users
+ Issue #1964454: removed watchdog warning about not being served over HTTPS
+ Issue #1963828: added beididp_mail module
+ Issue #1604908: various code syntax corrections
+ Issue #1960176: corrected beididp_mail_alter
+
+7.x-0.8
+-------
+ Issue #1955350: improved description on settings page
+ Issue #1955086: corrected bug (password field) on registration form
+
+7.x-0.7
+-------
+ Issue #1650856: require phishing-resistant PAPE policy
+ Issue #1604908: small corrections in function documentation
+
+7.x-0.6
+-------
+ Issue #1604908: make automated testing happy by not using format_username
+ Issue #1600316: show error message when eID-card is alreay in use
+ Issue #1612472: improve README file and help page
+ Issue #1611774: use _openid_math_add and _openid_math_powmod
+ Issue #1612456: aligned code with openid core
+
+7.x-0.5
+-------
+ Issue #1604908: removed trailing whitespaces
+ Issue #1600326: added openid version to service
+ Issue #1597654: load include file
+
+7.x-0.4
+-------
+ Issue #1339596: fixed blocking password reset mails for eID-only roles 
+ Issue #1339596: fix username token in emails
+ Issue #1339596: updated list of submodules in readme file
+ Issue #1339596: fix email verification override for eID users
+ Issue #1339596: added beididp migrate module (also available in D6) 
+ 
+7.x-0.3
+-------
+ Issue #1339596: fix for checkrole always blocking login
+ Issue #1339596: fixed token notices
+ Issue #1339596: small changes to readme
+ Issue #1339596: renamed profile module to beididp_fields and make it work
+ Issue #1339596: fixes for mails and checkrole
+ Issue #1339596: fix for validation of eid button click
+ Issue #1339596: more checkrole fixes 
+ Issue #1339596: added missing checkrole include file
+ Issue #1339596: fix for deleting eID identities
+ Issue #1339596: aligned code with D6, added UI submodules 
+
+7.x-0.2
+-------
+ Issue #1339596: added changelog 
+ Issue #1339596: fix php error
+ Issue #1339596: align function names with 6.x, small changes
+ Issue #1509464, #1339596: pressing enter does not start eid login anymore
+ Issue #1339596: fixed accolade and try register
+ Issue #1339596: added hooks for user login / logout
+ Issue #1339596: small code syntax fixes
+ Issue #1339596: make registration and login work
+ Issue #1339596: additional changes for registering new eid user
+ Issue #1339596: initial changes for registering user
+ Issue #1339596: make login work for existing users
+ Issue #1339596: make adding eid to existing user work
+ Issue #1339596: watchdog fixes, db and session bug fixes
+ Issue #1339596: make discovery work, alter form and changes in messages
+ Issue #1339596: fix configuration page and more openid core reuse
+ Issue #1339596: reuse of openid_verify_assertion_signature
+ Issue #1339596: code syntax and documentation changes
+ Issue #1339596: more reuse of openid, using beidip in session vars
+ Issue #1339596: more changes to make it work in D7
+ Issue #1339596: copy beididp code from D6

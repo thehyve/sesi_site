@@ -1,0 +1,198 @@
+<?php
+
+/**
+ * @file
+ * The beididp module file, containing the code to integrate Drupal with
+ * the Belgian eID IDP using the OpenID protocol
+ */
+
+module_load_include('inc', 'beididp');
+
+/**
+ * Implements hook_permission().
+ */
+function beididp_permission() {
+  return array(
+    'administer beididp' => array(
+      'title' => t('Administer beididp'),
+      'description' => t('Administer Belgium eID IDP integration module'),
+    ),
+  );
+}
+
+
+/**
+ * Implements hook_help().
+ */
+function beididp_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#beididp':
+      $output = '<p>' . t('The BeID IDP module allows users to register and log in with their Belgian eID card, not unlike the Drupal OpenID module.') . '</p>';
+      $output .= '<p>' . t("Drupal will act as a Relying Party, while the heavy lifting is done by Fedict's Java-based Identity Provider. More information about the IDP, including installers and source code, can be found on the") . ' ' . l(t('eID IDP project page'), 'http://code.google.com/p/eid-idp/') . '</p>';
+      $output .= '<p>' . t('Submodules:') . '</p>';
+      $output .= '<ul><li>' . t('beididp_block: provides an eID block') . '</li>';
+      $output .= '<li>' . t('beididp_button: add eID button to login forms') . '</li>';
+      $output .= '<li>' . t('beididp_checkrole: force selected roles to use eID card') . '</li>';
+      $output .= '<li>' . t('beididp_fields: map eID attributes onto existing Drupal user fields') . '</li>';
+      $output .= '<li>' . t('beididp_migrate: updates eID identities, useful when migrating to another IDP') . '</li></ul>';
+      $output .= '<p>' . t('Requirements:') . '</p>';
+      $output .= '<ul><li>' . t('A Belgian eID IDP service') . '</li>';
+      $output .= '<li>' . t('A Belgium eID card, reader and PIN code') . '</li>';
+      $output .= '<li>' . t('HTTPS should be enabled on your website') . '</li></ul>';
+      $output .= '<p>' . t('Recommended:') . '</p>';
+      $output .= '<ul><li>' . t('Cron or another scheduler') . '</li></ul>';
+      $output .= '<p>' . t('Limitations:') . '</p>';
+      $output .= '<ul><li>' . t('Enabling both the BeID IDP and Drupal Core OpenID module may not work') . '</li>';
+      $output .= '<li>' . t('The Federal Authentication Service is not supported') . '</li></ul>';
+
+      return $output;
+  }
+}
+
+
+/**
+ * Implements hook_menu().
+ */
+function beididp_menu() {
+  $items = array();
+
+  $items['beididp/authenticate'] = array(
+    'title' => 'Belgian eID IDP login',
+    'page callback' => 'beididp_authentication_page',
+    'access callback' => 'user_is_anonymous',
+    'type' => MENU_CALLBACK,
+    'file' => 'beididp.pages.inc',
+  );
+
+  $items['admin/config/beididp'] = array(
+    'title' => 'Belgian eID IDP',
+    'description' => 'Setting for the Belgian eID Identity Provider',
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('administer site configuration'),
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+  );
+
+  $items['admin/config/beididp/general'] = array(
+    'title' => 'General settings',
+    'description' => 'Setting for the Belgian eID Identity Provider',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('variable_module_form', 'beididp'),
+    'access arguments' => array('administer beididp'),
+  );
+
+  $items['user/%user/beididp'] = array(
+    'title' => 'Belgian eID Identities',
+    'page callback' => 'beididp_eid_identities',
+    'page arguments' => array(1),
+    'access callback' => 'user_edit_access',
+    'access arguments' => array(1),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'beididp.pages.inc',
+  );
+
+  $items['user/%user/beididp/delete'] = array(
+    'title' => 'Delete Belgian eID Identity',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('beididp_eid_delete_form', 1),
+    'access callback' => 'user_edit_access',
+    'access arguments' => array(1),
+    'type' => MENU_CALLBACK,
+    'file' => 'beididp.pages.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_user_insert().
+ */
+function beididp_user_insert(&$edit, $account, $category) {
+  if (!empty($edit['openid_claimed_id'])) {
+    // The user has registered after trying to login via eID.
+    if (variable_get('user_email_verification', TRUE)) {
+      if (!variable_get_value('beididp_no_mail_verify')) {
+        drupal_set_message(t('Once you have verified your email address, you may log in with your eID.'));
+      }
+      else {
+        if ($account->status) {
+          watchdog('beididp', 'Skip mail verification for %name', array('%name' => $account->name));
+          user_login_submit(array(), $edit);
+        }
+      }
+    }
+    user_set_authmaps($account, array('authname_beididp' => $edit['openid_claimed_id']));
+
+    unset($_SESSION['beididp']);
+    unset($edit['openid_claimed_id']);
+  }
+}
+
+/**
+ * Implements hook_user_login().
+ */
+function beididp_user_login(&$edit, $account) {
+  if (isset($_SESSION['beididp'])) {
+    user_cookie_save(array_intersect_key($_SESSION['beididp']['user_login_values'], array_flip(array('beididp_identifier'))));
+    unset($_SESSION['beididp']);
+  }
+}
+
+/**
+ * Implements hook_user_logout().
+ */
+function beididp_user_logout($account) {
+  if (isset($_COOKIE['Drupal_visitor_beididp_identifier'])) {
+    user_cookie_delete('beididp_identifier');
+  }
+}
+
+
+/**
+ * Implements hook_form_FORM_ID_alter() for user_register_form().
+ */
+function beididp_form_user_register_form_alter(&$form, &$form_state) {
+  if (isset($_SESSION['beididp']['values'])) {
+    module_load_include('inc', 'openid');
+
+    $response = $_SESSION['beididp']['values']['response'];
+    // BeID IdP does not use Simple Registration.
+    $ax_values = openid_extract_namespace($response, BEIDIDP_NS_AX, 'ax', TRUE);
+
+    // We were unable to auto-register a new user. Prefill the registration
+    // form with the values we have.
+    $nick = beididp_name_nick($ax_values['value.fname'], $ax_values['value.lname']);
+    $form['account']['name']['#default_value'] = $nick;
+
+    if (isset($response['openid.claimed_id'])) {
+      // Drupal always requires a password, although we won't use it.
+      $form['account']['pass']['#type'] = 'hidden';
+      $form['account']['pass']['#value'] = user_password();
+
+      $form['openid_claimed_id'] = array(
+        '#type' => 'value',
+        '#default_value' => $response['openid.claimed_id'],
+      );
+      $form['account']['openid_display'] = array(
+        '#type' => 'item',
+        '#title' => t('Your eID identity'),
+        '#description' => t('This eID identity will be attached to your account after registration.'),
+        '#markup' => check_plain($response['openid.claimed_id']),
+      );
+    }
+  }
+  return $form;
+}
+
+/**
+ * Implements hook_cron().
+ *
+ * Cron job removing expired nonces
+ */
+function beididp_cron() {
+  $rows = beididp_nonce_purge();
+
+  if ($rows > 0) {
+    watchdog('beididp', "Deleted @nr expired nonces", array('@nr' => $rows));
+  }
+}

@@ -1,0 +1,94 @@
+<?php
+
+/**
+ * @file
+ * The beididp button module adds an eID button to user login forms.
+ */
+
+module_load_include('inc', 'beididp');
+
+/**
+ * Implements hook_menu().
+ */
+function beididp_button_menu() {
+  $items = array();
+
+  $items['admin/config/beididp/button'] = array(
+    'title' => 'Button',
+    'description' => 'Layout options for button module',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('variable_module_form', 'beididp_button'),
+    'access arguments' => array('administer beididp'),
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for user_login_block().
+ */
+function beididp_button_form_user_login_block_alter(&$form, &$form_state) {
+  _beididp_button_form_alter($form, $form_state);
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for user_login().
+ */
+function beididp_button_form_user_login_alter(&$form, &$form_state) {
+  _beididp_button_form_alter($form, $form_state);
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for user_register().
+ */
+function beididp_button_form_user_register_form_alter(&$form, &$form_state) {
+  if (strstr($form['#action'], '/user/register')) {
+    _beididp_button_form_alter($form, $form_state);
+  }
+}
+
+
+/**
+ * Adds eID login button to user login form.
+ *
+ * @see beididp_button_login_validate()
+ */
+function _beididp_button_form_alter(&$form, &$form_state) {
+  $https_only = variable_get_value('beididp_https_required');
+  if ($https_only && !isset($_SERVER['HTTPS'])) {
+    return;
+  }
+
+  $form['beididp'] = array(
+    '#name' => 'beididp',
+    '#type' => 'image_button',
+    '#src' => drupal_get_path('module', 'beididp') . '/eid_logo.png',
+    '#value' => t('Log in with eId'),
+    '#prefix' => '<div class="eid-button-wrapper">',
+    '#attributes' => array('alt' => t('Log in with eID')),
+    '#suffix' => '</div>',
+    '#weight' => -99,
+  );
+
+  // Browsers pass positive coordinates when image_button is pressed.
+  if (!empty($form_state['input']['beididp_x']) && ($form_state['input']['beididp_x'] > 0)) {
+    $form['name']['#required'] = FALSE;
+    $form['pass']['#required'] = FALSE;
+    unset($form['#submit']);
+    $form['#validate'] = array('beididp_button_login_validate');
+  }
+
+  if (variable_get('beididp_button_hide_up_fields', FALSE)) {
+    unset($form['name']);
+    unset($form['pass']);
+    unset($form['submit']);
+  }
+}
+
+/**
+ * Form validation handler for _beididp_button_form_alter().
+ */
+function beididp_button_login_validate($form, &$form_state) {
+  $return_to = url('beididp/authenticate', array('absolute' => TRUE, 'query' => drupal_get_destination()));
+  beididp_begin($return_to, $form_state['values']);
+}

@@ -1,0 +1,83 @@
+<?php
+
+/**
+ * @file
+ * Alter user registration mails. 
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function beididp_mail_menu() {
+  $items = array();
+
+  $items['admin/config/beididp/mail'] = array(
+    'title' => 'Mail settings',
+    'description' => 'Mail settings for the Belgian eID Identity Provider',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('variable_module_form', 'beididp_mail'),
+    'access arguments' => array('administer beididp'),
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_mail_alter().
+ */
+function beididp_mail_mail_alter(&$message) {
+  // Only alter these messages.
+  $mails = array(
+    'user_register_no_approval_required',
+    'logintoboggan_register_no_approval_required',
+    'user_register_pending_approval',
+    'logintoboggan_register_pending_approval',
+    'user_status_activated',
+  );
+
+  if (!in_array($message['id'], $mails)) {
+    return;
+  }
+
+  $account = $message['params']['account'];
+
+  // Nothing to be done when the user does not use an eID card.
+  $result = beididp_authname_all($account->uid)->fetchField();
+  if (empty($result)) {
+    return;
+  }
+
+  $language = $message['language'];
+  $id = substr($message['id'], strpos($message['id'], '_') + 1);
+  $key = 'beididp_mail_' . $id;
+  $message['subject'] = beididp_mail_replace($key . '_subject', $account, $language);
+
+  $message['body'][0] = beididp_mail_replace($key . '_body', $account, $language);
+}
+
+
+/**
+ * Replace tokens in mail.
+ *
+ * @param string $key
+ *   Variable to be retrieved.
+ * @param array $tokens
+ *   Token values 
+ * @param object $language
+ *   Language object
+ *
+ * @return string
+ *   Replaced
+ */
+function beididp_mail_replace($key, $tokens, $language) {
+  $text = variable_get_value($key, array('language' => $language));
+
+  return token_replace($text, array('user' => $tokens),
+    array(
+      'language' => $language,
+      'callback' => 'user_mail_tokens',
+      'sanitize' => FALSE,
+      'clear' => TRUE,
+    )
+  );
+}

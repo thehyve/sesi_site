@@ -1,0 +1,63 @@
+<?php
+
+/**
+ * @file
+ * The beididp block module provides a block with an eID button.
+ */
+
+module_load_include('inc', 'beididp');
+
+/**
+ * Implements hook_block_info().
+ */
+function beididp_block_block_info() {
+  $blocks[0]['info'] = t('eID login');
+  $blocks[0]['cache'] = DRUPAL_NO_CACHE;
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function beididp_block_block_view($delta = '') {
+  global $user;
+  $block = array();
+
+  $https_only = variable_get_value('beididp_https_required');
+  if ($https_only && !isset($_SERVER['HTTPS'])) {
+    return $block;
+  }
+
+  if ($delta == 0 && !$user->uid) {
+    $block['subject'] = t('eID login');
+    $block['content'] = drupal_get_form('beididp_block_block_form');
+    return $block;
+  }
+}
+
+
+/**
+ * Form constructor.
+ *
+ * @ingroup forms
+ */
+function beididp_block_block_form() {
+  $form['beididp_block'] = array(
+    '#name' => 'beididp',
+    '#type' => 'image_button',
+    '#src' => drupal_get_path('module', 'beididp') . '/eid_logo.png',
+    '#value' => t('Log in with eId'),
+    '#attributes' => array('alt' => t('Log in with eID')),
+    '#validate' => array('beididp_block_block_validate'),
+  );
+  return $form;
+}
+
+/**
+ * Form validation handler for_beididp_block_block_form().
+ */
+function beididp_block_block_validate($form, &$form_state) {
+  $return_to = url('beididp/authenticate', array('absolute' => TRUE, 'query' => drupal_get_destination()));
+  beididp_begin($return_to, $form_state['values']);
+}

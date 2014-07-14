@@ -1,0 +1,15 @@
+name = Sesi eID login
+description = Sesi eID login and registration.
+core = 7.x
+package = Sesi
+version = 7.x-1.0b
+project = sesi_eid_login
+dependencies[] = logintoboggan
+dependencies[] = strongarm
+features[ctools][] = strongarm:strongarm:1
+features[features_api][] = api:2
+features[features_override_items][] = variable.logintoboggan_immediate_login_on_register
+features[variable][] = user_register
+features_exclude[dependencies][ctools] = ctools
+features_exclude[dependencies][mica_core] = mica_core
+features_exclude[features_overrides][variable.logintoboggan_immediate_login_on_register.value] = variable.logintoboggan_immediate_login_on_register.value

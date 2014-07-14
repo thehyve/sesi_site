@@ -1,0 +1,15 @@
+<?php
+/**
+ * @file
+ * Install, update and uninstall functions for the beididp mail module.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function beididp_mail_uninstall() {
+  variable_del('beididp_register_no_approval_required_subject');
+  variable_del('beididp_register_no_approval_required_body');
+  variable_del('beididp_register_pending_approval_subject');
+  variable_del('beididp_register_pending_approval_body');
+}

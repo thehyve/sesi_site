@@ -1,0 +1,58 @@
+<?php
+
+/**
+ * @file
+ * The beididp button module adds an eID button to user login forms.
+ */
+
+module_load_include('inc', 'beididp', 'beididp.nrn');
+
+/**
+ * Implements hook_form_FORM_ID_alter() for user_register().
+ */
+function beididp_nrn_form_user_register_form_alter(&$form, &$form_state) {
+  if (strstr($form['#action'], '/admin/people/create')) {
+    $form['account']['beididp_nrn'] = array(
+      '#type' => 'textfield',
+      '#weight' => -12,
+      '#title' => t('NRN'),
+      '#size' => 11,
+      '#maxlength' => 11,
+      '#required' => FALSE,
+      '#element_validate' => array('_beididp_nrn_nrn_validate'),
+    );
+    $form['account']['pass']['#required'] = FALSE;
+    drupal_set_message(print_r($form, TRUE)); 
+  }
+}
+
+/**
+ * Element validate callback for the NRN field.
+ */
+function _beididp_nrn_nrn_validate($element, &$form_state) {
+  if (!empty($element['#value'])) {
+    $nrn = beididp_nrn_parse($element['#value']);
+    if (!$nrn) {
+      form_error($element, t('Invalid National Registry Number.'));
+    } else {
+      $id = variable_get_value('beididp_url') . '?' . beididp_hash($nrn);
+      if (beididp_authname_exists($id)) {
+        form_error($element, t('The eID card is already in use on this site.'));
+      }
+      $form_state['account']['beididp'] = $id;
+    }
+  }
+}
+
+/**
+ * Implements hook_user_insert().
+ */
+function beididp_nrn_user(&$edit, $account, $category) {
+  if (isset($edit['beididp_nrn'])) {
+    $nrn = beididp_nrn_parse($edit['beididp_nrn']);
+  } else {
+    watchdog('beididp', t('No NRN'));
+    drupal_set_message(print_r($edit, TRUE));
+  }
+}
+

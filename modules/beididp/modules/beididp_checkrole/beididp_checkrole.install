@@ -1,0 +1,40 @@
+<?php
+
+/**
+ * @file
+ * Install and uninstall hooks for the BeID IDP check role module
+ */
+
+
+/**
+ * Implements hook_uninstall().
+ */
+function beididp_checkrole_uninstall() {
+  variable_del('beididp_required_for_role');
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * Removes obsolete bypass value.
+ */
+function beididp_checkrole_update_7101() {
+  variable_del('beididp_checkrole_admin_bypass');
+}
+
+/**
+ * Implements hook_update_N().
+ *
+ * Upgrades checkrole variable.
+ */
+function beididp_checkrole_update_7102() {
+  $old = variable_get('beididp_required_for_role', array());
+  $new = array();
+
+  // Variable API uses key also as option element value
+  foreach($old as $rid => $enabled) {
+    $new[$rid] = ($enabled == 1) ? (string) $rid : 0;
+  }
+  variable_set('beididp_required_role', $new);
+  variable_del('beididp_required_for_role');
+}

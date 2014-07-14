@@ -1,0 +1,14 @@
+name = Belgian eID IDP user fields 
+description = "Maps Belgian eID info to user fields, using Fedict's OpenID IdP."
+package = Belgian eID
+core = 7.x
+dependencies[] = beididp
+dependencies[] = field
+configure = admin/config/beididp/userfields
+
+; Information added by Drupal.org packaging script on 2014-01-20
+version = "7.x-1.0-alpha4"
+core = "7.x"
+project = "beididp"
+datestamp = "1390207705"
+
