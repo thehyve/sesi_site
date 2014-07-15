@@ -13,9 +13,30 @@ function sesi_eid_login_strongarm() {
   $strongarm = new stdClass();
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
-  $strongarm->name = 'user_register';
-  $strongarm->value = '2';
-  $export['user_register'] = $strongarm;
+  $strongarm->name = 'beididp_hash_claimed_id';
+  $strongarm->value = 1;
+  $export['beididp_hash_claimed_id'] = $strongarm;
+
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm->api_version = 1;
+  $strongarm->name = 'beididp_https_required';
+  $strongarm->value = 0;
+  $export['beididp_https_required'] = $strongarm;
+
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm->api_version = 1;
+  $strongarm->name = 'beididp_idp_url';
+  $strongarm->value = 'https://localhost:8443/eid-idp/endpoints/openid/auth-ident';
+  $export['beididp_idp_url'] = $strongarm;
+
+  $strongarm = new stdClass();
+  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
+  $strongarm->api_version = 1;
+  $strongarm->name = 'beididp_no_mail_verify';
+  $strongarm->value = 1;
+  $export['beididp_no_mail_verify'] = $strongarm;
 
   return $export;
 }
