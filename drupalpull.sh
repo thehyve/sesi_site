@@ -2,6 +2,14 @@
 
 set -e
 
+echo '________ __________ ____ _____________  _____  .____      __________ ____ ___.____    .____    ' 
+echo '\______ \\______   \    |   \______   \/  _  \ |    |     \______   \    |   \    |   |    |    '
+echo ' |    |  \|       _/    |   /|     ___/  /_\  \|    |      |     ___/    |   /    |   |    |    '
+echo ' |    `   \    |   \    |  / |    |  /    |    \    |___   |    |   |    |  /|    |___|    |___ '
+echo '/_______  /____|_  /______/  |____|  \____|__  /_______ \  |____|   |______/ |_______ \_______ \ '
+echo '        \/       \/                          \/        \/                            \/       \/ '
+
+
 if ! type "drush" > /dev/null; then
   wget --quiet -O - http://ftp.drupal.org/files/projects/drush-7.x-5.9.tar.gz | tar -zxf - -C /usr/local/share
   ln -s /usr/local/share/drush/drush /usr/bin/drush
@@ -21,14 +29,16 @@ drush --yes pm-enable strongarm
 #backup first
 drush archive-dump /tmp/micasitebk
  
-# Enable project features.
-drush --yes pm-enable sesi_xxxx
+# ////////////////////////// Enable project features.
+drush --yes pm-enable sesi_eid_login
  
+
 # Enable project theme.
 #drush --yes pm-enable ourprettytheme
- 
+
+# ////////////////////////// 
 # Update
-drush --yes updb
+#drush --yes updb
  
 # Disable unused modules and features.
  
