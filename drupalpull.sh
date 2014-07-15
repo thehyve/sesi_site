@@ -31,7 +31,7 @@ drush archive-dump /tmp/micasitebk
  
 # ////////////////////////// Enable project features.
 drush --yes pm-enable sesi_eid_login
- 
+drush --yes features-revert sesi_eid_login 
 
 # Enable project theme.
 #drush --yes pm-enable ourprettytheme
