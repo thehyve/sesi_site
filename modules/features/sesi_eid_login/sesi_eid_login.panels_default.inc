@@ -32,6 +32,9 @@ function sesi_eid_login_default_panels_mini() {
       'right' => NULL,
     ),
     'style' => 'rounded_corners',
+    'right' => array(
+      'style' => 'default',
+    ),
   );
   $display->cache = array();
   $display->title = '';
@@ -43,7 +46,20 @@ function sesi_eid_login_default_panels_mini() {
     $pane->type = 'custom';
     $pane->subtype = 'custom';
     $pane->shown = TRUE;
-    $pane->access = array();
+    $pane->access = array(
+      'plugins' => array(
+        0 => array(
+          'name' => 'role',
+          'settings' => array(
+            'rids' => array(
+              0 => 1,
+            ),
+          ),
+          'context' => 'logged-in-user',
+          'not' => FALSE,
+        ),
+      ),
+    );
     $pane->configuration = array(
       'admin_title' => '',
       'title' => '',
@@ -68,9 +84,22 @@ function sesi_eid_login_default_panels_mini() {
     $pane->type = 'block';
     $pane->subtype = 'beididp_block-0';
     $pane->shown = TRUE;
-    $pane->access = array();
+    $pane->access = array(
+      'plugins' => array(
+        0 => array(
+          'name' => 'role',
+          'settings' => array(
+            'rids' => array(
+              0 => 1,
+            ),
+          ),
+          'context' => 'logged-in-user',
+          'not' => FALSE,
+        ),
+      ),
+    );
     $pane->configuration = array(
-      'override_title' => 0,
+      'override_title' => 1,
       'override_title_text' => '',
     );
     $pane->cache = array();
@@ -84,7 +113,7 @@ function sesi_eid_login_default_panels_mini() {
     $display->content['new-2'] = $pane;
     $display->panels['right'][0] = 'new-2';
   $display->hide_title = PANELS_TITLE_FIXED;
-  $display->title_pane = 'new-1';
+  $display->title_pane = '0';
   $mini->display = $display;
   $export['eid_banner'] = $mini;
 
