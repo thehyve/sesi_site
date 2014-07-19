@@ -34,6 +34,9 @@ drush --yes pm-enable sesi_eid_login
 drush --yes pm-disable beididp_button
 drush --yes features-revert sesi_eid_login 
 
+drush --yes pm-enable sesi_user_registration
+drush --yes features-revert sesi_user_registration
+
 # Enable project theme.
 #drush --yes pm-enable ourprettytheme
 

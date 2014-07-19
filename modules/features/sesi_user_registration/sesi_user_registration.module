@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Sesi user registration feature.
+ */
+
+include_once 'sesi_user_registration.features.inc';
