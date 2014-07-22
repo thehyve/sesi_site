@@ -32,10 +32,17 @@ drush archive-dump /tmp/micasitebk
 # ////////////////////////// Enable project features.
 drush --yes pm-enable sesi_eid_login
 drush --yes pm-disable beididp_button
-drush --yes features-revert sesi_eid_login 
+drush --yes features-revert sesi_eid_login
 
 drush --yes pm-enable sesi_user_registration
 drush --yes features-revert sesi_user_registration
+
+# ////////////////////////// Download Autologout module dependencies and enable it
+drush --yes dl autologout
+drush --yes en autologout
+# ////////////////////////// Enable and revert the auto logout feature
+drush --yes pm-enable sesi_autologout
+drush --yes features-revert sesi_autologout
 
 # Enable project theme.
 #drush --yes pm-enable ourprettytheme
@@ -54,12 +61,10 @@ drush --yes features-revert sesi_user_registration
 # Index content for solr
 #drush sapi-i ok_sitewide_index 10000 25
 #drush sapi-s
- 
+
 # Revert all features and clear cache.
 ### drush --yes features-revert-all
 drush cache-clear all
  
 # Display list of features to check status manually.
 drush features
- 
-

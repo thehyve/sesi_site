@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Sesi Autologout feature.
+ */
+
+include_once 'sesi_autologout.features.inc';
