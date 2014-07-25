@@ -1,0 +1,29 @@
+<?php
+function dataset_inheritance_node_insert($node) {
+  global $user;
+  
+  // i'm only interested in datasets
+  if(!$node->type=='dataset') {
+    return;
+  }
+  
+  // i only want new registers
+  // (if you don't put this, when you import from csv, this is triggered also)
+  if(!$node->isnew) {
+      return;
+  }
+  
+  dpm($node);    
+  // check if has a parent field defined
+  if(!property_exists($node, 'field_dataset_parent') || !is_array($node->field_dataset_parent)) {
+    return;
+  }
+  
+  $parent_nid = $node->field_dataset_parent['und'][0]['nid'];
+  dpm($parent_nid);    
+  
+  
+}
+
+
+?>
