@@ -9,11 +9,22 @@ echo ' |    `   \    |   \    |  / |    |  /    |    \    |___   |    |   |    |
 echo '/_______  /____|_  /______/  |____|  \____|__  /_______ \  |____|   |______/ |_______ \_______ \ '
 echo '        \/       \/                          \/        \/                            \/       \/ '
 
+# Get drupal root
+DRUPAL_ROOT=`drush status | grep 'Drupal root' | sed 's/.*:[ ]*//' | sed 's/ *$//'`
+echo $DRUPAL_ROOT
 
 if ! type "drush" > /dev/null; then
   wget --quiet -O - http://ftp.drupal.org/files/projects/drush-7.x-5.9.tar.gz | tar -zxf - -C /usr/local/share
   ln -s /usr/local/share/drush/drush /usr/bin/drush
 fi
+
+# Get field_group patch and apply it
+if [ ! -f 2078201-27-fieldgroup_notice_flood.patch ]; then
+    echo 'field_group module patch does not exist'
+    wget https://www.drupal.org/files/2078201-27-fieldgroup_notice_flood.patch
+fi
+
+patch -p1 "$DRUPAL_ROOT/profiles/mica_distribution/modules/field_group/field_group.module" 2078201-27-fieldgroup_notice_flood.patch
 
 # Check drupal status
 drush status
@@ -32,7 +43,7 @@ drush archive-dump /tmp/micasitebk
 # ////////////////////////// Enable project features.
 drush --yes pm-enable sesi_eid_login
 drush --yes pm-disable beididp_button
-drush --yes features-revert sesi_eid_login 
+drush --yes features-revert sesi_eid_login
 
 drush --yes pm-enable sesi_user_registration
 drush --yes features-revert sesi_user_registration
@@ -42,6 +53,13 @@ drush --yes features-revert sesi_dataset_inheritance
 
 drush --yes pm-enable sesi_dataset_versioning
 drush --yes features-revert sesi_dataset_versioning
+
+# ////////////////////////// Download Autologout module dependencies and enable it
+drush --yes dl autologout
+drush --yes en autologout
+# ////////////////////////// Enable and revert the auto logout feature
+drush --yes pm-enable sesi_autologout
+drush --yes features-revert sesi_autologout
 
 # Enable project theme.
 #drush --yes pm-enable ourprettytheme
@@ -60,12 +78,10 @@ drush --yes features-revert sesi_dataset_versioning
 # Index content for solr
 #drush sapi-i ok_sitewide_index 10000 25
 #drush sapi-s
- 
+
 # Revert all features and clear cache.
 ### drush --yes features-revert-all
 drush cache-clear all
  
 # Display list of features to check status manually.
 drush features
- 
-
