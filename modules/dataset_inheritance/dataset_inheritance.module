@@ -1,0 +1,73 @@
+<?php
+/*
+.__       .__                 .__  __             .___     .___       __                        __   
+|__| ____ |  |__   ___________|__|/  |_  ____   __| _/   __| _/____ _/  |______    ______ _____/  |_ 
+|  |/    \|  |  \_/ __ \_  __ \  \   __\/ __ \ / __ |   / __ |\__  \\   __\__  \  /  ___// __ \   __\
+|  |   |  \   Y  \  ___/|  | \/  ||  | \  ___// /_/ |  / /_/ | / __ \|  |  / __ \_\___ \\  ___/|  |  
+|__|___|  /___|  /\___  >__|  |__||__|  \___  >____ |  \____ |(____  /__| (____  /____  >\___  >__|  
+        \/     \/     \/                    \/     \/       \/     \/          \/     \/     \/      
+
+ trigger that when you insert a new dataset with inheritance combobox based on another dataset
+ */
+function dataset_inheritance_node_insert($node) {
+  global $user;
+  
+  // i'm only interested in datasets
+  if(!$node->type=='dataset') {
+    return;
+  }
+  
+  // i only want new registers
+  // (if you don't put this, when you import from csv, this is triggered also)
+  if(!$node->is_new) {
+      return;
+  }
+    
+  // check if has a parent field defined
+  if(!property_exists($node, 'field_dataset_parent') || !is_array($node->field_dataset_parent)) {
+    return;
+  }
+  
+  // if the dataset has not parent..
+  $parent_datasets = $node->field_dataset_parent[LANGUAGE_NONE];
+  if(count($parent_datasets)==0) {
+      return;
+  }
+  $parent_nid = $parent_datasets[0]['nid'];
+  
+  //get all variables corresponding to parent_nid
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'variable')
+    ->fieldCondition('field_dataset','nid',$parent_nid,'='); 
+    
+//    ->propertyCondition('status', 1)
+//    ->fieldCondition('field_news_types', 'value', 'spotlight', '=')
+//    ->fieldCondition('field_photo', 'fid', 'NULL', '!=')
+//    ->fieldCondition('field_faculty_tag', 'tid', $value)
+//    ->fieldCondition('field_news_publishdate', 'value', $year . '%', 'like')
+//    ->fieldOrderBy('field_photo', 'fid', 'DESC')
+//    ->range(0, 10)
+//    ->addMetaData('account', user_load(1)); // Run the query as user 1.
+    $result = $query->execute();
+    if (isset($result['node'])) {
+      $vars_items_nids = array_keys($result['node']);
+      $vars_items = entity_load('node', $vars_items_nids);
+      
+      foreach ($vars_items as $itervar) {
+        $iternode = node_load($itervar->nid);
+        $iternode->field_dataset[LANGUAGE_NONE][0]['nid'] = $node->nid;
+        unset($iternode->nid);
+        unset($iternode->vid);
+        //dpm($iternode);
+        node_save($iternode);
+      }   
+      $entries = count($vars_items);
+      drupal_set_message(t("Added @entries variables.", array('@entries' => $entries)), 'status');
+    
+      
+    }
+    
+}
+
+?>

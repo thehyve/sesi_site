@@ -1,0 +1,12 @@
+name = Dataset Inheritance
+description = Implements dataset inheritance 
+package = Sesi
+core = 7.x
+;files[] = dataset_inheritance.test
+
+; Information added by Drupal.org packaging script on 2014-07-10
+version = "7.x-1.0b"
+core = "7.x"
+project = "sesi"
+datestamp = "1407030771"
+

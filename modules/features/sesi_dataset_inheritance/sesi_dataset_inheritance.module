@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Sesi Dataset Inheritance feature.
+ */
+
+include_once 'sesi_dataset_inheritance.features.inc';
