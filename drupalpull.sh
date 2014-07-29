@@ -37,6 +37,12 @@ drush --yes features-revert sesi_eid_login
 drush --yes pm-enable sesi_user_registration
 drush --yes features-revert sesi_user_registration
 
+drush --yes pm-enable sesi_dataset_inheritance
+drush --yes features-revert sesi_dataset_inheritance
+
+drush --yes pm-enable sesi_dataset_versioning
+drush --yes features-revert sesi_dataset_versioning
+
 # Enable project theme.
 #drush --yes pm-enable ourprettytheme
 
