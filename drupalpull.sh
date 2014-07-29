@@ -9,11 +9,22 @@ echo ' |    `   \    |   \    |  / |    |  /    |    \    |___   |    |   |    |
 echo '/_______  /____|_  /______/  |____|  \____|__  /_______ \  |____|   |______/ |_______ \_______ \ '
 echo '        \/       \/                          \/        \/                            \/       \/ '
 
+# Get drupal root
+DRUPAL_ROOT=`drush status | grep 'Drupal root' | sed 's/.*:[ ]*//' | sed 's/ *$//'`
+echo $DRUPAL_ROOT
 
 if ! type "drush" > /dev/null; then
   wget --quiet -O - http://ftp.drupal.org/files/projects/drush-7.x-5.9.tar.gz | tar -zxf - -C /usr/local/share
   ln -s /usr/local/share/drush/drush /usr/bin/drush
 fi
+
+# Get field_group patch and apply it
+if [ ! -f 2078201-27-fieldgroup_notice_flood.patch ]; then
+    echo 'field_group module patch does not exist'
+    wget https://www.drupal.org/files/2078201-27-fieldgroup_notice_flood.patch
+fi
+
+patch -p1 "$DRUPAL_ROOT/profiles/mica_distribution/modules/field_group/field_group.module" 2078201-27-fieldgroup_notice_flood.patch
 
 # Check drupal status
 drush status
