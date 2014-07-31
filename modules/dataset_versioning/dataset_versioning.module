@@ -1,0 +1,101 @@
+<?php
+
+//                           .__              .__                
+// ___  __ ___________  _____|__| ____   ____ |__| ____    ____  
+// \  \/ // __ \_  __ \/  ___/  |/  _ \ /    \|  |/    \  / ___\ 
+//  \   /\  ___/|  | \/\___ \|  (  <_> )   |  \  |   |  \/ /_/  >
+//   \_/  \___  >__|  /____  >__|\____/|___|  /__|___|  /\___  / 
+//            \/           \/               \/        \//_____/  
+ 
+/**
+ * adds a button to dataset edit form to permit creating new version from there
+ */
+
+function dataset_versioning_form_alter(&$form, $form_state, $form_id) {
+    
+    if($form_id != 'dataset_node_form' ) {
+        return;
+    }
+
+    //if it's not editing
+    $node = $form_state['node'];
+    if (!isset($node->nid) || isset($node->is_new)) {
+        return;
+    }
+
+    //dpm($form_id);
+    
+    //insert button after version text box: edit-field-dataset-version
+    $newbutton = array(
+        '#type'   => 'submit',
+        '#value'  => 'Create a new version',
+        '#weight' => $form['field_dataset_version']['#weight'],
+        '#submit' => array('dataset_versioning_custom_form_submit')
+    );
+    
+    $pos = array_search('field_dataset_version', array_keys($form)) +1;
+    $form = array_merge(array_slice($form, 0, $pos), array('new_version_button' => $newbutton), array_slice($form, $pos));
+    //dpm($form);
+    
+
+ }
+ 
+
+/**
+ * create new version button onclick action
+ */
+function dataset_versioning_custom_form_submit($form, &$form_state) {
+    
+    global $user;
+  
+    // ------ clone dataset
+    $nid = $form_state['node']->nid;
+    
+    $ds_item = node_load($nid);
+
+    if(!$ds_item) {
+        drupal_set_message(t("Problem loading node id @id.", array('@id' => $nid)), 'error');
+        return;
+    }
+    
+    unset($ds_item->nid);
+    unset($ds_item->vid);
+    $ds_item->status=0; //unpublished
+    $ds_item->title = $ds_item->title.' new version';
+    // -- increments version
+    $next_version = intval($ds_item->field_dataset_version[LANGUAGE_NONE][0]['value']) + 1;
+    $ds_item->field_dataset_version[LANGUAGE_NONE][0]['value'] = strval($next_version);
+    $ds_item->field_dataset_variables = array();  
+    node_save($ds_item);
+    
+    // -- clone variables
+    $query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'variable')
+    ->fieldCondition('field_dataset','nid',$nid,'='); 
+    
+    $result = $query->execute();
+    if (isset($result['node'])) {
+      $vars_items_nids = array_keys($result['node']);
+      $vars_items = entity_load('node', $vars_items_nids);
+      
+      foreach ($vars_items as $itervar) {
+        $iternode = node_load($itervar->nid);
+        $iternode->field_dataset[LANGUAGE_NONE][0]['nid'] = $ds_item->nid;
+        unset($iternode->nid);
+        unset($iternode->vid);
+        
+        //by default publish variable
+        $iternode->status=1;
+        
+        node_save($iternode);
+      }  
+      
+    }
+    //
+    
+    // redirects to you created ds
+    drupal_set_message(t('New version saved.', array()));
+    $form_state['redirect'] = "/node/".$ds_item->nid."/edit";    
+        
+}
