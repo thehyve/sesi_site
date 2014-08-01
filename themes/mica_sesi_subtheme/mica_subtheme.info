@@ -1,0 +1,23 @@
+screenshot  = screenshot.png
+name        = Mica Sesi Bootstrap subtheme
+description = Use this theme to customize your Mica. Parent theme will be overridden during Mica upgrade, but not this one.
+core        = 7.x
+base theme  = mica_bootstrap
+
+stylesheets[all][] = css/mica_subtheme.css
+
+regions[navigation]     = 'Navigation'
+regions[header]         = 'Top Bar'
+regions[highlighted]    = 'Highlighted'
+regions[help]           = 'Help'
+regions[content]        = 'Content'
+regions[sidebar_first]  = 'Primary'
+regions[sidebar_second] = 'Secondary'
+regions[footer]         = 'Footer'
+
+; Information added by drupal.org packaging script on 2013-10-17
+version = "7.x-8.2"
+core = "7.x"
+project = "mica_distribution"
+datestamp = "1382020703"
+
