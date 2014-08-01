@@ -66,6 +66,10 @@ function dataset_versioning_custom_form_submit($form, &$form_state) {
     $next_version = intval($ds_item->field_dataset_version[LANGUAGE_NONE][0]['value']) + 1;
     $ds_item->field_dataset_version[LANGUAGE_NONE][0]['value'] = strval($next_version);
     $ds_item->field_dataset_variables = array();  
+
+    //to avoid other module cloning fields again
+    $_REQUEST['ignore_inheritance'] = TRUE; 
+    
     node_save($ds_item);
     
     // -- clone variables

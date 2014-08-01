@@ -13,7 +13,7 @@ function dataset_inheritance_node_insert($node) {
   global $user;
   
   // i'm only interested in datasets
-  if(!$node->type=='dataset') {
+  if($node->type!='dataset') {
     return;
   }
   
@@ -22,7 +22,10 @@ function dataset_inheritance_node_insert($node) {
   if(!$node->is_new) {
       return;
   }
-    
+
+  if( isset($_REQUEST['ignore_inheritance'])) {
+      return;
+  }
   // check if has a parent field defined
   if(!property_exists($node, 'field_dataset_parent') || !is_array($node->field_dataset_parent)) {
     return;
@@ -60,6 +63,10 @@ function dataset_inheritance_node_insert($node) {
         unset($iternode->nid);
         unset($iternode->vid);
         //dpm($iternode);
+        
+        //by default publish variable
+        $iternode->status=1;
+        
         node_save($iternode);
       }   
       $entries = count($vars_items);
@@ -70,4 +77,3 @@ function dataset_inheritance_node_insert($node) {
     
 }
 
-?>
