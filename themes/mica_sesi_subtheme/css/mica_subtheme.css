@@ -1,0 +1,24 @@
+a:hover, a:focus {
+    color: green;
+    text-decoration: underline;
+}
+a:hover, a:active {
+    outline: 0;
+}
+a {
+    color: #CF0000;
+    text-decoration: none;
+}
+a.thumbnail:hover {
+    color: #CF0000 !important;
+}
+.details {
+    border-top:5px solid #CF0000 !important;
+    position:relative; 
+}
+
+#home-page .home-images .thumbnail .how-it-works:before,
+#home-page .home-images .thumbnail .resources:before,
+#home-page .home-images .thumbnail .events:before,
+#home-page .home-images .thumbnail .blog:before
+{background:url("../img/home.png") no-repeat scroll 0 0 transparent !important}
