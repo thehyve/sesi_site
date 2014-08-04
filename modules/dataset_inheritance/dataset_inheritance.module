@@ -1,79 +1,357 @@
 <?php
-/*
-.__       .__                 .__  __             .___     .___       __                        __   
-|__| ____ |  |__   ___________|__|/  |_  ____   __| _/   __| _/____ _/  |______    ______ _____/  |_ 
-|  |/    \|  |  \_/ __ \_  __ \  \   __\/ __ \ / __ |   / __ |\__  \\   __\__  \  /  ___// __ \   __\
-|  |   |  \   Y  \  ___/|  | \/  ||  | \  ___// /_/ |  / /_/ | / __ \|  |  / __ \_\___ \\  ___/|  |  
-|__|___|  /___|  /\___  >__|  |__||__|  \___  >____ |  \____ |(____  /__| (____  /____  >\___  >__|  
-        \/     \/     \/                    \/     \/       \/     \/          \/     \/     \/      
 
- trigger that when you insert a new dataset with inheritance combobox based on another dataset
+/*
+  .__       .__                 .__  __             .___     .___       __                        __
+  |__| ____ |  |__   ___________|__|/  |_  ____   __| _/   __| _/____ _/  |______    ______ _____/  |_
+  |  |/    \|  |  \_/ __ \_  __ \  \   __\/ __ \ / __ |   / __ |\__  \\   __\__  \  /  ___// __ \   __\
+  |  |   |  \   Y  \  ___/|  | \/  ||  | \  ___// /_/ |  / /_/ | / __ \|  |  / __ \_\___ \\  ___/|  |
+  |__|___|  /___|  /\___  >__|  |__||__|  \___  >____ |  \____ |(____  /__| (____  /____  >\___  >__|
+  \/     \/     \/                    \/     \/       \/     \/          \/     \/     \/
+
+ * 
+ * This module provides functionality to inherit variables from parent datasets. 
+ * It contains the following hooks:
+ * 
+ *   dataset_inheritance_node_insert
+ *      inherit variables from parent dataset when creating a new dataset
+ * 
+ *   dataset_inheritance_node_update
+ *      update inherited variables when changing the parent dataset
+ * 
+ *   dataset_inheritance_node_presave
+ *      resetting the variable_inherited flag when editing a variable
+ * 
+ *   dataset_inheritance_form_alter
+ *      Adds a button 'update inherited fields' to the edit dataset form. When
+ *      clicked on, the dataset_inheritance_update_inherited_fields is called.
+ *      Also removed the checkbox for 'variable-inherited' flag from the form view.
+ * 
+ *   dataset_inheritance_update_inherited_fields
+ *      Callback for button added to edit dataset form.
+ * 
+ * The real logic for updating the inherited fields is in the following methods:
+ *   _dataset_inheritance_update_inheritance
+ *      Updates the inheritance, by deleting old inherited variables and adding 
+ *      new ones.
+ * 
+ *   _dataset_inheritance_delete_inherited_variables
+ *      Deletes all inherited variables for a given dataset.
+ * 
+ *   _dataset_inheritance_clone_variables_from_parent
+ *      Adds all variables from a parent dataset to a child dataset.
+ *   
+ * The following helper methods are also provided:
+ * 
+ *   _dataset_inheritance_update_inheritance_for_updated_dataset
+ *      Updates inherited fields for a dataset, if the parent has changed 
+ *      compared to the database state. Is called from 
+ *      dataset_inheritance_node_update hook.
+ * 
+ *   _dataset_inheritance_mark_variable_as_not_inherited
+ *      Marks a variable as being 'not inherited', to avoid it being overwritten
+ *      when updating inheritance. Is called from dataset_inheritance_node_presave
+ * 
+ *   _dataset_inheritance_get_parent_from_dataset
+ *      Returns the parent id from a dataset.
+ * 
+ */
+
+/**
+ * Inherits fields from the parent dataset, if one is specified.
+ * 
+ * This hook is called when inserting a new dataset.
+ * @global type $user
+ * @param type $node
+ * @return void 
  */
 function dataset_inheritance_node_insert($node) {
-  global $user;
-  
-  // i'm only interested in datasets
-  if($node->type!='dataset') {
-    return;
-  }
-  
-  // i only want new registers
-  // (if you don't put this, when you import from csv, this is triggered also)
-  if(!$node->is_new) {
-      return;
-  }
+    global $user;
 
-  if( isset($_REQUEST['ignore_inheritance'])) {
-      return;
-  }
-  // check if has a parent field defined
-  if(!property_exists($node, 'field_dataset_parent') || !is_array($node->field_dataset_parent)) {
-    return;
-  }
-  
-  // if the dataset has not parent..
-  $parent_datasets = $node->field_dataset_parent[LANGUAGE_NONE];
-  if(count($parent_datasets)==0) {
-      return;
-  }
-  $parent_nid = $parent_datasets[0]['nid'];
-  
-  //get all variables corresponding to parent_nid
-  $query = new EntityFieldQuery();
-  $query->entityCondition('entity_type', 'node')
-    ->entityCondition('bundle', 'variable')
-    ->fieldCondition('field_dataset','nid',$parent_nid,'='); 
-    
-//    ->propertyCondition('status', 1)
-//    ->fieldCondition('field_news_types', 'value', 'spotlight', '=')
-//    ->fieldCondition('field_photo', 'fid', 'NULL', '!=')
-//    ->fieldCondition('field_faculty_tag', 'tid', $value)
-//    ->fieldCondition('field_news_publishdate', 'value', $year . '%', 'like')
-//    ->fieldOrderBy('field_photo', 'fid', 'DESC')
-//    ->range(0, 10)
-//    ->addMetaData('account', user_load(1)); // Run the query as user 1.
-    $result = $query->execute();
-    if (isset($result['node'])) {
-      $vars_items_nids = array_keys($result['node']);
-      $vars_items = entity_load('node', $vars_items_nids);
-      
-      foreach ($vars_items as $itervar) {
-        $iternode = node_load($itervar->nid);
-        $iternode->field_dataset[LANGUAGE_NONE][0]['nid'] = $node->nid;
-        unset($iternode->nid);
-        unset($iternode->vid);
-        //dpm($iternode);
-        
-        //by default publish variable
-        $iternode->status=1;
-        
-        node_save($iternode);
-      }   
-      $entries = count($vars_items);
-      drupal_set_message(t("Added @entries variables.", array('@entries' => $entries)), 'status');
-    
-      
+    // i'm only interested in datasets
+    if ($node->type != 'dataset') {
+        return;
     }
+
+    // i only want new registers
+    // (if you don't put this, when you import from csv, this is triggered also)
+    if (!$node->is_new) {
+        return;
+    }
+
+    if (isset($_REQUEST['ignore_inheritance'])) {
+        return;
+    }
+
+    // check if has a parent field defined
+    $parent_nid = _dataset_inheritance_get_parent_from_dataset( $node );
     
+    if( !$parent_nid ) {
+        return;
+    }
+
+    $num_variables = _dataset_inheritance_clone_variables_from_parent($parent_nid);
+    if ( $num_variables > 0 ) {
+        drupal_set_message(t("Added @entries variables.", array('@entries' => $num_variables)), 'status');
+    }
 }
 
+/**
+ * This hook is called when updating a new node, and only cares about 
+ * datasets
+ * @param type $node
+ * @return void 
+ */
+function dataset_inheritance_node_update($node) {
+    if( $node->type == 'dataset' ) {
+        _dataset_inheritance_update_inheritance_for_updated_dataset( $node );
+    }
+}
+
+/**
+ * This hook is called before saving a new variable, and is used to reset
+ * the variable_inherited flag
+ * @param type $node
+ * @return void 
+ */
+function dataset_inheritance_node_presave($node) {
+    if( $node->type == 'variable' && !$node->is_new ) {
+        _dataset_inheritance_mark_variable_as_not_inherited( $node );
+    }
+}
+
+/**
+ * adds a button to dataset edit form, next to the 'parent' field to permit 
+ * updating a child if the parent has changed.
+ */
+function dataset_inheritance_form_alter(&$form, $form_state, $form_id) {
+    if ($form_id == 'dataset_node_form') {
+        // only add the button if the user edits the dataset (as opposed to adding
+        // a new one)
+        $node = $form_state['node'];
+        if (!isset($node->nid) || isset($node->is_new)) {
+            return;
+        }
+
+        // Define a new button to update inherited fields
+        $newbutton = array(
+            '#type' => 'submit',
+            '#value' => 'Update inherited fields',
+            '#weight' => $form['field_dataset_parent']['#weight'] + 1,
+            '#submit' => array( 'node_form_submit', 'dataset_inheritance_update_inherited_fields' )
+        );
+
+        // Insert the button in the group "Inheritance" in the form
+        $form["#groups"]["group_dataset_inheritance"]->children[] = "button_update_parent";
+        $form["#group_children"]["button_update_parent"] = "group_dataset_inheritance";
+        $form["button_update_parent"] = $newbutton;        
+        return;
+    } elseif( $form_id == 'variable_node_form' ) {
+        // Remove the variable-inherited flag from the form
+        $form[ 'field_variable_inherited_flag' ] = array();
+    }
+}
+
+/**
+ * callback method to be executed if the user clicks 'update inherited fields' button
+ */
+function dataset_inheritance_update_inherited_fields($form, &$form_state) {
+    // Load child dataset 
+    $dataset = node_load($form_state['node']->nid);
+    
+    // Retrieve parent dataset id from the form (may have changed since the
+    // last save)
+    $parent_nid = _dataset_inheritance_get_parent_from_dataset( $dataset );
+    
+    if( $parent_nid ) {
+        // Update inherited fields
+        $num_fields = _dataset_inheritance_update_inheritance( $dataset, $parent_nid );
+
+        drupal_set_message(t('Inherited fields are updated.', array()));
+    } else {
+        // If the dataset doesn't have a parent, delete the inherited variables
+        _dataset_inheritance_delete_inherited_variables($dataset);
+        
+        drupal_set_message(t('Inherited fields have been removed.', array()));
+    }
+    
+    // Redirect the user
+    $form_state['redirect'] = "/node/" . $dataset->nid . "/edit";
+}
+
+
+/**
+ * Inherits fields from the parent dataset, if one is specified.
+ * 
+ * This hook is called when updating a new dataset. If the parent dataset
+ * has not changed, no updates will be done, as it will only recreate a lot of 
+ * variables.
+ * @param type $node
+ * @return void 
+ */
+function _dataset_inheritance_update_inheritance_for_updated_dataset($node) {
+    // Check the old node. As the changes have not been committed to the
+    // database yet, we can retrieve them from the database.
+    // See https://api.drupal.org/api/drupal/modules!node!node.api.php/function/hook_node_update/7
+    $old_dataset = node_load($node->nid);
+    
+    // check if has a parent field defined, and if it has changed
+    $new_parent_nid = _dataset_inheritance_get_parent_from_dataset( $node );
+    $old_parent_nid = _dataset_inheritance_get_parent_from_dataset( $old_dataset );
+    
+    // Update inheritance, only if the parent dataset has changed
+    if( $new_parent_nid != $old_parent_nid ) {
+        $num_variables = _dataset_inheritance_update_inheritance($node, $new_parent_nid);
+        if ( $num_variables > 0 ) {
+            drupal_set_message(t("Updated inherited fields: added @entries variables.", array('@entries' => $num_variables)), 'status');
+        } else {
+            drupal_set_message(t("Removed inherited fields."), 'status');
+        }
+    }
+}
+
+/**
+ * Updates variables. When edited, they are marked as not inherited. 
+ * This behavior ensures that inherited fields that have been changed will not
+ * be overwritten if the inheritance is updated.
+ * 
+ * @param type $node
+ * @return void 
+ */
+function _dataset_inheritance_mark_variable_as_not_inherited($node) {
+    $node->field_variable_inherited_flag = array();
+    //node_save( $variable );
+}
+
+/**
+ * Updates the fields in a child dataset, based on the parent dataset.
+ * The process is as follows:
+ * - all variables with the flag field_variable_inherited_flag=true are deleted
+ * - all variables from the parent dataset are cloned into this dataset
+ *   * if a variable with the same name already exists, it is NOT overwritten
+ *     because the user has most probably made changes there.
+ */
+function _dataset_inheritance_update_inheritance($child_dataset, $parent_dataset_id) {
+    _dataset_inheritance_delete_inherited_variables($child_dataset);
+    
+    // Only clone variables from the parent, if one is given
+    if( $parent_dataset_id ) 
+        _dataset_inheritance_clone_variables_from_parent($child_dataset, $parent_dataset_id);
+}
+
+/**
+ * Deletes all inherited variables from a child dataset.
+ * 
+ * @see _dataset_inheritance_clone_variables_from_parent
+ * @param node $child_dataset 
+ * @return int The number of variables deleted
+ */
+function _dataset_inheritance_delete_inherited_variables($child_dataset) {
+    
+    // get all variables corresponding to the child_dataset
+    // that have been inherited
+    $query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', 'node')
+            ->entityCondition('bundle', 'variable')
+            ->fieldCondition('field_dataset', 'nid', $child_dataset->nid, '=')
+            ->fieldCondition('field_variable_inherited_flag', 'value', 1, '=');
+    $result = $query->execute();
+
+    if (array_key_exists( 'node', $result ) && is_array( $result[ 'node' ] )) {
+        // Delete all nodes found 
+        $inherited_variable_nids = array_keys($result['node']);
+        node_delete_multiple( $inherited_variable_nids );
+        
+        return count($inherited_variable_nids);
+    }
+    
+    return 0;
+}
+
+/**
+ * Clones variables from the parent dataset into the child dataset. 
+ * 
+ * Existing variables (i.e. with the same name) are NOT overwritten
+ * 
+ * @param Node $child_dataset
+ * @param int $parent_dataset_id 
+ * @return Number of variables cloned
+ */
+function _dataset_inheritance_clone_variables_from_parent($child_dataset, $parent_dataset_id) {
+    //get all variables corresponding to parent_nid
+    $query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', 'node')
+            ->entityCondition('bundle', 'variable')
+            ->fieldCondition('field_dataset', 'nid', $parent_dataset_id, '=');
+
+    $result = $query->execute();
+
+    if (isset($result['node'])) {
+        // Load parent variables
+        $vars_items_nids = array_keys($result['node']);
+        $parent_variables = entity_load('node', $vars_items_nids);
+        
+        // Also load existing child variables, to make sure that fields with
+        // the same name are not overwritten.
+        $existing_variable_titles = array();
+        if( is_array( $child_dataset->field_dataset_variables ) && $child_dataset->field_dataset_variables[ LANGUAGE_NONE ] ) {
+            $child_variables = entity_load( 'node', $child_dataset->field_dataset_variables[ LANGUAGE_NONE ] );
+            
+            foreach( $child_variables as $child_variable ) {
+                $existing_variable_titles[] = $child_variable->title;
+            }
+        }
+
+        foreach ($parent_variables as $parent_variable) {
+
+            $variable_node = node_load($parent_variable->nid);
+            
+            // If a variable with the same name already exists, skip copying
+            // this variable
+            if( in_array( $variable_node->title, $existing_variable_titles ) ) {
+                continue;
+            }
+            
+            // Remove ids to clone the field
+            unset($variable_node->nid);
+            unset($variable_node->vid);
+            
+            // Store the new variable with the new child dataset
+            $variable_node->field_dataset[LANGUAGE_NONE][0]['nid'] = $child_dataset->nid;
+            
+            // Make sure to mark this field as being inherited
+            // The strange assignment is due to the way Drupal stores fields
+            $variable_node->field_variable_inherited_flag = array( LANGUAGE_NONE => array( array( 'value' => 1 ) ) );
+            
+            //by default publish variable
+            $variable_node->status = 1;
+
+            node_save($variable_node);
+        }
+        $entries = count($vars_items);
+
+        return $entries;
+    }
+
+    return 0;
+}
+
+/**
+ * Returns the ID of the parent dataset for the given child dataset
+ * 
+ * If no parent is specified, NULL is returned
+ * @param type $node
+ * @return int  Parent dataset ID or NULL
+ */
+function _dataset_inheritance_get_parent_from_dataset( $node ) {
+    if (!property_exists($node, 'field_dataset_parent') || !is_array($node->field_dataset_parent)) {
+        return null;
+    }
+
+    // if the dataset has not parent..
+    $parent_datasets = $node->field_dataset_parent[LANGUAGE_NONE];
+    if (count($parent_datasets) == 0) {
+        return null;
+    }
+    
+    return intval( $parent_datasets[0]['nid'] );
+}
