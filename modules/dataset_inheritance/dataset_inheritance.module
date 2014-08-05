@@ -89,10 +89,11 @@ function dataset_inheritance_node_insert($node) {
         return;
     }
 
-    $num_variables = _dataset_inheritance_clone_variables_from_parent($parent_nid);
+    $num_variables = _dataset_inheritance_clone_variables_from_parent($node, $parent_nid);
     if ( $num_variables > 0 ) {
         drupal_set_message(t("Added @entries variables.", array('@entries' => $num_variables)), 'status');
     }
+    
 }
 
 /**
@@ -327,7 +328,7 @@ function _dataset_inheritance_clone_variables_from_parent($child_dataset, $paren
 
             node_save($variable_node);
         }
-        $entries = count($vars_items);
+        $entries = count($parent_variables);
 
         return $entries;
     }
