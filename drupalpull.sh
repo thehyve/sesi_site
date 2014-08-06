@@ -24,10 +24,10 @@ if [ ! -f 2078201-27-fieldgroup_notice_flood.patch ]; then
     wget https://www.drupal.org/files/2078201-27-fieldgroup_notice_flood.patch
 fi
 
-patch -p1 -N --dry-run --silent "$DRUPAL_ROOT/profiles/mica_distribution/modules/field_group/field_group.module" 2078201-27-fieldgroup_notice_flood.patch
+patch -p1 -N --dry-run --silent "$DRUPAL_ROOT/profiles/mica_distribution/modules/field_group/field_group.module" 2078201-27-fieldgroup_notice_flood.patch || true
 
 #adding patch for core mica xml converter
-patch -p1 -N --dry-run --silent "$DRUPAL_ROOT/profiles/mica_distribution/modules/mica/extensions/mica_opal/mica_opal_view/ServicesOpalFormatter.inc" patch/fix_vocabulary_url.patch
+patch -p1 -N --dry-run --silent "$DRUPAL_ROOT/profiles/mica_distribution/modules/mica/extensions/mica_opal/mica_opal_view/ServicesOpalFormatter.inc" patch/fix_vocabulary_url.patch || true
 
 # Check drupal status
 drush status
