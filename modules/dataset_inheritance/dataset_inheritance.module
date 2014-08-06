@@ -294,7 +294,9 @@ function _dataset_inheritance_clone_variables_from_parent($child_dataset, $paren
         // Also load existing child variables, to make sure that fields with
         // the same name are not overwritten.
         $existing_variable_titles = array();
-        if( is_array( $child_dataset->field_dataset_variables ) && $child_dataset->field_dataset_variables[ LANGUAGE_NONE ] ) {
+        if( is_array( $child_dataset->field_dataset_variables ) && 
+                array_key_exists( LANGUAGE_NONE, $child_dataset->field_dataset_variables ) &&
+                $child_dataset->field_dataset_variables[ LANGUAGE_NONE ] ) {
             $child_variables = entity_load( 'node', $child_dataset->field_dataset_variables[ LANGUAGE_NONE ] );
             
             foreach( $child_variables as $child_variable ) {
