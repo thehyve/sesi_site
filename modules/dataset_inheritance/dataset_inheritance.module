@@ -294,7 +294,9 @@ function _dataset_inheritance_clone_variables_from_parent($child_dataset, $paren
         // Also load existing child variables, to make sure that fields with
         // the same name are not overwritten.
         $existing_variable_titles = array();
-        if( is_array( $child_dataset->field_dataset_variables ) && $child_dataset->field_dataset_variables[ LANGUAGE_NONE ] ) {
+        if( is_array( $child_dataset->field_dataset_variables ) && 
+                array_key_exists( LANGUAGE_NONE, $child_dataset->field_dataset_variables ) &&
+                $child_dataset->field_dataset_variables[ LANGUAGE_NONE ] ) {
             $child_variables = entity_load( 'node', $child_dataset->field_dataset_variables[ LANGUAGE_NONE ] );
             
             foreach( $child_variables as $child_variable ) {
@@ -344,10 +346,17 @@ function _dataset_inheritance_clone_variables_from_parent($child_dataset, $paren
  * @return int  Parent dataset ID or NULL
  */
 function _dataset_inheritance_get_parent_from_dataset( $node ) {
-    if (!property_exists($node, 'field_dataset_parent') || !is_array($node->field_dataset_parent)) {
+    // Test whether the field for a dataset parent is defined. This may 
+    // not be the case if the feature module has not been installed or enabled
+    if (!property_exists($node, 'field_dataset_parent') ) {
         return null;
     }
-
+    
+    // Test whether there is actually a parent dataset defined
+    if( !is_array($node->field_dataset_parent) || !array_key_exists( LANGUAGE_NONE, $node->field_dataset_parent) ) {
+        return null;
+    }
+    
     // if the dataset has not parent..
     $parent_datasets = $node->field_dataset_parent[LANGUAGE_NONE];
     if (count($parent_datasets) == 0) {
