@@ -23,8 +23,6 @@ function dataset_versioning_form_alter(&$form, $form_state, $form_id) {
         return;
     }
 
-    //dpm($form_id);
-    
     //insert button after version text box: edit-field-dataset-version
     $newbutton = array(
         '#type'   => 'submit',
@@ -35,8 +33,6 @@ function dataset_versioning_form_alter(&$form, $form_state, $form_id) {
     
     $pos = array_search('field_dataset_version', array_keys($form)) +1;
     $form = array_merge(array_slice($form, 0, $pos), array('new_version_button' => $newbutton), array_slice($form, $pos));
-    //dpm($form);
-    
 
  }
  
@@ -58,18 +54,24 @@ function dataset_versioning_custom_form_submit($form, &$form_state) {
         return;
     }
     
+    // Create a wrapper to access complex fields later on.
+    // The wrapper refers to the original array, so we can use both of them
+    $wrapper = entity_metadata_wrapper( 'node', $ds_item );
+    
     unset($ds_item->nid);
     unset($ds_item->vid);
     $ds_item->status=0; //unpublished
     $ds_item->title = $ds_item->title.' new version';
+    
     // -- increments version
-    $next_version = intval($ds_item->field_dataset_version[LANGUAGE_NONE][0]['value']) + 1;
-    $ds_item->field_dataset_version[LANGUAGE_NONE][0]['value'] = strval($next_version);
-    $ds_item->field_dataset_variables = array();  
-
+    $current_version = intval($wrapper->field_dataset_version->value());
+    $wrapper->field_dataset_version->set($current_version + 1);
+    
     //to avoid other module cloning fields again
     $_REQUEST['ignore_inheritance'] = TRUE; 
     
+    // Remove all variables
+    $ds_item->field_dataset_variables = array();  
     node_save($ds_item);
     
     // -- clone variables
@@ -85,7 +87,8 @@ function dataset_versioning_custom_form_submit($form, &$form_state) {
       
       foreach ($vars_items as $itervar) {
         $iternode = node_load($itervar->nid);
-        $iternode->field_dataset[LANGUAGE_NONE][0]['nid'] = $ds_item->nid;
+        $variable_wrapper = entity_metadata_wrapper( 'node', $iternode );
+        $variable_wrapper->field_dataset->set( $ds_item->nid );
         unset($iternode->nid);
         unset($iternode->vid);
         
