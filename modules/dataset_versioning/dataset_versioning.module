@@ -61,7 +61,7 @@ function dataset_versioning_custom_form_submit($form, &$form_state) {
     unset($ds_item->nid);
     unset($ds_item->vid);
     $ds_item->status=0; //unpublished
-    $ds_item->title = $ds_item->title.' new version';
+    
     
     // -- increments version
     $current_version = intval($wrapper->field_dataset_version->value());
@@ -104,5 +104,24 @@ function dataset_versioning_custom_form_submit($form, &$form_state) {
     // redirects to you created ds
     drupal_set_message(t('New version saved.', array()));
     $form_state['redirect'] = "/node/".$ds_item->nid."/edit";    
+}
+
+/**
+ * This hook is called before saving a new dataset, and is used to add
+ * the version number to the title. See SESI-220 for specifications
+ * @param type $node
+ * @return void 
+ */
+function dataset_versioning_node_presave($node) {
+    if( $node->type == 'dataset' ) {
+        $dataset = entity_metadata_wrapper( 'node', $node );
+        $title = $dataset->title->value();
         
+        // If the title already contains the version number 
+        // then the old one should be removed
+        $title = preg_replace( '/ v\d+$/', '', $title );
+        
+        // Add the new version number to the title
+        $dataset->title->set( trim( $title ) . " v" . $dataset->field_dataset_version->value() );
+    }
 }
