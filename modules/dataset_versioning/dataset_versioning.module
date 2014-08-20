@@ -62,6 +62,7 @@ function dataset_versioning_custom_form_submit($form, &$form_state) {
     unset($ds_item->vid);
     $ds_item->status=0; //unpublished
     
+    
     // -- increments version
     $current_version = intval($wrapper->field_dataset_version->value());
     $wrapper->field_dataset_version->set($current_version + 1);

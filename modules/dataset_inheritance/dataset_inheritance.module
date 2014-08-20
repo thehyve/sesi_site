@@ -81,15 +81,17 @@ function dataset_inheritance_node_insert($node) {
     if (isset($_REQUEST['ignore_inheritance'])) {
         return;
     }
+    
+    $wrapper = entity_metadata_wrapper( 'node', $node );
 
     // check if has a parent field defined
-    $parent_nid = _dataset_inheritance_get_parent_from_dataset( $node );
+    $parent_nid = _dataset_inheritance_get_parent_from_dataset( $wrapper );
     
     if( !$parent_nid ) {
         return;
     }
 
-    $num_variables = _dataset_inheritance_clone_variables_from_parent($node, $parent_nid);
+    $num_variables = _dataset_inheritance_clone_variables_from_parent($wrapper, $parent_nid);
     if ( $num_variables > 0 ) {
         drupal_set_message(t("Added @entries variables.", array('@entries' => $num_variables)), 'status');
     }
@@ -104,7 +106,8 @@ function dataset_inheritance_node_insert($node) {
  */
 function dataset_inheritance_node_update($node) {
     if( $node->type == 'dataset' ) {
-        _dataset_inheritance_update_inheritance_for_updated_dataset( $node );
+        $wrapper = entity_metadata_wrapper( 'node', $node );
+        _dataset_inheritance_update_inheritance_for_updated_dataset( $wrapper );
     }
 }
 
@@ -116,7 +119,8 @@ function dataset_inheritance_node_update($node) {
  */
 function dataset_inheritance_node_presave($node) {
     if( $node->type == 'variable' && !$node->is_new ) {
-        _dataset_inheritance_mark_variable_as_not_inherited( $node );
+        $wrapper = entity_metadata_wrapper( 'node', $node );
+        _dataset_inheritance_mark_variable_as_not_inherited( $wrapper );
     }
 }
 
@@ -158,19 +162,20 @@ function dataset_inheritance_form_alter(&$form, $form_state, $form_id) {
 function dataset_inheritance_update_inherited_fields($form, &$form_state) {
     // Load child dataset 
     $dataset = node_load($form_state['node']->nid);
+    $dataset_wrapper = entity_metadata_wrapper( 'node', $dataset );
     
     // Retrieve parent dataset id from the form (may have changed since the
     // last save)
-    $parent_nid = _dataset_inheritance_get_parent_from_dataset( $dataset );
+    $parent_nid = _dataset_inheritance_get_parent_from_dataset( $dataset_wrapper );
     
     if( $parent_nid ) {
         // Update inherited fields
-        $num_fields = _dataset_inheritance_update_inheritance( $dataset, $parent_nid );
+        $num_fields = _dataset_inheritance_update_inheritance( $dataset_wrapper, $parent_nid );
 
         drupal_set_message(t('Inherited fields are updated.', array()));
     } else {
         // If the dataset doesn't have a parent, delete the inherited variables
-        _dataset_inheritance_delete_inherited_variables($dataset);
+        _dataset_inheritance_delete_inherited_variables($dataset_wrapper);
         
         drupal_set_message(t('Inherited fields have been removed.', array()));
     }
@@ -186,22 +191,23 @@ function dataset_inheritance_update_inherited_fields($form, &$form_state) {
  * This hook is called when updating a new dataset. If the parent dataset
  * has not changed, no updates will be done, as it will only recreate a lot of 
  * variables.
- * @param type $node
+ * @param EntityMetadataWrapper $node
  * @return void 
  */
-function _dataset_inheritance_update_inheritance_for_updated_dataset($node) {
+function _dataset_inheritance_update_inheritance_for_updated_dataset($node_wrapper) {
     // Check the old node. As the changes have not been committed to the
     // database yet, we can retrieve them from the database.
     // See https://api.drupal.org/api/drupal/modules!node!node.api.php/function/hook_node_update/7
-    $old_dataset = node_load($node->nid);
+    $old_dataset = node_load($node_wrapper->getIdentifier());
+    $old_dataset_wrapper = entity_metadata_wrapper( 'node', $old_dataset );
     
     // check if has a parent field defined, and if it has changed
-    $new_parent_nid = _dataset_inheritance_get_parent_from_dataset( $node );
-    $old_parent_nid = _dataset_inheritance_get_parent_from_dataset( $old_dataset );
+    $new_parent_nid = _dataset_inheritance_get_parent_from_dataset( $node_wrapper );
+    $old_parent_nid = _dataset_inheritance_get_parent_from_dataset( $old_dataset_wrapper );
     
     // Update inheritance, only if the parent dataset has changed
     if( $new_parent_nid != $old_parent_nid ) {
-        $num_variables = _dataset_inheritance_update_inheritance($node, $new_parent_nid);
+        $num_variables = _dataset_inheritance_update_inheritance($node_wrapper, $new_parent_nid);
         if ( $num_variables > 0 ) {
             drupal_set_message(t("Updated inherited fields: added @entries variables.", array('@entries' => $num_variables)), 'status');
         } else {
@@ -215,12 +221,11 @@ function _dataset_inheritance_update_inheritance_for_updated_dataset($node) {
  * This behavior ensures that inherited fields that have been changed will not
  * be overwritten if the inheritance is updated.
  * 
- * @param type $node
+ * @param EntityMetadataWrapper $node_wrapper
  * @return void 
  */
-function _dataset_inheritance_mark_variable_as_not_inherited($node) {
-    $node->field_variable_inherited_flag = array();
-    //node_save( $variable );
+function _dataset_inheritance_mark_variable_as_not_inherited($node_wrapper) {
+    $node_wrapper->field_variable_inherited_flag->set(0);
 }
 
 /**
@@ -243,7 +248,7 @@ function _dataset_inheritance_update_inheritance($child_dataset, $parent_dataset
  * Deletes all inherited variables from a child dataset.
  * 
  * @see _dataset_inheritance_clone_variables_from_parent
- * @param node $child_dataset 
+ * @param EntityMetadataWrapper $child_dataset 
  * @return int The number of variables deleted
  */
 function _dataset_inheritance_delete_inherited_variables($child_dataset) {
@@ -253,7 +258,7 @@ function _dataset_inheritance_delete_inherited_variables($child_dataset) {
     $query = new EntityFieldQuery();
     $query->entityCondition('entity_type', 'node')
             ->entityCondition('bundle', 'variable')
-            ->fieldCondition('field_dataset', 'nid', $child_dataset->nid, '=')
+            ->fieldCondition('field_dataset', 'nid', $child_dataset->getIdentifier(), '=')
             ->fieldCondition('field_variable_inherited_flag', 'value', 1, '=');
     $result = $query->execute();
 
@@ -273,7 +278,7 @@ function _dataset_inheritance_delete_inherited_variables($child_dataset) {
  * 
  * Existing variables (i.e. with the same name) are NOT overwritten
  * 
- * @param Node $child_dataset
+ * @param EntityMetadataWrapper $child_dataset
  * @param int $parent_dataset_id 
  * @return Number of variables cloned
  */
@@ -294,23 +299,20 @@ function _dataset_inheritance_clone_variables_from_parent($child_dataset, $paren
         // Also load existing child variables, to make sure that fields with
         // the same name are not overwritten.
         $existing_variable_titles = array();
-        if( is_array( $child_dataset->field_dataset_variables ) && 
-                array_key_exists( LANGUAGE_NONE, $child_dataset->field_dataset_variables ) &&
-                $child_dataset->field_dataset_variables[ LANGUAGE_NONE ] ) {
-            $child_variables = entity_load( 'node', $child_dataset->field_dataset_variables[ LANGUAGE_NONE ] );
-            
+        $child_variables = $child_dataset->field_dataset_variables->value();
+        if( is_array( $child_variables ) ) {
             foreach( $child_variables as $child_variable ) {
                 $existing_variable_titles[] = $child_variable->title;
             }
         }
 
         foreach ($parent_variables as $parent_variable) {
-
-            $variable_node = node_load($parent_variable->nid);
+            $variable_node = node_load($parent_variable->nid );
+            $variable_wrapper = entity_metadata_wrapper( 'node', $variable_node );
             
             // If a variable with the same name already exists, skip copying
             // this variable
-            if( in_array( $variable_node->title, $existing_variable_titles ) ) {
+            if( in_array( $variable_wrapper->title->value(), $existing_variable_titles ) ) {
                 continue;
             }
             
@@ -319,11 +321,11 @@ function _dataset_inheritance_clone_variables_from_parent($child_dataset, $paren
             unset($variable_node->vid);
             
             // Store the new variable with the new child dataset
-            $variable_node->field_dataset[LANGUAGE_NONE][0]['nid'] = $child_dataset->nid;
+            $variable_wrapper->field_dataset->set( $child_dataset->getIdentifier() );
             
             // Make sure to mark this field as being inherited
             // The strange assignment is due to the way Drupal stores fields
-            $variable_node->field_variable_inherited_flag = array( LANGUAGE_NONE => array( array( 'value' => 1 ) ) );
+            $variable_wrapper->field_variable_inherited_flag->set( 1 );
             
             //by default publish variable
             $variable_node->status = 1;
@@ -342,26 +344,22 @@ function _dataset_inheritance_clone_variables_from_parent($child_dataset, $paren
  * Returns the ID of the parent dataset for the given child dataset
  * 
  * If no parent is specified, NULL is returned
- * @param type $node
+ * @param EntityMetadataWrapper $node
  * @return int  Parent dataset ID or NULL
  */
 function _dataset_inheritance_get_parent_from_dataset( $node ) {
     // Test whether the field for a dataset parent is defined. This may 
     // not be the case if the feature module has not been installed or enabled
-    if (!property_exists($node, 'field_dataset_parent') ) {
+    $parent_dataset_field = $node->field_dataset_parent;
+    if (!$parent_dataset_field ) {
         return null;
     }
     
     // Test whether there is actually a parent dataset defined
-    if( !is_array($node->field_dataset_parent) || !array_key_exists( LANGUAGE_NONE, $node->field_dataset_parent) ) {
+    $parent = $parent_dataset_field->value();
+    if (!$parent) {
         return null;
     }
     
-    // if the dataset has not parent..
-    $parent_datasets = $node->field_dataset_parent[LANGUAGE_NONE];
-    if (count($parent_datasets) == 0) {
-        return null;
-    }
-    
-    return intval( $parent_datasets[0]['nid'] );
+    return intval( $parent->nid );
 }
