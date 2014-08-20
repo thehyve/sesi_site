@@ -28,6 +28,7 @@ patch -p1 -N --silent "$DRUPAL_ROOT/profiles/mica_distribution/modules/field_gro
 
 #adding patch for core mica xml converter
 patch -p1 -N --silent "$DRUPAL_ROOT/profiles/mica_distribution/modules/mica/extensions/mica_opal/mica_opal_view/ServicesOpalFormatter.inc" patch/fix_vocabulary_url.patch || true
+patch -p1 -N --silent "$DRUPAL_ROOT/profiles/mica_distribution/modules/mica/extensions/mica_opal/mica_opal_view/ServicesOpalFormatter.inc" patch/dataset_name_in_xml_export.patch || true
 
 # Check drupal status
 drush status
