@@ -337,62 +337,17 @@ function beididp_association($op_endpoint) {
  */
 function beididp_authentication($response) {
 
-  $module = 'beididp';
   $identity = $response['openid.claimed_id'];
   $account = user_external_load($identity);
   $created = FALSE;
-  if (!$account) {
-    // Register this new user.
-    $name =  strtolower(str_replace(" ","",$response['openid.ax.value.fname']));
-    $pass = user_password();
-    $userinfo = array(
-      'name' => $name,
-      'pass' => $pass,
-      'mail' => 'replaceme, current passwd: '.$pass, //email
-      'status' => 1,
-      'access' => REQUEST_TIME,
-    );
-    $account = user_save(drupal_anonymous_user(), $userinfo);
-    // Terminate if an error occurred during user_save().
-    if (!$account) {
-      drupal_set_message(t("Error saving user account."), 'error');
-      return;
-    }
-    user_set_authmaps($account, array("authname_$module" => $identity ));
-    
-    drupal_set_message(t('You must change your email address for future logins. Your current temporary password is: @pass ', array('@pass' => $pass)));
-    
-    $created = TRUE;
-    
-  }
-
-  // Log user in.
-  $form_state['uid'] = $account->uid;
-  user_login_submit(array(), $form_state);
-  unset($_GET['destination']);
   
-  /*
-  if(!valid_email_address($account->mail)) {
-    drupal_goto('user/register');
-  } else {
-    */
-   drupal_goto();
-   
-  //}
-    
-  /*
-  $account = user_external_load($identity);
-  if (!isset($account->uid)) {
-    // tries to register the user automatically    
-    user_external_login_register( $identity, 'beididp' );
-    
-    
-  }
-    */  
-  //
-  /*
-  $account = user_external_load($identity);
+  
   if (isset($account->uid)) {
+    
+    // ----------------------------------------
+    // Log user in when it's verified Mica user      
+    // ----------------------------------------
+
     $verify = variable_get('user_email_verification', TRUE);
     if ($verify) {
       $verify = !variable_get_value('beididp_no_mail_verify');
@@ -412,19 +367,52 @@ function beididp_authentication($response) {
     }
   }
   elseif (variable_get('user_register', USER_REGISTER_VISITORS)) {
-    $_SESSION['beididp']['values']['response'] = $response;
-    $destination = drupal_get_destination();
+    
+    // ----------------------------------------
+    // When user with eID is a new register, register him/her automatically as
+    // Mica user and also automatically logged in  
+    // ----------------------------------------
+      
+    $module = 'beididp';
+      
+    $ax_values = openid_extract_namespace($response, BEIDIDP_NS_AX, 'ax', TRUE);
+    $nick = beididp_name_nick($ax_values['value.fname'], $ax_values['value.lname']);
+    $pass = user_password();
+
+    $userinfo = array(
+      'name' => $nick,
+      'pass' => user_password(),
+      'init' => $nick,
+      'status' => 1,
+      'access' => REQUEST_TIME
+    );   
+
+    $account = user_save(drupal_anonymous_user(), $userinfo);
+    
+    // Terminate if an error occurred during user_save().
+    if (!$account) {
+      drupal_set_message(t("Error saving user account."), 'error');
+      return;
+    }
+    
+    user_set_authmaps($account, array("authname_$module" => $identity ));
+    
+    drupal_set_message(t('You must change your email address for future logins. Your current temporary password is: @pass ', array('@pass' => $pass)));
+    
+    $created = TRUE;
+    
+    // Log user in.
+    $form_state['uid'] = $account->uid;
+    user_login_submit(array(), $form_state);
     unset($_GET['destination']);
-    drupal_goto('user/register', $destination);
+      
   }
   else {
     drupal_set_message(t('Only site administrators can create new user accounts.'), 'error');
   }
-
-   
-  drupal_goto();
-    */
   
+  drupal_goto();
+
 }
   
 /**
