@@ -22,3 +22,9 @@ a.thumbnail:hover {
 #home-page .home-images .thumbnail .events:before,
 #home-page .home-images .thumbnail .blog:before
 {background:url("../img/home.png") no-repeat scroll 0 0 transparent !important}
+
+/* To put modal popup on top of navigation bar especially if the browser size 
+   has limited resolution */
+#modalContent { 
+    z-index: 2000 !important;
+}
