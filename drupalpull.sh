@@ -41,6 +41,7 @@ drush --yes pm-disable bartik
 drush --yes pm-enable features
 drush --yes pm-enable strongarm
 drush --yes pm-enable locale
+drush --yes pm-enable og
 
 #backup first
 drush archive-dump /tmp/micasitebk
