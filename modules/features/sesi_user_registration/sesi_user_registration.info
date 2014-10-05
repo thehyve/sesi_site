@@ -1,7 +1,7 @@
 name = Sesi user registration
 core = 7.x
 package = Sesi
-version = 7.x-1.0b
+version = 7.x-1.1
 project = sesi_user_registration
 features[ctools][] = strongarm:strongarm:1
 features[features_api][] = api:2
