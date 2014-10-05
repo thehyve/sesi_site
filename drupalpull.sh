@@ -41,7 +41,11 @@ drush --yes pm-disable bartik
 drush --yes pm-enable features
 drush --yes pm-enable strongarm
 drush --yes pm-enable locale
-drush --yes pm-enable og
+
+#activate organic groups
+drush --yes dl og
+sudo drush --yes en og og_ui og_context
+drush pm-enable sesi_communities_and_files
 
 #backup first
 drush archive-dump /tmp/micasitebk

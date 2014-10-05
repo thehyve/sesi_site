@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Sesi Communities and files feature.
+ */
+
+include_once 'sesi_communities_and_files.features.inc';
