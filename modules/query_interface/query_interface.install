@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the Sesi Query Interface module.
+ */
+
+/**
+ * Makes sure that the methods of the query_interface module are
+ * executed after the mica_query ones.
+ * 
+ * Implements hook_install().
+ */
+function query_interface_install() {
+  // Get the weight of the module we want to compare against
+  $weight = db_select('system', 's')
+              ->fields('s', array('weight'))
+              ->condition('name', 'mica_query', '=')
+              ->execute()
+              ->fetchField();
+  
+  // Set our module to a weight 1 heavier, so ours moves lower in execution order
+  db_update('system')
+    ->fields(array('weight' => $weight + 1))
+    ->condition('name', 'query_interface', '=')
+    ->execute();    
+}
