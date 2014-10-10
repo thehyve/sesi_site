@@ -74,12 +74,16 @@ drush --yes features-revert sesi_vocabulary
 # ////////////////////////// Download Autologout module dependencies and enable it
 drush --yes dl autologout
 drush --yes en autologout
+
 # ////////////////////////// Enable and revert the auto logout feature
 drush --yes pm-enable sesi_autologout
 drush --yes features-revert sesi_autologout
 
 # Enable project theme.
 #drush --yes pm-enable ourprettytheme
+
+# Enable Contact Form
+drush --yes pm-enable contact
 
 # ////////////////////////// 
 # Update
