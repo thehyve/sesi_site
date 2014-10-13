@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Sesi Contact Form feature.
+ */
+
+include_once 'sesi_contact_form.features.inc';
