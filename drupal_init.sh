@@ -33,7 +33,7 @@ drush --yes features-revert sesi_menu_links
 # Enable User Profile Config #
 # -------------------------- #
 drush --yes pm-enable sesi_user_profile_fields
-drush --yes features-revert sesi_menu_links
+drush --yes features-revert sesi_user_profile_fields
 
 # -------------------------------------------------- #
 # Display list of features to check status manually. #
