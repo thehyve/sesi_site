@@ -48,8 +48,13 @@ sudo drush --yes en og og_ui og_context
 drush pm-enable sesi_communities_and_files
 
 #install captcha
-drush --yes dl captcha
-drush --yes en image_captcha
+#drush --yes dl captcha
+#drush --yes en image_captcha
+
+#install site map
+drush --yes dl site_map
+drush --yes en site_map
+
 
 #backup first
 #drush archive-dump /tmp/micasitebk
