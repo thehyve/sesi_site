@@ -164,11 +164,11 @@ function query_interface_form_mica_query_edit_form_alter(&$form, $form_state, $f
     return $form;
 }
 
-//function query_interface_theme_registry_alter(&$theme_registry) {
-//	if (!empty($theme_registry['mica_query_edit_form']['function'])) {
-//		$theme_registry['mica_query_edit_form']['function'] = 'sesi_mica_query_edit_form';
-//	}
-//}
+function query_interface_theme_registry_alter(&$theme_registry) {
+	if (!empty($theme_registry['mica_query_edit_form']['function'])) {
+		$theme_registry['mica_query_edit_form']['function'] = 'sesi_mica_query_edit_form';
+	}
+}
 
 function sesi_mica_query_edit_form($variables) {
     if( ORIGINAL_FORM )
@@ -177,11 +177,9 @@ function sesi_mica_query_edit_form($variables) {
     $form = $variables['form'];
     
     drupal_add_tabledrag('draggabledemo-sort', 'order', 'sibling', 'sort');
-    $header = array(t('Query Term'), t( 'Expression' ), t('Operations'));
 
     // Create the table rows on the screen
-    $rows = array();
-
+    
     // Types of rows in the form:
     //   The key 'list' defines the list of variables for which a constraint has been
     //       added. Every such row should have 2 buttons, 'edit' and 'delete'. Because
@@ -191,6 +189,9 @@ function sesi_mica_query_edit_form($variables) {
     //       the buttons for these variables (only add button) will be added to 
     //       an element with the name 'buttons-not-selected
     $rowTypes = array( "list" => "remove-term", "not-selected" => "buttons-not-selected" );
+
+    // dataRows is a list with rows to be shown in the two tables on the screen
+    $dataRows = array( "list" => array(), "not-selected" => array() );
     
     foreach( $rowTypes as $type => $buttonKey ) {
         if( array_key_exists( $type, $form ) ) {
@@ -225,19 +226,27 @@ function sesi_mica_query_edit_form($variables) {
                     $row[] = "";
                 }
 
-                $rows[] = array('data' => $row, 'class' => array('draggable')); //note the difference between $row and $rows
+                $dataRows[ $type ][] = array('data' => $row, 'class' => array('draggable')); //note the difference between $row and $rows
             }
         }
     }
   
-  $output = theme('table',
-    array(
-      'header' => $header,
-      'rows' => $rows,
-      'empty' => t('No query term found'),
-      'attributes' => array('id' => 'draggabledemo-sort')
-    )
-  );
+    // Initialize output
+    $output = "";
+    $tableHeader = array(t('Query Term'), t( 'Expression' ), t('Operations'));
+
+    // Add the table with the existing constraints (if any),
+    // as well as the table with available variables
+    foreach( $dataRows as $key => $rows ) {
+        if( count( $rows ) > 0 ) {
+            $output .= theme('table', array(
+                'header' => $tableHeader,
+                'rows' => $rows,
+                'empty' => t('No query term found'),
+                //'attributes' => array('id' => 'draggabledemo-sort')
+            ));
+        }
+    }
 
   $output .= drupal_render_children($form, array('cross'));
   $output .= drupal_render_children($form, array('actions'));
