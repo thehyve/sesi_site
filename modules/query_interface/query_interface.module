@@ -1,7 +1,43 @@
 <?php
 define( "ORIGINAL_FORM", false );
+
+ctools_include('ajax');
+ctools_include('modal');
+
+module_load_include( 'inc', 'mica_query', 'mica_query.pages.term');
+
 /**
- * Changes the look and feel of the mica query screen
+ * Registers urls specific for new query interface 
+ * Implements hook_menu().
+ */
+function query_interface_menu() {
+    $items = array();
+    
+    // This URL is used when a new query term is added, but when no term object exists yet
+    // The user can access this screen whenever he has access to the query
+    $items['sesi/%ctools_js/node/%node/queries/%mica_query/term/%node/add'] = array(
+        'title' => 'Edit',
+        'access callback' => '_mica_datasets_query_access',
+        'access arguments' => array(3, 5, 'update'),
+        'page callback' => 'query_interface_add_query_term_modal_page', 
+        'page arguments' => array(1, 3, 5, 7, 9),
+        'type' => MENU_CALLBACK
+    );
+    return $items;
+}
+
+function query_interface_form_mica_datasets_query_term_edit_form_alter(&$form, $form_state, $form_id) {
+    $dataset_node = $form_state[ "build_info" ][ "args" ][0];
+    $query = $form_state[ "build_info" ][ "args" ][1];
+    $query_term = $form_state[ "build_info" ][ "args" ][2];
+    
+    // Update the form action to make sure not to add the (empty) query term again
+    $form[ "#action" ] = url( "mica/ajax/node/" . $dataset_node->nid . "/queries/" . $query->id . "/term/" . $query_term->id . "/edit");
+    return $form;
+}
+
+/**
+ * Changes the form elements of the mica query screen
  * Implements hook form_FORM_ID_alter
  * 
  * @param type $form
@@ -12,6 +48,18 @@ function query_interface_form_mica_query_edit_form_alter(&$form, $form_state, $f
     if( ORIGINAL_FORM )
         return $form;  
     
+    // If no query has been created, create a new one and 
+    // store it in cache
+    $dataset = $form_state['build_info']['args'][0];
+    $query = $form_state['build_info']['args'][1];
+    if( !isset( $query ) ) {
+        $query = _query_interface_new_query($form_state);
+        $form_state['build_info']['args'][1] = $query;
+    }
+        
+    // Make sure to post the form to the edit-action
+    $form[ "#action" ] = url( "node/" . $dataset->nid . "/queries/" . $query->id . "/edit");
+
     // Make sure the name field is filled (as it is required within mica)
     // and the complete box with metainformation is hidden from the user
     if( array_key_exists( "general", $form ) ) {
@@ -124,33 +172,38 @@ function query_interface_form_mica_query_edit_form_alter(&$form, $form_state, $f
                 }
 
                 $vid = $variable["vid"][ "#value" ];
+                $termId = $variable["id"][ "#value" ];
                 $alreadySelected = ( $type == "list" );
 
                 if( $alreadySelected ) {
                     $buttons = array( 
                         "edit" => array(
-                            "#type" => "submit",
-                            "#name" => "edit-variable-" . $vid,
-                            "#value" => "Edit",
-                            "#vid" => $vid
+                            "#markup" => ctools_modal_text_button(
+                                t('Edit'),
+                                'mica/nojs/node/' . $dataset->nid . '/queries/' . $query->id . '/term/' . $termId . '/edit',
+                                t('Edit constraint'),
+                                'btn ctools-modal-node-style highlight'
+                              ),
                         ),
                         "delete" => array(
                             "#type" => "submit",
-                            "#name" => "delete-variable-" . $vid,
+                            "#name" => "delete-term-" . str_replace( " ", "", $termId ),
                             "#value" => "Delete",
                             "#parents" => array( "remove-term" ),
                             "#vid" => $vid,
+                            "#termid" => $termId,
+                            "#submit" => array( "query_interface_delete_query_term" ),
                         )
                     );
                 } else {
                     $buttons = array( 
                         "add" => array(
-                            "#type" => "submit",
-                            "#value" => "Add",
-                            "#name" => "add-variable-" . $vid,
-                            "#vid" => $vid,
-                            "#parents" => array( "add-variable" ),
-                            "#attributes" => array( "onClick" => "jQuery('#edit-variables').val(" . $vid . "); return true;" )
+                            "#markup" => ctools_modal_text_button(
+                                t('Add'),
+                                'sesi/nojs/node/' . $dataset->nid . '/queries/' . $query->id . '/term/' . $vid . '/add',
+                                t('Add constraint'),
+                                'btn btn-success ctools-modal-node-style highlight'
+                             ),
                         )
                     );
                 }
@@ -164,15 +217,41 @@ function query_interface_form_mica_query_edit_form_alter(&$form, $form_state, $f
     return $form;
 }
 
+/**
+ * Registers the theme method for changing the look and feel of the query edit form
+ * 
+ * Please notice that changes to this method will only take effect after 
+ * clearing the cache in drupal
+ * 
+ * Implements hook_theme_registry_alter
+ * @param string $theme_registry 
+ */
 function query_interface_theme_registry_alter(&$theme_registry) {
 	if (!empty($theme_registry['mica_query_edit_form']['function'])) {
 		$theme_registry['mica_query_edit_form']['function'] = 'sesi_mica_query_edit_form';
 	}
 }
 
+/**
+ * Changes the look and feel of the query edit screen. Is registered as theme function 
+ * in the query_interface_theme_registry_alter method
+ * @param type $variables
+ * @return type 
+ * @see query_interface_theme_registry_alter()
+ */
 function sesi_mica_query_edit_form($variables) {
     if( ORIGINAL_FORM )
         return theme_mica_query_edit_form($variables);
+
+    ctools_add_css('mica_datasets', 'mica_datasets');
+    
+    mica_core_modal_prepare(array(
+        array(
+          'name' => 'edit-style',
+          'width' => 600,
+          'height' => 500,
+        ),
+    ));
     
     $form = $variables['form'];
     
@@ -259,4 +338,92 @@ function sesi_mica_query_edit_form($variables) {
   }
 
   return $output;
+}
+
+/**
+ * Shows a screen to specify a query term for a given variable.
+ * This method is used as a wrapper around mica_datasets_query_term_edit_modal_page, 
+ * as that method needs an already saved query_term object.
+ * 
+ * @param type $js              ??
+ * @param type $node            Dataset node
+ * @param type $query           Mica query object
+ * @param type $variable        Variable to create a constraint for
+ * @param type $cross_variable  (optional) cross variable
+ * @see mica_datasets_query_term_edit_modal_page()
+ * @see query_interface_menu()
+ */
+function query_interface_add_query_term_modal_page($js, $node, $query, $variable, $cross_variable = NULL) {
+    // Create a term based on the variable
+    $values = _query_interface_extract_new_query_term_values($query, $variable);
+    if (MicaDatasetQueryManager::isCached($query)) {
+        // Add the term. Unfortunately, even though the documentation says so
+        // this method doesn't return the new term ID
+        $cachedQuery = MicaDatasetQueryManager::getCache($query);
+        $cachedQuery->addTerm($values);        
+        $termId = $query->id . ':' . count( $cachedQuery->terms );
+    } else {
+        $termId = mica_query_term_insert($values);
+    }    
+    
+    $term = mica_query_term_load( $termId );
+    
+    // Call the original method
+    $form = mica_datasets_query_term_edit_modal_page($js, $node, $query, $term, $cross_variable);
+    return $form;
+}
+
+/**
+ * Callback for the delete term button on the query screen. 
+ * 
+ * This method does really delete the term immediately, instead of only 
+ * keeping track of deleted terms, as mica does. 
+ * @param type $form
+ * @param type $form_state
+ * @return type 
+ */
+function query_interface_delete_query_term( &$form, $form_state ) {
+    if( !array_key_exists( "triggering_element", $form_state ) || !array_key_exists( "#termid", $form_state[ "triggering_element" ] ) )
+        return;
+    
+    // Determine term ID
+    $termId = $form_state[ "triggering_element" ][ "#termid" ];
+    mica_query_term_delete($termId);
+}
+
+/**
+ * Create a new query in cache, without any options yet
+ * @global type $user
+ * @param type $form_state
+ * @return stdClass Newly created query 
+ */
+function _query_interface_new_query( $form_state ) {
+  $dataset_node = $form_state['build_info']['args'][0];
+  global $user;
+  
+  // Create a set of values to store the query
+  $values = array();
+  $values['name'] = "Query " . mktime() . "." . rand(0,10000);
+  $values['description'] = "";
+  $values['dataset_id'] = $dataset_node->nid;
+  $values['cross_variable_id'] = null;
+  $values['user_id'] = $user->uid;
+  $values['module'] = 'mica_query';
+
+  // Store this query in cache
+  return MicaDatasetQueryManager::addQuery($values);
+}
+
+/**
+ * Create a new set of values to create a new query term. 
+ * @param type $query
+ * @param type $variable 
+ * @see _mica_query_extract_new_query_term_values
+ */
+function _query_interface_extract_new_query_term_values( $query, $variable ) {
+  $values = array();
+  $values['query_id'] = $query->id;
+  $values['variable_id'] = $variable->nid;
+  $values['weight'] = 0;
+  return $values;    
 }
