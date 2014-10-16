@@ -51,3 +51,4 @@ drush --yes features-revert sesi_printer_friendly
 # Display list of features to check status manually. #
 # -------------------------------------------------- #
 drush features
+
