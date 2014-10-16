@@ -2,7 +2,8 @@ name = Query Interface
 description = Implements an improved Query Interface for SESI
 package = Sesi
 core = 7.x
-dependencies = mica_query
+dependencies[] = mica_query
+dependencies[] = field_group
 ;files[] = query_interface.test
 
 ; Information added by Drupal.org packaging script on 2014-07-10

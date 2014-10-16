@@ -407,10 +407,10 @@ function _query_interface_render_variables_table($termList, $buttonList ) {
  * Generic function to show a table on the query screen
  * @param type $termList
  * @param type $buttonList
- * @param type $renderRowFunction
+ * @param type $renderRowsFunction
  * @param type $tableHeader 
  */
-function _query_interface_render_table( $termList, $buttonList, $renderRowFunction, $tableHeader ) {
+function _query_interface_render_table( $termList, $buttonList, $renderRowsFunction, $tableHeader ) {
     $rows = array();
     foreach (element_children($termList) as $key) {
         $variable = $termList[$key];
@@ -422,8 +422,8 @@ function _query_interface_render_table( $termList, $buttonList, $renderRowFuncti
             $buttons = null;
         }
         
-        $row = call_user_func( $renderRowFunction, $variable, $buttons);
-        $rows[] = array( 'data' => $row ); //note the difference between $row and $rows
+        $currentTermRows = call_user_func( $renderRowsFunction, $variable, $buttons);
+        $rows = array_merge( $rows, $currentTermRows );
     }
   
     // Renders the table itself, if any rows are present
@@ -438,6 +438,13 @@ function _query_interface_render_table( $termList, $buttonList, $renderRowFuncti
     }
 }
 
+/**
+ * Render table rows for a query term
+ * @param type $variable
+ * @param type $buttons
+ * @return array    Each element in the array should be a row that can be passed to the theme_table method.
+ * @see https://api.drupal.org/api/drupal/includes%21theme.inc/function/theme_table/7
+ */
 function _query_interface_render_query_term_row($variable, $buttons) {
     // Loading the query term again. This is not a very performant solution
     // as the query term has been loaded in the mica code as well. However
@@ -486,9 +493,16 @@ function _query_interface_render_query_term_row($variable, $buttons) {
     // Add operations
     $row[] = $buttons;
     
-    return $row;
+    return array( array( "data" => $row ) );
 }
 
+/**
+ * Render table rows for a variable
+ * @param type $variable
+ * @param type $buttons
+ * @return array    Each element in the array should be a row that can be passed to the theme_table method.
+ * @see https://api.drupal.org/api/drupal/includes%21theme.inc/function/theme_table/7
+ */
 function _query_interface_render_variable_row($variable, $buttons) {
     // Loading the variable again. This is not a very performant solution
     // as the variable has been loaded in the mica code as well. However
@@ -496,19 +510,28 @@ function _query_interface_render_variable_row($variable, $buttons) {
     // to show the description and taxonomy as well.
     // TODO: Determine a better way to do this
     $variableObject = node_load($variable[ "vid" ][ "#value" ]);
+    $taxonomies = array();
+    
     if( $variableObject ) {
         $wrapper = entity_metadata_wrapper( "node", $variableObject );
         
         // Check if a description is present
         if( $wrapper->body->value() && $wrapper->body->value ) {
-            $variable[ "description" ] = array( "#markup" => $wrapper->body->value->value() );
+            $variable[ "description" ] = $wrapper->body->value->value();
         }
+        
+        // Retrieve taxonomies and show them in the page
+        $taxonomies = _query_interface_get_taxonomies( $wrapper );
     }
     
-    $row = array();
+    // Create the rows itself
+    $rows = array();
+    
+    // Create the first row with title, description and buttons
+    $rowData = array();
     
     // title
-    $row[] = drupal_render($variable['title']);
+    $rowData[] = drupal_render($variable['title']);
 
     // weight and hidden fields
     $weightElement = $variable['weight'];
@@ -516,13 +539,67 @@ function _query_interface_render_variable_row($variable, $buttons) {
     $column = drupal_render($weightElement);
 
     // Add the description to the table
+    // The description may contain markup, and is for that reason not escaped
     if( array_key_exists( "description", $variable ) ) 
-        $column .= drupal_render($variable["description"] );
+        $column .= $variable["description"];
     
-    $row[] = $column;
+    $rowData[] = $column;
 
     // Add operations
-    $row[] = $buttons;
+    $rowData[] = $buttons;
     
-    return $row;
+    $rows[] = array( "data" => $rowData );
+    
+    // Create the second row with taxonomies
+    // This time, the cell needs HTML properties being set,
+    // so the structure is somewhat more complex
+    $taxonomyDescription = implode(", ", array_map( 
+        function($taxonomy) { 
+            return htmlspecialchars( $taxonomy->name ); 
+        }, $taxonomies ) );
+    
+    // Add a row with one cell (colspan=3)
+    $rows[] = array( "data" => array(
+        array(
+            "data" => $taxonomyDescription,
+            "colspan" => 3
+        ),
+    ));
+        
+    return $rows;
+}
+
+/**
+ * Returns a list of selected taxonomies for the given variable.
+ * The list is composed of all values selected in fields within the 'domains' group.
+ */
+function _query_interface_get_taxonomies( $variableWrapper ) {
+    // Determine which fields belong to the domains group.
+    $fields = _query_interface_get_domain_fields();
+    
+    // Find the values on those fields
+    $taxonomies = array();
+    foreach( $fields as $fieldName ) {
+        $selectedTaxonomies = $variableWrapper->{$fieldName}->value();
+        
+        if( $selectedTaxonomies ) {
+            $taxonomies = array_merge( $taxonomies, $selectedTaxonomies );
+        }
+    }
+    
+    return $taxonomies;
+}
+
+/**
+ * Returns a list of field names for all fields within the 'domains' group for variables
+ */
+function _query_interface_get_domain_fields() {
+    $groups = field_group_info_groups( "node", "variable", "form" );
+    
+    // Consistency check
+    if( !array_key_exists( "group_dimensions", $groups ) || !property_exists( $groups[ "group_dimensions" ], "children" ) ) {
+        return array();
+    }
+    
+    return $groups[ "group_dimensions" ]->children;
 }
