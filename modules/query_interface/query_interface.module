@@ -266,10 +266,7 @@ function sesi_mica_query_edit_form($variables) {
     ));
     
     $form = $variables['form'];
-    
-    drupal_add_tabledrag('draggabledemo-sort', 'order', 'sibling', 'sort');
-
-    // Create the table rows on the screen
+    $output = "";
     
     // Types of rows in the form:
     //   The key 'list' defines the list of variables for which a constraint has been
@@ -279,66 +276,9 @@ function sesi_mica_query_edit_form($variables) {
     //   The key 'not-selected' defines the list of variables that can still be selected.
     //       the buttons for these variables (only add button) will be added to 
     //       an element with the name 'buttons-not-selected
-    $rowTypes = array( "list" => "remove-term", "not-selected" => "buttons-not-selected" );
-
-    // dataRows is a list with rows to be shown in the two tables on the screen
-    $dataRows = array( "list" => array(), "not-selected" => array() );
+    $output .= _query_interface_render_query_terms_table( $form[ "list" ], $form[ "remove-term" ] );
+    $output .= _query_interface_render_variables_table( $form[ "not-selected" ], $form[ "buttons-not-selected" ] );
     
-    foreach( $rowTypes as $type => $buttonKey ) {
-        if( array_key_exists( $type, $form ) ) {
-            foreach (element_children($form[$type]) as $key) {
-                $variable = $form[$type][$key];
-                $alreadySelected = ( $type == "list" );
-                $row = array();
-
-                // title
-                $row[] = drupal_render($variable['title']);
-
-                // weight and hidden fields
-                $weightElement = $variable['weight'];
-                $weightElement[ "#type" ] = "hidden";
-                $row_rendered = drupal_render($weightElement);
-                if (array_key_exists('expression', $variable)) {
-                  $row_rendered .= drupal_render($variable['expression']);
-                }
-
-                // Add hidden elements to store id and vid for this element
-                // only if it has been added already, not if the item is here to show the 'add' button
-                if( $alreadySelected ) {
-                    $row_rendered .= drupal_render($variable['id']) . drupal_render($variable['vid']);
-                }
-
-                $row[] = $row_rendered;
-
-                // Add operations
-                if( array_key_exists( $buttonKey, $form ) && array_key_exists( $key, $form[ $buttonKey ] ) ) {
-                    $row[] = drupal_render_children( $form[ $buttonKey ][ $key ] );
-                } else {
-                    $row[] = "";
-                }
-
-                $dataRows[ $type ][] = array('data' => $row, 'class' => array('draggable')); //note the difference between $row and $rows
-            }
-        }
-    }
-  
-    // Initialize output
-    $output = "";
-    $tableHeader = array(t('Query Term'), t( 'Expression' ), t('Operations'));
-
-    // Add the table with the existing constraints (if any),
-    // as well as the table with available variables
-    foreach( $dataRows as $key => $rows ) {
-        if( count( $rows ) > 0 ) {
-            $output .= theme('table', array(
-                'header' => $tableHeader,
-                'rows' => $rows,
-                'empty' => t('No query term found'),
-                //'attributes' => array('id' => 'draggabledemo-sort')
-            ));
-        }
-    }
-
   $output .= drupal_render_children($form, array('cross'));
   $output .= drupal_render_children($form, array('actions'));
 
@@ -438,4 +378,137 @@ function _query_interface_extract_new_query_term_values( $query, $variable ) {
   $values['variable_id'] = $variable->nid;
   $values['weight'] = 0;
   return $values;    
+}
+
+/**
+ * Renders a table with existing queryterms in a query form
+ * @param type $termList    A list of selected query terms
+ * @param type $buttonList  A list with the buttons to show for each term.
+ */
+function _query_interface_render_query_terms_table( $termList, $buttonList ) {
+    $renderRowFunction = "_query_interface_render_query_term_row";
+    $tableHeader = array(t('Query Term'), t( 'Expression' ), t('Operations'));
+    
+    return _query_interface_render_table( $termList, $buttonList, $renderRowFunction, $tableHeader );
+}
+
+/**
+ * Renders a table with variables not yet used in a query term
+ * @param type $form 
+ */
+function _query_interface_render_variables_table($termList, $buttonList ) {
+    $renderRowFunction = "_query_interface_render_variable_row";
+    $tableHeader = array(t('Query Term'), t( 'Description' ), t('Operations'));
+    
+    return _query_interface_render_table( $termList, $buttonList, $renderRowFunction, $tableHeader );
+}
+
+/**
+ * Generic function to show a table on the query screen
+ * @param type $termList
+ * @param type $buttonList
+ * @param type $renderRowFunction
+ * @param type $tableHeader 
+ */
+function _query_interface_render_table( $termList, $buttonList, $renderRowFunction, $tableHeader ) {
+    $rows = array();
+    foreach (element_children($termList) as $key) {
+        $variable = $termList[$key];
+        $alreadySelected = true;
+        
+        if( array_key_exists( $key, $buttonList ) ) {
+            $buttons = drupal_render_children( $buttonList[ $key ] );
+        } else {
+            $buttons = null;
+        }
+        
+        $row = call_user_func( $renderRowFunction, $variable, $buttons);
+        $rows[] = array( 'data' => $row ); //note the difference between $row and $rows
+    }
+  
+    // Renders the table itself, if any rows are present
+    if( count( $rows ) > 0 ) {
+        return theme('table', array(
+            'header' => $tableHeader,
+            'rows' => $rows,
+            'empty' => t('No data found'),
+        ));
+    } else {
+        return "";
+    }
+}
+
+function _query_interface_render_query_term_row($variable, $buttons) {
+    // Loading the query term again. This is not a very performant solution
+    // as the query term has been loaded in the mica code as well. However
+    // the mica code only provides us with the 'title', where we need
+    // a separate variable name and expression.
+    // However, the query term doesn't have a separate method to get a 
+    // human readable expression. For that reason, we use the original
+    // title, and remove the variable name from it.
+    // TODO: Determine a better way to do this
+    $queryTerm = mica_query_term_load($variable[ "id" ][ "#value" ]);
+    
+    // Split the variable name and expression
+    $completeExpression = $variable[ "title" ][ "#markup" ];
+    $variableName = $queryTerm->termImpl()->getFieldName();
+    $onlyExpression = strlen( $completeExpression ) > strlen( $variableName ) ? substr( $completeExpression, strlen( $variableName ) + 1 ) : "";
+    
+    // Put the variable name and expression in the right places
+    $variable[ "title" ][ "#markup" ] = $variableName;
+    $variable[ "humanreadableexpression" ] = array( "#markup" => $onlyExpression );
+    
+    $row = array();
+    
+    // title
+    $row[] = drupal_render($variable['title']);
+
+    // weight and hidden fields
+    $weightElement = $variable['weight'];
+    $weightElement[ "#type" ] = "hidden";
+    $column = drupal_render($weightElement);
+    
+    // This expression is set by mica itself
+    if (array_key_exists('expression', $variable)) {
+      $column .= drupal_render($variable['expression']);
+    }
+
+    // Add hidden elements to store id and vid for this element
+    $column .= drupal_render($variable['id']) . drupal_render($variable['vid']);
+    
+    // Also put the expression itself in the column
+    if (array_key_exists('humanreadableexpression', $variable)) {
+      $column .= drupal_render($variable['humanreadableexpression']);
+    }
+    
+    $row[] = $column;
+
+    // Add operations
+    $row[] = $buttons;
+    
+    return $row;
+}
+
+function _query_interface_render_variable_row($variable, $buttons) {
+    $row = array();
+    
+    // title
+    $row[] = drupal_render($variable['title']);
+
+    // weight and hidden fields
+    $weightElement = $variable['weight'];
+    $weightElement[ "#type" ] = "hidden";
+    $column = drupal_render($weightElement);
+    if (array_key_exists('expression', $variable)) {
+      $column .= drupal_render($variable['expression']);
+    }
+
+    // Add the description to the table
+    $column .= drupal_render($variable["description"] );
+    $row[] = $column;
+
+    // Add operations
+    $row[] = $buttons;
+    
+    return $row;
 }
