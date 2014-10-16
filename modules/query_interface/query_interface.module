@@ -26,6 +26,14 @@ function query_interface_menu() {
     return $items;
 }
 
+/**
+ * Changes the edit query term form to always submit to the 'edit' url
+ * Implements hook hook_FORM_ID_alter
+ * @param array $form
+ * @param type $form_state
+ * @param type $form_id
+ * @return type 
+ */
 function query_interface_form_mica_datasets_query_term_edit_form_alter(&$form, $form_state, $form_id) {
     $dataset_node = $form_state[ "build_info" ][ "args" ][0];
     $query = $form_state[ "build_info" ][ "args" ][1];
@@ -33,6 +41,10 @@ function query_interface_form_mica_datasets_query_term_edit_form_alter(&$form, $
     
     // Update the form action to make sure not to add the (empty) query term again
     $form[ "#action" ] = url( "mica/ajax/node/" . $dataset_node->nid . "/queries/" . $query->id . "/term/" . $query_term->id . "/edit");
+    
+    // Update the cancel button to point to the edit query screen
+    $form[ "actions" ][ "cancel" ][ "#href" ] = _mica_query_url($dataset_node, $query, "edit");
+    
     return $form;
 }
 
