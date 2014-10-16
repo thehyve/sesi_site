@@ -35,6 +35,18 @@ drush --yes features-revert sesi_menu_links
 drush --yes pm-enable sesi_user_profile_fields
 drush --yes features-revert sesi_user_profile_fields
 
+# --------------- #
+# Enable Site Map #
+# --------------- #
+drush --yes pm-enable sesi_site_map
+drush --yes features-revert sesi_site_map
+
+# ------------------------------ #
+# Enable Printer Friendly Config #
+# ------------------------------ #
+drush --yes pm-enable sesi_printer_friendly
+drush --yes features-revert sesi_printer_friendly
+
 # -------------------------------------------------- #
 # Display list of features to check status manually. #
 # -------------------------------------------------- #
