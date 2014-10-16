@@ -29,6 +29,18 @@ echo $DRUPAL_ROOT
 drush --yes pm-enable sesi_menu_links
 drush --yes features-revert sesi_menu_links
 
+# --------------- #
+# Enable Site Map #
+# --------------- #
+drush --yes pm-enable sesi_site_map
+drush --yes features-revert sesi_site_map
+
+# ------------------------------ #
+# Enable Printer Friendly Config #
+# ------------------------------ #
+drush --yes pm-enable sesi_printer_friendly
+drush --yes features-revert sesi_printer_friendly
+
 # -------------------------------------------------- #
 # Display list of features to check status manually. #
 # -------------------------------------------------- #

@@ -153,6 +153,15 @@ function dataset_inheritance_form_alter(&$form, $form_state, $form_id) {
     } elseif( $form_id == 'variable_node_form' ) {
         // Remove the variable-inherited flag from the form
         $form[ 'field_variable_inherited_flag' ] = array();
+        
+        // Add a message if the user edits a variable that has been inherited
+        // only add the button if the user edits the dataset (as opposed to adding
+        // a new one)
+        $node = $form_state['node'];
+        $wrapper = entity_metadata_wrapper('node', $node);
+        if( $wrapper->field_variable_inherited_flag->value() ) {
+            drupal_set_message(t("Please note that this variable has been inherited from the parent dataset. Change the field with caution", array()), 'warning');
+        }
     }
 }
 
