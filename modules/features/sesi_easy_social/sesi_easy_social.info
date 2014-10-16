@@ -1,0 +1,11 @@
+name = Sesi Easy Social
+description = This feature is to configure default settings for Easy Social module
+core = 7.x
+package = Sesi
+version = 7.x-1.0
+project = sesi_easy_social
+dependencies[] = easy_social
+features[features_api][] = api:2
+features[user_permission][] = administer easy social
+features[user_permission][] = use easy social wizard
+features_exclude[dependencies][features] = features

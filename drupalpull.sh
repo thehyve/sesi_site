@@ -51,6 +51,10 @@ drush pm-enable sesi_communities_and_files
 drush --yes dl captcha
 drush --yes en image_captcha
 
+# install easy_social module
+drush --yes dl easy_social
+drush --yes en easy_social
+
 #backup first
 #drush archive-dump /tmp/micasitebk
  
