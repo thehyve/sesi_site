@@ -490,6 +490,21 @@ function _query_interface_render_query_term_row($variable, $buttons) {
 }
 
 function _query_interface_render_variable_row($variable, $buttons) {
+    // Loading the variable again. This is not a very performant solution
+    // as the variable has been loaded in the mica code as well. However
+    // the mica code only provides us with the 'title', where we need
+    // to show the description and taxonomy as well.
+    // TODO: Determine a better way to do this
+    $variableObject = node_load($variable[ "vid" ][ "#value" ]);
+    if( $variableObject ) {
+        $wrapper = entity_metadata_wrapper( "node", $variableObject );
+        
+        // Check if a description is present
+        if( $wrapper->body->value() && $wrapper->body->value ) {
+            $variable[ "description" ] = array( "#markup" => $wrapper->body->value->value() );
+        }
+    }
+    
     $row = array();
     
     // title
@@ -499,12 +514,11 @@ function _query_interface_render_variable_row($variable, $buttons) {
     $weightElement = $variable['weight'];
     $weightElement[ "#type" ] = "hidden";
     $column = drupal_render($weightElement);
-    if (array_key_exists('expression', $variable)) {
-      $column .= drupal_render($variable['expression']);
-    }
 
     // Add the description to the table
-    $column .= drupal_render($variable["description"] );
+    if( array_key_exists( "description", $variable ) ) 
+        $column .= drupal_render($variable["description"] );
+    
     $row[] = $column;
 
     // Add operations
