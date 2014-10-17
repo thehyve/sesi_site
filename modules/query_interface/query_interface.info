@@ -8,6 +8,8 @@ dependencies[] = field_group
 ; Contains code for handling query terms (addition, deletion)
 files[] = query_interface.handling_terms.inc
 
+scripts[] = query_interface.fulltext-search.js
+
 ; Information added by Drupal.org packaging script on 2014-07-10
 version = "7.x-1.0b"
 core = "7.x"

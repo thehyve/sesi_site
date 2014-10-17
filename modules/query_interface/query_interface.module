@@ -184,6 +184,11 @@ function query_interface_form_mica_query_edit_form_alter(&$form, $form_state, $f
         }
     }
 
+    $form["fulltext-search"] = array(
+        "#type" => "textfield",
+        "#attributes" => array( "id" => "edit-search-api-views-fulltext" ),
+        '#title' => t('Fulltext search')
+    );
     
     return $form;
 }
@@ -225,7 +230,7 @@ function sesi_mica_query_edit_form($variables) {
     ));
     
     $form = $variables['form'];
-    $output = "";
+    $output = drupal_render( $form[ "fulltext-search" ] );
     
     // Types of rows in the form:
     //   The key 'list' defines the list of variables for which a constraint has been
@@ -242,10 +247,11 @@ function sesi_mica_query_edit_form($variables) {
   $output .= drupal_render_children($form, array('actions'));
 
   // add form hidden items, otherwise submit and validate will be ignored
-  $fieldsAlreadyPrinted = array( 'cross', 'actions', 'list', 'remove-term', 'not-selected', 'buttons-list', 'buttons-not-selected' );
+  $fieldsAlreadyPrinted = array( 'cross', 'actions', 'list', 'remove-term', 'not-selected', 'buttons-list', 'buttons-not-selected', 'fulltext-search' );
   foreach (element_children($form) as $key) {
-      if( !in_array( $key, $fieldsAlreadyPrinted ) )
-        $output .= drupal_render_children($form, array($key));
+      if( !in_array( $key, $fieldsAlreadyPrinted ) ) {
+        $output .= drupal_render($form[$key]);
+      }
   }
 
   return $output;
@@ -283,7 +289,7 @@ function _query_interface_render_query_terms_table( $termList, $buttonList ) {
     $renderRowFunction = "_query_interface_render_query_term_row";
     $tableHeader = array(t('Query Term'), t( 'Expression' ), t('Operations'));
     
-    return _query_interface_render_table( $termList, $buttonList, $renderRowFunction, $tableHeader );
+    return _query_interface_render_table( $termList, $buttonList, $renderRowFunction, $tableHeader, "queryterms" );
 }
 
 /**
@@ -294,7 +300,7 @@ function _query_interface_render_variables_table($termList, $buttonList ) {
     $renderRowFunction = "_query_interface_render_variable_row";
     $tableHeader = array(t('Query Term'), t( 'Description' ), t('Operations'));
     
-    return _query_interface_render_table( $termList, $buttonList, $renderRowFunction, $tableHeader );
+    return _query_interface_render_table( $termList, $buttonList, $renderRowFunction, $tableHeader, "variables" );
 }
 
 /**
@@ -304,7 +310,7 @@ function _query_interface_render_variables_table($termList, $buttonList ) {
  * @param type $renderRowsFunction
  * @param type $tableHeader 
  */
-function _query_interface_render_table( $termList, $buttonList, $renderRowsFunction, $tableHeader ) {
+function _query_interface_render_table( $termList, $buttonList, $renderRowsFunction, $tableHeader, $id = null ) {
     $rows = array();
     foreach (element_children($termList) as $key) {
         $variable = $termList[$key];
@@ -326,6 +332,7 @@ function _query_interface_render_table( $termList, $buttonList, $renderRowsFunct
             'header' => $tableHeader,
             'rows' => $rows,
             'empty' => t('No data found'),
+            'attributes' => array( 'id' => $id ? $id : "" ) // Needed for searching
         ));
     } else {
         return "";
@@ -442,7 +449,7 @@ function _query_interface_render_variable_row($variable, $buttons) {
     // Add operations
     $rowData[] = $buttons;
     
-    $rows[] = array( "data" => $rowData );
+    $rows[] = array( "data" => $rowData, "class" => array("variable_" . $variable['vid'][ "#value" ]) );
     
     // Create the second row with taxonomies
     // This time, the cell needs HTML properties being set,
@@ -453,12 +460,15 @@ function _query_interface_render_variable_row($variable, $buttons) {
         }, $taxonomies ) );
     
     // Add a row with one cell (colspan=3)
-    $rows[] = array( "data" => array(
-        array(
-            "data" => $taxonomyDescription,
-            "colspan" => 3
-        ),
-    ));
+    $rows[] = array( 
+        "data" => array(
+            array(
+                "data" => $taxonomyDescription,
+                "colspan" => 3
+            ),
+        ), 
+        "class" => array("variable_" . $variable['vid'][ "#value" ])
+    );
         
     return $rows;
 }
