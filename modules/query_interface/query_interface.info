@@ -4,7 +4,9 @@ package = Sesi
 core = 7.x
 dependencies[] = mica_query
 dependencies[] = field_group
-;files[] = query_interface.test
+
+; Contains code for handling query terms (addition, deletion)
+files[] = query_interface.handling_terms.inc
 
 ; Information added by Drupal.org packaging script on 2014-07-10
 version = "7.x-1.0b"
