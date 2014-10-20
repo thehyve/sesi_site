@@ -1,26 +1,6 @@
 <?php
 
 /**
- * Registers urls specific for new query interface 
- * Implements hook_menu().
- */
-function query_interface_menu() {
-    $items = array();
-    
-    // This URL is used when a new query term is added, but when no term object exists yet
-    // The user can access this screen whenever he has access to the query
-    $items['sesi/%ctools_js/node/%node/queries/%mica_query/term/%node/add'] = array(
-        'title' => 'Edit',
-        'access callback' => '_mica_datasets_query_access',
-        'access arguments' => array(3, 5, 'update'),
-        'page callback' => 'query_interface_add_query_term_modal_page', 
-        'page arguments' => array(1, 3, 5, 7, 9),
-        'type' => MENU_CALLBACK
-    );
-    return $items;
-}
-
-/**
  * Changes the edit query term form to always submit to the 'edit' url. This
  * prevents the system of saving another query_term, if a new one was created already
  * using the query_interface_add_query_term_modal_page method

@@ -3,12 +3,15 @@
     Drupal.behaviors.query_interface_taxonomy_tree = {
         attach: function (context, settings) {
             // init the tree
-            jQuery('#taxonomy_tree').aciTree({
-                ajax: {
-                    url: '/mica/sites/all/modules/query_interface/checkbox.json'
-                },
-                checkbox: true
-            });
+            var tree = jQuery('#taxonomy_tree');
+            if( tree.length > 0 ) {
+                tree.aciTree({
+                    ajax: {
+                        url: tree.data( 'url' )
+                    },
+                    checkbox: true
+                });
+            }
         }
     };
 
