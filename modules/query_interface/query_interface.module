@@ -234,6 +234,10 @@ function sesi_mica_query_edit_form($variables) {
     drupal_add_js(drupal_get_path('module', 'query_interface') . '/aciTree/js/jquery.aciTree.selectable.js');
     drupal_add_js(drupal_get_path('module', 'query_interface') . '/aciTree/js/jquery.aciTree.checkbox.js');
     drupal_add_css(drupal_get_path('module', 'query_interface') . '/aciTree/css/aciTree.css');
+    
+    // Add custom interface scripts
+    drupal_add_js(drupal_get_path('module', 'query_interface') . '/query_interface.fulltext-search.js');
+    drupal_add_js(drupal_get_path('module', 'query_interface') . '/query_interface.taxonomy_tree.js');
     drupal_add_css(drupal_get_path('module', 'query_interface') . '/query_interface.taxonomy_tree.css');
     
     $output .= "<div id='taxonomy_tree' class='aciTree'></div>";
