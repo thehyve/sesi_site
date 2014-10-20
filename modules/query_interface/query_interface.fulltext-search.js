@@ -53,8 +53,12 @@
             classesToShow = $.unique( classesToShow );
 
             // Show all rows matching these classes
-            var selector = "." + classesToShow.get().join( ", ." );
-            $rows.hide().filter(selector).show()
+            if( classesToShow.length > 0 ) {
+                var selector = "." + classesToShow.get().join( ", ." );
+                $rows.hide().filter(selector).show()
+            } else {
+                $rows.hide();
+            }
         });
     }
 
