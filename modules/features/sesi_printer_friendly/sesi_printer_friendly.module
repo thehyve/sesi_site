@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Sesi Printer Friendly feature.
+ */
+
+include_once 'sesi_printer_friendly.features.inc';
