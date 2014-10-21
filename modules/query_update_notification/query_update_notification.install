@@ -1,0 +1,93 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the Sesi Query Update Notification module.
+ */
+
+class _QUN_constants {
+  public static $dbfields = array(
+    'id' => array(
+      'type' => 'serial',
+      'unsigned' => TRUE,
+      'not null' => TRUE,
+    ),
+    'query_id' => array(
+      'type' => 'int',
+      'unsigned' => TRUE,
+      'not null' => TRUE,
+      'description' => 'Reference to mica_query table of MicaDatasetQuery',
+    ),
+    'poll_interval' => array(
+      'type' => 'int',
+      'size' => 'tiny',
+      'unsigned' => TRUE,
+      'not null' => TRUE,
+      'default' => 2,
+      'description' => "The interval to check for changes. 1 = daily, 2 = weekly, 3 = monthly",
+    ),
+    'threshold' => array(
+      'type' => 'float',
+      'not null' => TRUE,
+      'default' => 0.05,
+      'description' => "The fraction of change required before sending a notification",
+    ),
+    'updated' => array(
+      'type' => 'int',
+      'size' => 'big',
+      'description' => 'Unix time of the last update',
+    ),
+    'last_result' => array(
+      'type' => 'text',
+      'size' => 'big',
+      'description' => 'The last query result',
+    ),
+  );
+
+  public static function fields() {
+    return array_keys(self::$dbfields);
+  }
+}
+
+/**
+ * Implements hook_schema
+ */
+function query_update_notification_schema() {
+  return array(
+    'query_update_notification' => array(
+      'description' => "query update notification state",
+      'fields' => _QUN_constants::$dbfields,
+      'primary key' => array('id'),
+      'unique keys' => array('qid_uniquekey' => array('query_id')),
+      'foreign keys' => array(
+        'mica_query relation' => array(
+          'table' => 'mica_query',
+          'columns' => array('query_id', 'id')
+        ),
+      ),
+      'indexes' => array('qid_index' => array('query_id')),
+    ),
+  );
+}
+
+/**
+ * Implements hook_install().
+ */
+//function query_update_notification_install() {
+//
+//  $schema = drupal_get_schema('mica_query');
+//  foreach(_QUN_constants::fields() as $field) {
+//    db_add_field('mica_query', $field, $schema['fields'][$field]);
+//  }
+//
+//}
+
+/**
+ * Implements hook_uninstall().
+ */
+//function query_update_notification_uninstall() {
+//  foreach(_QUN_constants::fields() as $field) {
+//    db_drop_field('mica_query', $field);
+//  }
+//}
+

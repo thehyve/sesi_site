@@ -1,0 +1,145 @@
+<?php
+/**
+ */
+
+
+function query_update_notification_entity_info() {
+  $info = array();
+  $info['query_update_notification_state'] = array(
+    'label' => t('Query notification state'),
+    'metadata controller class' => FALSE,
+    'entity class' => 'QueryUpdateNotificationState',
+    'controller class' => 'EntityAPIController',
+    'base table' => 'query_update_notification',
+    'module' => 'query_update_notification',
+    'entity keys' => array(
+      'id' => 'id',
+    ),
+  );
+  return $info;
+}
+
+
+/**
+ * Implements hook_form_FORM_ID_alter
+ */
+function query_update_notification_form_mica_query_edit_form_alter(&$form, &$form_state, $form_id) {
+
+  // Define a new button to update inherited fields
+  $notify_field = array(
+    '#type' => 'checkbox',
+    '#title' => t("Notify on result changes"),
+  );
+
+  $form['general']['receive_notifications'] = $notify_field;
+  $form['#submit'][] = 'query_update_notification_save_submit_handler';
+}
+
+function query_update_notification_save_submit_handler($form, &$form_state) {
+
+
+  $a = 1;
+
+}
+
+function query_update_notification_form_mica_query_run_page_alter(&$form, &$form_state, $form_id) {
+  $query = $form_state['mica']['query'];
+
+  $form['notify'] = array(
+    '#type' => 'submit',
+    '#prefix' => '<br>',
+  );
+
+  if(QueryUpdateNotificationState::hasNotification($query)) {
+    $form['notify'] += array(
+      '#value' => t('Unsubscribe from change notification'),
+      '#submit' => array('query_update_notification_unsubscribe'),
+    );
+  } else {
+    $form['notify'] += array(
+      '#value' => t('Subscribe to change notification'),
+      '#submit' => array('query_update_notification_subscribe'),
+    );
+  }
+}
+
+function query_update_notification_subscribe($form, &$form_state) {
+  $query = $form_state['mica']['query'];
+
+  $notification_state = new QueryUpdateNotificationState($query);
+  $notification_state->save();
+}
+
+function query_update_notification_unsubscribe($form, &$form_state) {
+  $query = $form_state['mica']['query'];
+  $notify_state = QueryUpdateNotificationState::getForQuery($query);
+  if($notify_state) {
+    $notify_state->delete();
+  }
+}
+
+
+
+class QueryUpdateNotificationState extends Entity {
+
+  public $id = NULL;
+  public $query_id = NULL;
+  public $poll_interval = self::WEEKLY;
+  public $threshold = 0.05;
+  public $updated = NULL;
+  public $last_result = NULL;
+
+  const DAILY = 1;
+  const WEEKLY = 2;
+  const MONTHLY = 3;
+
+  const quns = 'query_update_notification_state';
+
+  public function __construct($arg = array()) {
+    if(is_a($arg, 'MicaDatasetQuery')) {
+      $arg = array('query_id' => $arg->id);
+    }
+    if(array_key_exists('query', $arg)) {
+      $arg['query_id'] = $arg['query']->id;
+      unset($arg['query']);
+    }
+    if(isset($arg['updated']) && is_object($arg['updated'])) {
+      $arg['updated'] = $arg['updated']->getTimestamp();
+    }
+    parent::__construct($arg, self::quns);
+  }
+
+  public static function hasNotification($query) {
+    $count = db_query("select count(*) from {query_update_notification} where query_id = :qid",
+      array(':qid' => $query->id))->fetchField();
+    return (bool) $count;
+  }
+
+  public static function getForQuery($query) {
+    $efq = new EntityFieldQuery();
+
+    $notify_state = $efq->entityCondition('entity_type', self::quns)
+      ->propertyCondition('query_id', $query->id)
+      ->execute();
+
+    if(empty($notify_state) || empty($notify_state[self::quns])) { return FALSE; }
+    $notify_state = entity_load(self::quns, array_keys($notify_state[self::quns]));
+    if(empty($notify_state)) { return FALSE; }
+    $notify_state = array_pop($notify_state);
+
+    return $notify_state;
+  }
+
+  public function query() {
+    $q = entity_load('mica_query', array($this->query_id));
+    if(empty($q)) throw new Exception("mica_query entity for query_update_notification_state not found");
+    return array_pop($q);
+  }
+
+  public function updated() {
+    $d = new DateTime();
+    $d->setTimestamp($this->updated);
+    return $d;
+  }
+
+}
