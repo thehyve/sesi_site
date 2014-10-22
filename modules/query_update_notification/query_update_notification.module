@@ -1,8 +1,6 @@
 <?php
-/**
- */
 
-
+// implements hook_entity_info
 function query_update_notification_entity_info() {
   $info = array();
   $info['query_update_notification_state'] = array(
@@ -19,16 +17,65 @@ function query_update_notification_entity_info() {
   return $info;
 }
 
+// implements hook_cron
+function query_update_notification_cron() {
+  $r = _query_update_notification_query_result(array_pop(entity_load('mica_query', array(24))));
+  return;
 
-/**
- * Implements hook_form_FORM_ID_alter
- */
+  $result = db_query(
+    "select n.id, q.user_id from {query_update_notification} n join {mica_query} q on n.query_id = q.id
+      where (
+        n.updated is NULL
+        or (n.poll_interval = 1 and :now - 86400 > n.updated)   -- daily
+        or (n.poll_interval = 2 and :now - 604800 > n.updated)  -- weekly
+        or (n.poll_interval = 3 and :now - 2592000 > n.updated) -- monthly
+      )
+      group by q.user_id",
+    array(':now' => REQUEST_TIME))->fetchAllKeyed();
+
+  $queue = DrupalQueue::get('query_update_notification');
+
+  // Create one job per uid so we can send each user one email
+  $uidmap = array();
+  foreach($result as $id => $uid) {
+    $uidmap[$uid][] = $id;
+  }
+  foreach($uidmap as $uid => $ids) {
+    $queue->createItem(array($uid, $ids));
+  }
+}
+
+// implements hook_cron_queue_info
+function query_update_notification_cron_queue_info() {
+  return array('query_update_notification' => array(
+    'worker callback' => '_query_update_notification_poll',
+    'time' => 1800,
+  ));
+}
+
+// implements hook_entity_delete
+function query_update_notification_entity_delete($entity, $type) {
+  if($type !== 'mica_query') return;
+
+  $notify_state = QueryUpdateNotificationState::getForQuery($entity);
+  if($notify_state) {
+    $notify_state->delete();
+  }
+}
+
+
+// Implements hook_form_FORM_ID_alter
 function query_update_notification_form_mica_query_edit_form_alter(&$form, &$form_state, $form_id) {
+  $default = FALSE;
+  if(isset($form_state['build_info']['args'][1])) {
+    $default = QueryUpdateNotificationState::hasNotification($form_state['build_info']['args'][1]);
+  }
 
   // Define a new button to update inherited fields
   $notify_field = array(
     '#type' => 'checkbox',
     '#title' => t("Notify on result changes"),
+    '#default_value' => $default,
   );
 
   $form['general']['receive_notifications'] = $notify_field;
@@ -42,6 +89,7 @@ function query_update_notification_save_submit_handler($form, &$form_state) {
 
 }
 
+// implements hook_form_FORM_ID_alter
 function query_update_notification_form_mica_query_run_page_alter(&$form, &$form_state, $form_id) {
   $query = $form_state['mica']['query'];
 
@@ -61,6 +109,8 @@ function query_update_notification_form_mica_query_run_page_alter(&$form, &$form
       '#submit' => array('query_update_notification_subscribe'),
     );
   }
+
+  //drupal_set_message(serialize(query_update_notification_cron()));
 }
 
 function query_update_notification_subscribe($form, &$form_state) {
@@ -78,6 +128,41 @@ function query_update_notification_unsubscribe($form, &$form_state) {
   }
 }
 
+function _query_update_notification_query_result($query) {
+  $connectors = mica_connector_query_multiple($query->dataset_id);
+
+  $fullresult = array();
+  foreach($connectors as $connector) {
+
+    $terms = mica_query_term_query($query);
+    $cross_variable = node_load($query->cross_variable_id);
+
+    if(!empty($cross_variable)) {
+      $result = $connector->queryBy($terms, array($cross_variable->title));
+      // Depending on if it is a cross query use '_all' or 'total', unset the other.
+      // I'm not sure why this difference exists, but this is what the display code uses.
+      unset($result['total']);
+    } else {
+      $result = $connector->query($terms);
+      unset($result['_all']);
+    }
+
+    $fullresult[$connector->id] = $result;
+  }
+  return $fullresult;
+}
+
+function _query_update_notification_poll($arg) {
+  echo "running job\n";
+
+  list($uid, $ids) = $arg;
+
+  foreach($ids as $id) {
+    $state = QueryUpdateNotification::get($id);
+    if(is_null($state)) continue;
+
+  }
+}
 
 
 class QueryUpdateNotificationState extends Entity {
@@ -109,6 +194,12 @@ class QueryUpdateNotificationState extends Entity {
     parent::__construct($arg, self::quns);
   }
 
+  public static function get($id) {
+    $entity = entity_load(self::quns, array($id));
+    if(empty($entity)) { return NULL; }
+    return array_pop($entity);
+  }
+
   public static function hasNotification($query) {
     $count = db_query("select count(*) from {query_update_notification} where query_id = :qid",
       array(':qid' => $query->id))->fetchField();
@@ -116,18 +207,10 @@ class QueryUpdateNotificationState extends Entity {
   }
 
   public static function getForQuery($query) {
-    $efq = new EntityFieldQuery();
-
-    $notify_state = $efq->entityCondition('entity_type', self::quns)
-      ->propertyCondition('query_id', $query->id)
-      ->execute();
-
-    if(empty($notify_state) || empty($notify_state[self::quns])) { return FALSE; }
-    $notify_state = entity_load(self::quns, array_keys($notify_state[self::quns]));
-    if(empty($notify_state)) { return FALSE; }
-    $notify_state = array_pop($notify_state);
-
-    return $notify_state;
+    $id = db_query("select id from {query_update_notification} where query_id = :qid",
+      array(':qid' => $query->id))->fetchField();
+    if($id === NULL) return NULL;
+    return self::get($id);
   }
 
   public function query() {
@@ -142,4 +225,76 @@ class QueryUpdateNotificationState extends Entity {
     return $d;
   }
 
+  private function needsUpdate() {
+    if(is_null($this->updated)) return TRUE;
+    switch($this->poll_interval) {
+      case self::DAILY:
+        return $this->updated < time() - 60*60*24;
+      case self::WEEKLY:
+        return $this-> updated < time() - 60*60*24*7;
+      case self::MONTHLY:
+        return $this-> updated < time() - 60*60*24*30;
+      default:
+        throw Exception("Unknown poll_interval value: "+$this->poll_interval);
+    }
+  }
+
+  public function changes() {
+    if(!$this->needsUpdate()) return array();
+
+    $new_result = _query_update_notification_query_result($this->query());
+
+    if(is_null($state->updated) || is_null($state->last_result) {
+      $this->update($new_result);
+      return array();
+    }
+
+    $old_result = unserialize($this->last_result);
+
+    
+    if(count($old_result) != count($new_result)) goto update;
+
+    $changed = array();
+    foreach($old_result as $connection => $old_values) {
+      if(!isset($new_result[$connection])) goto update;
+      $new_values = $new_result[$connection];
+      if(count($old_values) != count($new_values)) goto update;
+
+      foreach($old_values as $var => $old_categories) {
+        if(!isset($new_values[$var])) goto update;
+        $new_categories = $new_values[$var];
+        if(count($old_categories) != count($new_categories)) goto update;
+
+        foreach($old_categories as $category => $old_count) {
+          if(!isset($new_categories[$category])) goto update;
+          $new_count = $new_categories[$category];
+          if(count($old_count) != count($old_count)) goto update;
+
+          $diff = $old_count * $this->threshold;
+          if($new_count > $old_count + $diff || $new_count < $old_count - diff) {
+            $changed[] = array('connection' => $connection, 'variable' => $var, 'old_value' => $old_count, 'new_value' => $new_count);
+          }
+        }
+      }
+    }
+
+    
+
+
+    return ...;
+
+  update:
+    $this->update($new_result);
+    return array();
+  }
+
+  private function update($new_result) {
+    $this->updated = time();
+    $this->last_result = serialize($new_result);
+    $this->save();
+  }
+
+  private function significantDifferences($old_result, $new_result) {
+    
+  }
 }

@@ -69,25 +69,3 @@ function query_update_notification_schema() {
     ),
   );
 }
-
-/**
- * Implements hook_install().
- */
-//function query_update_notification_install() {
-//
-//  $schema = drupal_get_schema('mica_query');
-//  foreach(_QUN_constants::fields() as $field) {
-//    db_add_field('mica_query', $field, $schema['fields'][$field]);
-//  }
-//
-//}
-
-/**
- * Implements hook_uninstall().
- */
-//function query_update_notification_uninstall() {
-//  foreach(_QUN_constants::fields() as $field) {
-//    db_drop_field('mica_query', $field);
-//  }
-//}
-
