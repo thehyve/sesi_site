@@ -55,6 +55,16 @@ drush --yes en image_captcha
 drush --yes dl easy_social
 drush --yes en easy_social
 
+# install and enable oauth
+# this module is required by twitter module
+drush --yes dl oauth
+drush --yes en oauth_common
+drush --yes en oauth_common_providerui
+
+# install and enable twitter module
+drush --yes dl twitter
+drush --yes en twitter
+
 #backup first
 #drush archive-dump /tmp/micasitebk
  
