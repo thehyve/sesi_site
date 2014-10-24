@@ -88,7 +88,10 @@ class ServicesOpalFormatter implements ServicesFormatterInterface {
     }
     $this->doc->appendChild($this->doc->createComment($comment));
 
-    $opal = $this->doc->appendChild($this->doc->createElement('org.obiba.magma.views.View'));
+    $topnode = $this->doc->createElement('org.obiba.magma.views.View');
+    $topnode->setAttribute( 'name', check_plain($dataset_name));
+    $opal = $this->doc->appendChild($topnode);
+
     $select = $opal->appendChild($this->doc->createElement('select'));
     $select->setAttribute('class', 'org.obiba.magma.views.support.NoneClause');
 
@@ -130,6 +133,13 @@ class ServicesOpalFormatter implements ServicesFormatterInterface {
     }
     $attributes = $variable_element->appendChild($this->doc->createElement('attributes'));
     $this->addAttribute($attributes, 'uuid', 'text', '', $wrapper->uuid->value(), self::MAELSTROM_NS);
+
+    //add vocabulary_url for each language
+    foreach ($this->languages as $language) {
+      $url = $wrapper->language($language)->field_vocabulary_url->value();
+      $this->addAttribute($attributes, 'vocabulary_url', 'text', $language, $url, self::MAELSTROM_NS);
+    } 
+    
 
     foreach ($this->languages as $language) {
       $this->addAttribute($attributes, 'label', 'text', $language, $wrapper->language($language)->field_label->value());
