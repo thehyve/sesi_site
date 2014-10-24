@@ -232,7 +232,7 @@ function sesi_mica_query_edit_form($variables) {
     drupal_add_css(drupal_get_path('module', 'query_interface') . '/aciTree/css/aciTree.css');
     
     // Add custom interface scripts
-    drupal_add_js(drupal_get_path('module', 'query_interface') . '/query_interface.fulltext-search.js');
+    drupal_add_js(drupal_get_path('module', 'query_interface') . '/query_interface.filter-variables.js');
     drupal_add_js(drupal_get_path('module', 'query_interface') . '/query_interface.taxonomy_tree.js');
     drupal_add_css(drupal_get_path('module', 'query_interface') . '/query_interface.taxonomy_tree.css');
     
@@ -463,12 +463,14 @@ function _query_interface_render_variable_row($variable, $buttons) {
 
     $rows[] = array("data" => $rowData, "class" => array("variable_" . $variable['vid']["#value"]));
 
-    // Create the second row with taxonomies
+    // Create the second row with taxonomies. For each taxonomy, we also
+    // add a hidden element with the taxonomy id
     // This time, the cell needs HTML properties being set,
     // so the structure is somewhat more complex
     $taxonomyDescription = implode(", ", array_map(
                     function($taxonomy) {
-                        return htmlspecialchars($taxonomy->name);
+                        $output = '<input type="hidden" class="hidden-taxonomy-id" value="' . $taxonomy->tid . '" />';
+                        return $output . htmlspecialchars($taxonomy->name);
                     }, $taxonomies));
 
     // Add a row with one cell (colspan=3)

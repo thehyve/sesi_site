@@ -11,6 +11,13 @@
                     },
                     checkbox: true
                 });
+
+                // Enable filtering on selected terms
+                tree.on('acitree', function(event, api, item, eventName, options) {
+                    if( eventName == 'checked' || eventName == 'unchecked' ) {
+                        Sesi.QueryInterface.filter();
+                    }
+                });
             }
         }
     };
