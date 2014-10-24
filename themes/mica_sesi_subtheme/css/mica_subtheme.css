@@ -47,6 +47,7 @@ margin-bottom: -100px;
 /*===========================================================================*/
 
 h2 {color: #4183C4;}
+h2 {color: #CF0000;}
 
 a:hover, a:active {
     color: #495961;
@@ -54,9 +55,10 @@ a:hover, a:active {
 }
 a:hover, a:focus {
     outline: 0;
-    color: #CF0000;
+    color: #4183C4;
 }
-a {
+a 
+{
     color: #495961;
     text-decoration: none;
 }
@@ -129,8 +131,6 @@ browser window is small */
     padding: 1em 1em;
     color: #777;
     font-size: 1.2em;
-/*    border:1px solid #FFF; */
-/*    border-radius: 10px; */
 }
 
 #navcontainer ul li a:hover
@@ -150,4 +150,16 @@ browser window is small */
     text-decoration: none;
 }
 
-.views-row h2 { font-weight: bold !important; padding-bottom: 5px !important;}
+.views-row h2 { font-weight: bold !important; padding-bottom: 5px !important; }
+
+#mini-panel-sesi_mini_panel_home_news .panel-col-first {width: 30%;}
+#mini-panel-sesi_mini_panel_home_news .panel-col-last {width: 70%;}
+#mini-panel-sesi_mini_panel_home_news .panel-col-first .views-field-title 
+{
+    font-weight: bold;
+}
+#mini-panel-sesi_mini_panel_home_news .views-row 
+{
+    border-bottom: 1px dotted #CCC;
+    padding: 5px;
+}
