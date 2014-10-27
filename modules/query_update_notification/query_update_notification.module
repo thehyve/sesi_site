@@ -244,7 +244,7 @@ class QueryUpdateNotificationState extends Entity {
 
     $new_result = _query_update_notification_query_result($this->query());
 
-    if(is_null($state->updated) || is_null($state->last_result) {
+    if(is_null($this->updated) || is_null($this->last_result)) {
       $this->update($new_result);
       return array();
     }
@@ -271,8 +271,9 @@ class QueryUpdateNotificationState extends Entity {
           if(count($old_count) != count($old_count)) goto update;
 
           $diff = $old_count * $this->threshold;
-          if($new_count > $old_count + $diff || $new_count < $old_count - diff) {
-            $changed[] = array('connection' => $connection, 'variable' => $var, 'old_value' => $old_count, 'new_value' => $new_count);
+          if($new_count > $old_count + $diff || $new_count < $old_count - $diff) {
+            $changed[] = array('connection' => $connection, 'variable' => $var, 'category' => $category,
+              'old_value' => $old_count, 'new_value' => $new_count);
           }
         }
       }
@@ -281,11 +282,97 @@ class QueryUpdateNotificationState extends Entity {
     
 
 
-    return ...;
+    //return ...;
 
   update:
     $this->update($new_result);
     return array();
+  }
+
+  private function recursiveCompare3($old, $new, $names, &$changed, $path = array()) {
+    if (count($names) == 0) {
+      $diff = $old * $this->threshold;
+      if ($new > $old + $diff || $new < $old - $diff) {
+        $changed[] = $path + array('old_value' => $old, 'new_value' => $new);
+      }
+    } else {
+      $keyname = array_shift($names);
+      if (count($old) != count($new)) return FALSE;
+      foreach ($old as $key => $old_value) {
+        if (!isset($new[$key])) return FALSE;
+        $ret = $this->recursiveCompare3($old_value, $new[$key], $names, &$changed, $path + array($keyname => $key));
+        if (!$ret) return FALSE;
+      }
+    }
+    return TRUE;
+  }
+
+  private function recursiveCompare4($old, $new, $names, &$changed, $path = array()) {
+    if (count($old) != count($new)) return FALSE;
+    foreach ($old as $key => $old_value) {
+      if (!isset($new[$key])) return FALSE;
+      $new_value = $new[$key];
+      $keyname = array_shift($names);
+      if(count($names) > 0) {
+        $ret = $this->recursiveCompare4($old_value, $new_value, &$changed, $names, $path + array($keyname => $key));
+        if($ret === FALSE) return FALSE;
+      } else {
+        $diff = $old_value * $this->threshold;
+        if($new_value > $old_value + $diff || $new_value < $old_value - $diff) {
+          $changed[] = $path + array($keyname => $key, 'old_value' => $old_value, 'new_value' => $new_value);
+        }
+      }
+    }
+    return TRUE;
+  }
+
+  private function recursiveCompare($old, $new, &$changed, $what, $path = array()) {
+    if (count($old) != count($new)) return FALSE;
+    foreach ($old as $key => $old_value) {
+      if (!isset($new[$key])) return FALSE;
+      $new_value = $new[$key];
+      if (count($what) == 1) {
+        $diff = $old_value + $this->threshold;
+        if ($new_value > $old_value + $diff || $new_value < $old_value - $diff) {
+          $[] = array($what[0] => $key, 'old_value' => $old_value, 'new_value' => $new_value);
+        }
+      }
+      else {
+        $keyname = array_shift($what);
+        $rec = $this->recursiveCompare($old_value, $new_value, $what);
+        if ($rec === FALSE) return FALSE;
+        foreach (array_keys($rec) as $i) {
+          $ret[] = $rec[$i] + array($keyname => $key);
+        }
+      }
+    }
+    return $ret;
+  }
+
+  private function recursiveCompare2($old, $new) {
+    if (count($old) != count($new)) return FALSE;
+    $ret = array();
+    foreach ($old as $key => $old_value) {
+      if (!isset($new[$key])) return FALSE;
+      $new_value = $new[$key];
+      switch(is_array($old_value) + is_array($new_value)) {
+        case 2:
+          $rec = $this->recursiveCompare2($old_value, $new_value);
+          if($rec === FALSE) return FALSE;
+          foreach($rec as $r) {
+            $ret[] = array_merge(array($key), $r);
+          }
+          break;
+        case 1:
+          return FALSE;
+        case 0:
+          $diff = $old_value + $this->threshold;
+          if($new_value > $old_value + $diff || $new_value < $old_value - $diff) {
+            $ret[] = array($key, $old_value, $new_value);
+          }
+      }
+    }
+    return $ret;
   }
 
   private function update($new_result) {
