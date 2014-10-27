@@ -147,7 +147,11 @@ class MicaDatasetOpalConnectionClass extends MicaDatasetAbstractConnection imple
         }
       }
     } catch (HttpClientException $e) {
-      // ignore
+      if ($e->getCode() == 0) {
+        // Curl error
+        throw new Exception($e->getMessage());
+      }
+      // else ignore
     }
     //debug($this->fieldname_map);
   }
@@ -218,6 +222,8 @@ class MicaDatasetOpalConnectionClass extends MicaDatasetAbstractConnection imple
       CURLOPT_SSL_VERIFYPEER => FALSE,
       CURLOPT_SSLCERT => $this->realpath(PUBLIC_KEY_FILE),
       CURLOPT_SSLKEY => $this->realpath(PRIVATE_KEY_FILE),
+      CURLOPT_CONNECTTIMEOUT => 10,
+      CURLOPT_TIMEOUT => 60,
     );
 
     return $client;
@@ -228,7 +234,7 @@ class MicaDatasetOpalConnectionClass extends MicaDatasetAbstractConnection imple
 
     try {
       $result = $this->esQueryApi->query($terms);
-    } catch (Exception $e) {
+    } catch (HttpClientException $e) {
       $result = $this->esQueryDefault->query($terms);
     }
 
@@ -240,7 +246,7 @@ class MicaDatasetOpalConnectionClass extends MicaDatasetAbstractConnection imple
 
     try {
       $result = $this->esQueryApi->queryBy($terms, $fields);
-    } catch (Exception $e) {
+    } catch (HttpClientException $e) {
       $result = $this->esQueryDefault->queryBy($terms, $fields);
     }
 
@@ -252,7 +258,7 @@ class MicaDatasetOpalConnectionClass extends MicaDatasetAbstractConnection imple
 
     try {
       $result = $this->esQueryApi->crossQueryBy($terms, $fields);
-    } catch (Exception $e) {
+    } catch (HttpClientException $e) {
       $result = $this->esQueryDefault->crossQueryBy($terms, $fields);
     }
 
@@ -264,7 +270,7 @@ class MicaDatasetOpalConnectionClass extends MicaDatasetAbstractConnection imple
 
     try {
       $result = $this->esQueryApi->facetTerm($term);
-    } catch (Exception $e) {
+    } catch (HttpClientException $e) {
       $result = $this->esQueryDefault->facetTerm($term);
     }
 
