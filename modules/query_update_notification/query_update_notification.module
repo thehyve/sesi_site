@@ -6,7 +6,7 @@ function query_update_notification_entity_info() {
   $info['query_update_notification_state'] = array(
     'label' => t('Query notification state'),
     'metadata controller class' => FALSE,
-    'entity class' => 'QueryUpdateNotificationState',
+    'entity class' => 'QuerySubscription',
     'controller class' => 'EntityAPIController',
     'base table' => 'query_update_notification',
     'module' => 'query_update_notification',
@@ -57,7 +57,7 @@ function query_update_notification_cron_queue_info() {
 function query_update_notification_entity_delete($entity, $type) {
   if($type !== 'mica_query') return;
 
-  $notify_state = QueryUpdateNotificationState::getForQuery($entity);
+  $notify_state = QuerySubscription::getForQuery($entity);
   if($notify_state) {
     $notify_state->delete();
   }
@@ -68,7 +68,7 @@ function query_update_notification_entity_delete($entity, $type) {
 function query_update_notification_form_mica_query_edit_form_alter(&$form, &$form_state, $form_id) {
   $default = FALSE;
   if(isset($form_state['build_info']['args'][1])) {
-    $default = QueryUpdateNotificationState::hasNotification($form_state['build_info']['args'][1]);
+    $default = QuerySubscription::hasNotification($form_state['build_info']['args'][1]);
   }
 
   // Define a new button to update inherited fields
@@ -98,7 +98,7 @@ function query_update_notification_form_mica_query_run_page_alter(&$form, &$form
     '#prefix' => '<br>',
   );
 
-  if(QueryUpdateNotificationState::hasNotification($query)) {
+  if(QuerySubscription::hasNotification($query)) {
     $form['notify'] += array(
       '#value' => t('Unsubscribe from change notification'),
       '#submit' => array('query_update_notification_unsubscribe'),
@@ -116,40 +116,16 @@ function query_update_notification_form_mica_query_run_page_alter(&$form, &$form
 function query_update_notification_subscribe($form, &$form_state) {
   $query = $form_state['mica']['query'];
 
-  $notification_state = new QueryUpdateNotificationState($query);
+  $notification_state = new QuerySubscription($query);
   $notification_state->save();
 }
 
 function query_update_notification_unsubscribe($form, &$form_state) {
   $query = $form_state['mica']['query'];
-  $notify_state = QueryUpdateNotificationState::getForQuery($query);
+  $notify_state = QuerySubscription::getForQuery($query);
   if($notify_state) {
     $notify_state->delete();
   }
-}
-
-function _query_update_notification_query_result($query) {
-  $connectors = mica_connector_query_multiple($query->dataset_id);
-
-  $fullresult = array();
-  foreach($connectors as $connector) {
-
-    $terms = mica_query_term_query($query);
-    $cross_variable = node_load($query->cross_variable_id);
-
-    if(!empty($cross_variable)) {
-      $result = $connector->queryBy($terms, array($cross_variable->title));
-      // Depending on if it is a cross query use '_all' or 'total', unset the other.
-      // I'm not sure why this difference exists, but this is what the display code uses.
-      unset($result['total']);
-    } else {
-      $result = $connector->query($terms);
-      unset($result['_all']);
-    }
-
-    $fullresult[$connector->id] = $result;
-  }
-  return $fullresult;
 }
 
 function _query_update_notification_poll($arg) {
@@ -165,7 +141,7 @@ function _query_update_notification_poll($arg) {
 }
 
 
-class QueryUpdateNotificationState extends Entity {
+class QuerySubscription extends Entity {
 
   public $id = NULL;
   public $query_id = NULL;
@@ -178,7 +154,9 @@ class QueryUpdateNotificationState extends Entity {
   const WEEKLY = 2;
   const MONTHLY = 3;
 
-  const quns = 'query_update_notification_state';
+  const QUNS = 'query_update_notification_state';
+
+//  private $_descriptors = NULL;
 
   public function __construct($arg = array()) {
     if(is_a($arg, 'MicaDatasetQuery')) {
@@ -191,11 +169,17 @@ class QueryUpdateNotificationState extends Entity {
     if(isset($arg['updated']) && is_object($arg['updated'])) {
       $arg['updated'] = $arg['updated']->getTimestamp();
     }
-    parent::__construct($arg, self::quns);
+    parent::__construct($arg, self::QUNS);
   }
 
+//  public function __sleep() {
+//    $ret = get_object_vars($this);
+//    unset($ret['_descriptors']);
+//    return array_keys($ret);
+//  }
+
   public static function get($id) {
-    $entity = entity_load(self::quns, array($id));
+    $entity = entity_load(self::QUNS, array($id));
     if(empty($entity)) { return NULL; }
     return array_pop($entity);
   }
@@ -209,11 +193,12 @@ class QueryUpdateNotificationState extends Entity {
   public static function getForQuery($query) {
     $id = db_query("select id from {query_update_notification} where query_id = :qid",
       array(':qid' => $query->id))->fetchField();
-    if($id === NULL) return NULL;
+    if(is_null($id)) return NULL;
     return self::get($id);
   }
 
   public function query() {
+    // entity_load already caches
     $q = entity_load('mica_query', array($this->query_id));
     if(empty($q)) throw new Exception("mica_query entity for query_update_notification_state not found");
     return array_pop($q);
@@ -235,14 +220,14 @@ class QueryUpdateNotificationState extends Entity {
       case self::MONTHLY:
         return $this-> updated < time() - 60*60*24*30;
       default:
-        throw Exception("Unknown poll_interval value: "+$this->poll_interval);
+        throw new Exception("Unknown poll_interval value: {$this->poll_interval}, must be in range 1-3");
     }
   }
 
-  public function changes() {
+  public function getSignificantDifferences() {
     if(!$this->needsUpdate()) return array();
 
-    $new_result = _query_update_notification_query_result($this->query());
+    $new_result = $this->getResult(); // _query_update_notification_query_result($this->query());
 
     if(is_null($this->updated) || is_null($this->last_result)) {
       $this->update($new_result);
@@ -251,45 +236,16 @@ class QueryUpdateNotificationState extends Entity {
 
     $old_result = unserialize($this->last_result);
 
-    
-    if(count($old_result) != count($new_result)) goto update;
-
     $changed = array();
-    foreach($old_result as $connection => $old_values) {
-      if(!isset($new_result[$connection])) goto update;
-      $new_values = $new_result[$connection];
-      if(count($old_values) != count($new_values)) goto update;
-
-      foreach($old_values as $var => $old_categories) {
-        if(!isset($new_values[$var])) goto update;
-        $new_categories = $new_values[$var];
-        if(count($old_categories) != count($new_categories)) goto update;
-
-        foreach($old_categories as $category => $old_count) {
-          if(!isset($new_categories[$category])) goto update;
-          $new_count = $new_categories[$category];
-          if(count($old_count) != count($old_count)) goto update;
-
-          $diff = $old_count * $this->threshold;
-          if($new_count > $old_count + $diff || $new_count < $old_count - $diff) {
-            $changed[] = array('connection' => $connection, 'variable' => $var, 'category' => $category,
-              'old_value' => $old_count, 'new_value' => $new_count);
-          }
-        }
-      }
+    if(!$this->recursiveCompare($old_result, $new_result, array('connection', 'variable', 'category'), $changed)) {
+      $this->update($new_result);
+      return array();
     }
 
-    
-
-
-    //return ...;
-
-  update:
-    $this->update($new_result);
-    return array();
+    return $changed;
   }
 
-  private function recursiveCompare3($old, $new, $names, &$changed, $path = array()) {
+  private function recursiveCompare($old, $new, $names, &$changed, $path = array()) {
     if (count($names) == 0) {
       $diff = $old * $this->threshold;
       if ($new > $old + $diff || $new < $old - $diff) {
@@ -300,80 +256,50 @@ class QueryUpdateNotificationState extends Entity {
       if (count($old) != count($new)) return FALSE;
       foreach ($old as $key => $old_value) {
         if (!isset($new[$key])) return FALSE;
-        $ret = $this->recursiveCompare3($old_value, $new[$key], $names, &$changed, $path + array($keyname => $key));
+        $ret = $this->recursiveCompare($old_value, $new[$key], $names, $changed, $path + array($keyname => $key));
         if (!$ret) return FALSE;
       }
     }
     return TRUE;
   }
 
-  private function recursiveCompare4($old, $new, $names, &$changed, $path = array()) {
-    if (count($old) != count($new)) return FALSE;
-    foreach ($old as $key => $old_value) {
-      if (!isset($new[$key])) return FALSE;
-      $new_value = $new[$key];
-      $keyname = array_shift($names);
-      if(count($names) > 0) {
-        $ret = $this->recursiveCompare4($old_value, $new_value, &$changed, $names, $path + array($keyname => $key));
-        if($ret === FALSE) return FALSE;
-      } else {
-        $diff = $old_value * $this->threshold;
-        if($new_value > $old_value + $diff || $new_value < $old_value - $diff) {
-          $changed[] = $path + array($keyname => $key, 'old_value' => $old_value, 'new_value' => $new_value);
-        }
-      }
-    }
-    return TRUE;
-  }
+  public function descriptors() {
+//    if(!is_null($this->_descriptors)) {
+//      return $this->_descriptors;
+//    }
 
-  private function recursiveCompare($old, $new, &$changed, $what, $path = array()) {
-    if (count($old) != count($new)) return FALSE;
-    foreach ($old as $key => $old_value) {
-      if (!isset($new[$key])) return FALSE;
-      $new_value = $new[$key];
-      if (count($what) == 1) {
-        $diff = $old_value + $this->threshold;
-        if ($new_value > $old_value + $diff || $new_value < $old_value - $diff) {
-          $[] = array($what[0] => $key, 'old_value' => $old_value, 'new_value' => $new_value);
-        }
-      }
-      else {
-        $keyname = array_shift($what);
-        $rec = $this->recursiveCompare($old_value, $new_value, $what);
-        if ($rec === FALSE) return FALSE;
-        foreach (array_keys($rec) as $i) {
-          $ret[] = $rec[$i] + array($keyname => $key);
-        }
-      }
-    }
-    return $ret;
-  }
+    $query = $this->query();
 
-  private function recursiveCompare2($old, $new) {
-    if (count($old) != count($new)) return FALSE;
     $ret = array();
-    foreach ($old as $key => $old_value) {
-      if (!isset($new[$key])) return FALSE;
-      $new_value = $new[$key];
-      switch(is_array($old_value) + is_array($new_value)) {
-        case 2:
-          $rec = $this->recursiveCompare2($old_value, $new_value);
-          if($rec === FALSE) return FALSE;
-          foreach($rec as $r) {
-            $ret[] = array_merge(array($key), $r);
-          }
-          break;
-        case 1:
-          return FALSE;
-        case 0:
-          $diff = $old_value + $this->threshold;
-          if($new_value > $old_value + $diff || $new_value < $old_value - $diff) {
-            $ret[] = array($key, $old_value, $new_value);
-          }
+    $ret['connectors'] = mica_connector_query_multiple($query->dataset_id);
+    $ret['terms'] = mica_query_term_query($query);
+
+    $ret['term_variables'] = array();
+    foreach ($ret['terms'] as $tid => $term) {
+      $ret['term_variables'][$tid] = node_load($term->variable_id);
+    }
+    $ret['cross_variable'] = node_load($query->cross_variable_id);
+
+    $categories = array('_all' => 'total', 'total' => 'total', '_matched' => 'matched');
+    if ($ret['cross_variable']) {
+      foreach (entity_metadata_wrapper('node', $ret['cross_variable'])->field_variable_categories->value() as $cat) {
+        $categories[$cat['name']] = $cat['label'];
       }
     }
+    $ret['categories'] = $categories;
+
     return $ret;
   }
+
+//  private function xx() {
+//
+//    $mapped = array();
+//    foreach($changed as $change) {
+//      foreach($change as $type => $value) {
+//
+//      }
+//    }
+//  }
 
   private function update($new_result) {
     $this->updated = time();
@@ -381,7 +307,31 @@ class QueryUpdateNotificationState extends Entity {
     $this->save();
   }
 
-  private function significantDifferences($old_result, $new_result) {
-    
+  public function getResult() {
+    $query = $this->query();
+
+    $connectors = mica_connector_query_multiple($query->dataset_id);
+
+    $fullresult = array();
+    foreach($connectors as $connector) {
+
+      $terms = mica_query_term_query($query);
+      $cross_variable = node_load($query->cross_variable_id);
+
+      if(empty($cross_variable)) {
+        $result = $connector->query($terms);
+        unset($result['_all']);
+      } else {
+        $result = $connector->queryBy($terms, array($cross_variable->title));
+        // Depending on if it is a cross query use '_all' or 'total', unset the other.
+        // I'm not sure why this difference exists, but this is what the display code uses.
+        unset($result['total']);
+      }
+
+      $fullresult[$connector->id] = $result;
+    }
+    return $fullresult;
   }
+
+
 }
