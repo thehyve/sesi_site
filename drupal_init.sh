@@ -41,6 +41,12 @@ drush --yes features-revert sesi_site_map
 drush --yes pm-enable sesi_easy_social
 drush --yes features-revert sesi_easy_social
 
+# --------------------------------- #
+# Enable feature for News and Event #
+# --------------------------------- #
+drush --yes pm-enable sesi_events
+drush --yes features-revert sesi_events
+
 # ------------------------------ #
 # Enable Printer Friendly Config #
 # ------------------------------ #
