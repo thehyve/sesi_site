@@ -42,9 +42,13 @@ drush --yes pm-enable features
 drush --yes pm-enable strongarm
 drush --yes pm-enable locale
 
+# Install and enable Features Extra module
+drush --yes dl features_extra
+drush --yes en fe_block
+
 #activate organic groups
 drush --yes dl og
-sudo drush --yes en og og_ui og_context
+drush --yes en og og_ui og_context
 drush pm-enable sesi_communities_and_files
 
 #install captcha
