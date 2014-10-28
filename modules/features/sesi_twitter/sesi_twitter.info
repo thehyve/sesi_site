@@ -1,0 +1,15 @@
+name = Sesi Twitter
+description = Feature to configure default setting for twitter module
+core = 7.x
+package = Sesi
+version = 7.x-1.0
+project = sesi_twitter
+dependencies[] = twitter
+features[features_api][] = api:2
+features[menu_links][] = management:admin/config/services/twitter
+features[user_permission][] = add authenticated twitter accounts
+features[user_permission][] = add twitter accounts
+features[user_permission][] = administer twitter accounts
+features_exclude[dependencies][features] = features
+features_exclude[dependencies][menu] = menu
+features_exclude[menu_custom][management] = management
