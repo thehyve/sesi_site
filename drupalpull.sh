@@ -17,19 +17,21 @@ if ! type "drush" > /dev/null; then
   wget --quiet -O - http://ftp.drupal.org/files/projects/drush-7.x-5.9.tar.gz | tar -zxf - -C /usr/local/share
   ln -s /usr/local/share/drush/drush /usr/bin/drush
 fi
-
+   
 # Get field_group patch and apply it
 if [ ! -f 2078201-27-fieldgroup_notice_flood.patch ]; then
     echo 'field_group module patch does not exist'
     wget https://www.drupal.org/files/2078201-27-fieldgroup_notice_flood.patch
 fi
 
-#PATCH ORIGINAL MICA CODE
-yes | cp -Rf "$DRUPAL_ROOT/sites/all/patch" "$DRUPAL_ROOT/profiles/mica_distribution"
+patch -p1 -N --silent "$DRUPAL_ROOT/profiles/mica_distribution/modules/field_group/field_group.module" 2078201-27-fieldgroup_notice_flood.patch || true
 
+#adding patch for core mica xml converter
+patch -p1 -N --silent "$DRUPAL_ROOT/profiles/mica_distribution/modules/mica/extensions/mica_opal/mica_opal_view/ServicesOpalFormatter.inc" patch/fix_vocabulary_url.patch || true
+patch -p1 -N --silent "$DRUPAL_ROOT/profiles/mica_distribution/modules/mica/extensions/mica_opal/mica_opal_view/ServicesOpalFormatter.inc" patch/dataset_name_in_xml_export.patch || true
 
 # Check drupal status
-drush status
+drush status  
  
 # Disable these themes to make sure they are never enabled.
 drush --yes pm-disable seven
@@ -47,6 +49,7 @@ drush pm-enable sesi_communities_and_files
 
 #install captcha
 drush --yes dl captcha
+drush --yes en captcha
 drush --yes en image_captcha
 
 # install easy_social module
