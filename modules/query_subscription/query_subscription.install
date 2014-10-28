@@ -52,9 +52,9 @@ class _QUN_constants {
 /**
  * Implements hook_schema
  */
-function query_update_notification_schema() {
+function query_subscription_schema() {
   return array(
-    'query_update_notification' => array(
+    'query_subscription' => array(
       'description' => "query update notification state",
       'fields' => _QUN_constants::$dbfields,
       'primary key' => array('id'),

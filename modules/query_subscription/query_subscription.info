@@ -1,0 +1,6 @@
+name = Query Update Subscription
+description = Receive notification if query results change
+core = 7.x
+package = Sesi
+dependencies[] = mica_query
+

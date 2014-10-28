@@ -1,6 +1,0 @@
-name = Query Update Notification
-description = Notification if query results change
-core = 7.x
-package = Sesi
-dependencies[] = mica_query
-
