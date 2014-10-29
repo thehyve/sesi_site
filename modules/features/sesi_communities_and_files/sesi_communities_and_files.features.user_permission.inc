@@ -10,6 +10,15 @@
 function sesi_communities_and_files_user_default_permissions() {
   $permissions = array();
 
+  // Exported permission: 'administer group'.
+  $permissions['administer group'] = array(
+    'name' => 'administer group',
+    'roles' => array(
+      'administrator' => 'administrator',
+    ),
+    'module' => 'og',
+  );
+
   // Exported permission: 'create community content'.
   $permissions['create community content'] = array(
     'name' => 'create community content',
