@@ -31,36 +31,6 @@ function sesi_communities_and_files_og_features_default_permissions() {
     ),
   );
 
-  // Exported og permission: 'node:community:create community_document content'
-  $permissions['node:community:create community_document content'] = array(
-    'roles' => array(),
-  );
-
-  // Exported og permission: 'node:community:create dataset content'
-  $permissions['node:community:create dataset content'] = array(
-    'roles' => array(),
-  );
-
-  // Exported og permission: 'node:community:delete any community_document content'
-  $permissions['node:community:delete any community_document content'] = array(
-    'roles' => array(),
-  );
-
-  // Exported og permission: 'node:community:delete any dataset content'
-  $permissions['node:community:delete any dataset content'] = array(
-    'roles' => array(),
-  );
-
-  // Exported og permission: 'node:community:delete own community_document content'
-  $permissions['node:community:delete own community_document content'] = array(
-    'roles' => array(),
-  );
-
-  // Exported og permission: 'node:community:delete own dataset content'
-  $permissions['node:community:delete own dataset content'] = array(
-    'roles' => array(),
-  );
-
   // Exported og permission: 'node:community:manage members'
   $permissions['node:community:manage members'] = array(
     'roles' => array(
@@ -101,31 +71,11 @@ function sesi_communities_and_files_og_features_default_permissions() {
     ),
   );
 
-  // Exported og permission: 'node:community:update any community_document content'
-  $permissions['node:community:update any community_document content'] = array(
-    'roles' => array(),
-  );
-
-  // Exported og permission: 'node:community:update any dataset content'
-  $permissions['node:community:update any dataset content'] = array(
-    'roles' => array(),
-  );
-
   // Exported og permission: 'node:community:update group'
   $permissions['node:community:update group'] = array(
     'roles' => array(
       'administrator member' => 'administrator member',
     ),
-  );
-
-  // Exported og permission: 'node:community:update own community_document content'
-  $permissions['node:community:update own community_document content'] = array(
-    'roles' => array(),
-  );
-
-  // Exported og permission: 'node:community:update own dataset content'
-  $permissions['node:community:update own dataset content'] = array(
-    'roles' => array(),
   );
 
   return $permissions;
