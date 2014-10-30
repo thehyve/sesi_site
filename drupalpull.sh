@@ -48,13 +48,12 @@ drush --yes en fe_block
 
 #activate organic groups
 drush --yes dl og
-drush --yes en og og_ui og_context
-drush pm-enable sesi_communities_and_files
+drush --yes en og og_ui og_context og_access
+drush pm-enable --yes sesi_communities_and_files
 
 #install captcha
 drush --yes dl captcha
-drush --yes en captcha
-drush --yes en image_captcha
+drush --yes en captcha image_captcha
 
 # install easy_social module
 drush --yes dl easy_social
