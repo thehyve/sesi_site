@@ -27,7 +27,7 @@ function sesi_events_default_fe_block_settings() {
         'region' => 'content',
         'status' => 1,
         'theme' => 'mica_subtheme',
-        'weight' => -43,
+        'weight' => -41,
       ),
     ),
     'title' => '',
@@ -49,7 +49,49 @@ function sesi_events_default_fe_block_settings() {
         'region' => 'content',
         'status' => 1,
         'theme' => 'mica_subtheme',
-        'weight' => -44,
+        'weight' => -40,
+      ),
+    ),
+    'title' => '',
+    'visibility' => 1,
+  );
+
+  $export['system-navigation'] = array(
+    'cache' => -1,
+    'custom' => 0,
+    'delta' => 'navigation',
+    'module' => 'system',
+    'node_types' => array(),
+    'pages' => '<front>',
+    'roles' => array(
+      'authenticated user' => 2,
+    ),
+    'themes' => array(
+      'mica_subtheme' => array(
+        'region' => '',
+        'status' => 0,
+        'theme' => 'mica_subtheme',
+        'weight' => -39,
+      ),
+    ),
+    'title' => '',
+    'visibility' => 1,
+  );
+
+  $export['views-news-recent_news'] = array(
+    'cache' => -1,
+    'custom' => 0,
+    'delta' => 'news-recent_news',
+    'module' => 'views',
+    'node_types' => array(),
+    'pages' => '<front>',
+    'roles' => array(),
+    'themes' => array(
+      'mica_subtheme' => array(
+        'region' => '',
+        'status' => 0,
+        'theme' => 'mica_subtheme',
+        'weight' => -38,
       ),
     ),
     'title' => '',
