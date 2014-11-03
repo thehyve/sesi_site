@@ -46,10 +46,13 @@ drush --yes pm-enable locale
 drush --yes dl features_extra
 drush --yes en fe_block
 
-#activate organic groups
+# activate organic groups
 drush --yes dl og
 drush --yes en og og_ui og_context og_access
+
+# enable sesi_communities_and_files feature
 drush pm-enable --yes sesi_communities_and_files
+drush --yes features-revert sesi_communities_and_files
 
 #install captcha
 drush --yes dl captcha
@@ -98,7 +101,7 @@ drush --yes pm-enable sesi_autologout
 drush --yes features-revert sesi_autologout
 
 # Enable project theme.
-#drush --yes pm-enable ourprettytheme
+# drush --yes pm-enable ourprettytheme
 
 # Enable Contact Form
 drush --yes pm-enable contact
