@@ -45,7 +45,10 @@ function sesi_communities_and_files_user_default_permissions() {
   // Exported permission: 'delete any community_document content'.
   $permissions['delete any community_document content'] = array(
     'name' => 'delete any community_document content',
-    'roles' => array(),
+    'roles' => array(
+      'administrator' => 'administrator',
+      'consortium administrator' => 'consortium administrator',
+    ),
     'module' => 'node',
   );
 
@@ -59,7 +62,10 @@ function sesi_communities_and_files_user_default_permissions() {
   // Exported permission: 'delete own community_document content'.
   $permissions['delete own community_document content'] = array(
     'name' => 'delete own community_document content',
-    'roles' => array(),
+    'roles' => array(
+      'administrator' => 'administrator',
+      'consortium administrator' => 'consortium administrator',
+    ),
     'module' => 'node',
   );
 
@@ -73,7 +79,10 @@ function sesi_communities_and_files_user_default_permissions() {
   // Exported permission: 'edit any community_document content'.
   $permissions['edit any community_document content'] = array(
     'name' => 'edit any community_document content',
-    'roles' => array(),
+    'roles' => array(
+      'administrator' => 'administrator',
+      'consortium administrator' => 'consortium administrator',
+    ),
     'module' => 'node',
   );
 
@@ -89,7 +98,10 @@ function sesi_communities_and_files_user_default_permissions() {
   // Exported permission: 'edit own community_document content'.
   $permissions['edit own community_document content'] = array(
     'name' => 'edit own community_document content',
-    'roles' => array(),
+    'roles' => array(
+      'administrator' => 'administrator',
+      'consortium administrator' => 'consortium administrator',
+    ),
     'module' => 'node',
   );
 
