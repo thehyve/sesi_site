@@ -9,6 +9,7 @@ module_load_include('inc', 'mica_query', 'mica_query.pages.term');
 module_load_include('inc', 'query_interface', 'query_interface.edit_screen');
 module_load_include('inc', 'query_interface', 'query_interface.handling_terms');
 module_load_include('inc', 'query_interface', 'query_interface.taxonomy_tree');
+module_load_include('inc', 'query_interface', 'query_interface.results_screen');
 
 /**
  * Registers urls specific for new query interface 
