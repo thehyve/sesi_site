@@ -53,6 +53,9 @@ drush --yes en image_captcha
 
 #backup first
 #drush archive-dump /tmp/micasitebk
+
+#install htmlmail dependency
+drush --yes dl htmlmail mailsystem
  
 # ////////////////////////// Enable project features.
 drush --yes pm-enable sesi_eid_login

@@ -1,5 +1,7 @@
 <?php
 
+include 'query_subscription.email.inc';
+
 // implements hook_entity_info
 function query_subscription_entity_info() {
   $info = array();
@@ -18,10 +20,20 @@ function query_subscription_entity_info() {
   return $info;
 }
 
+function query_subscription_entity_info_alter(&$info) {
+  // Fix broken query url
+  $info['mica_query']['uri callback'] = '_query_subscription_query_url';
+}
+
+function _query_subscription_query_url($query) {
+  return array('path' => "node/{$query->dataset_id}/queries/{$query->id}",
+    'options' => array());
+}
+
 // implements hook_cron
 function query_subscription_cron() {
-  $r = _query_subscription_query_result(array_pop(entity_load('mica_query', array(24))));
-  return;
+//  $r = _query_subscription_query_result(array_pop(entity_load('mica_query', array(24))));
+//  return;
 
   $result = db_query(
     "select n.id, q.user_id from {query_subscription} n join {mica_query} q on n.query_id = q.id
@@ -112,7 +124,7 @@ function query_subscription_form_mica_query_run_page_alter(&$form, &$form_state,
     );
   }
 
-  //drupal_set_message(serialize(query_subscription_cron()));
+  drupal_set_message(serialize(drupal_cron_run()));
 }
 
 function query_subscription_subscribe($form, &$form_state) {
@@ -131,39 +143,46 @@ function query_subscription_unsubscribe($form, &$form_state) {
 }
 
 function _query_subscription_poll($arg) {
-  echo "running job\n";
+  //echo "running job\n";
 
   list($uid, $ids) = $arg;
 
+  $user = user_load($uid);
+  $old_user = $GLOBALS['user'];
+
   $changed = array();
 
-  foreach($ids as $id) {
-    $subscription = QuerySubscription::get($id);
-    if(is_null($subscription)) continue;
+  try {
+    $GLOBALS['user'] = $user;
 
-    $differences = $subscription->getSignificantDifferences();
+    foreach ($ids as $id) {
+      $subscription = QuerySubscription::get($id);
+      if (is_null($subscription)) continue;
 
-    if(!empty($differences)) {
-      $changed[] = $differences;
+      $differences = $subscription->getSignificantDifferences();
+
+      if (!empty($differences)) {
+        $changed[] = array(
+          'differences' => $differences,
+          'descriptors' => $subscription->descriptors(),
+          'subscription' => $subscription
+        );
+      }
     }
-  }
 
-  if(!empty($changes)) {
-    _query_subscription_email($uid, $changes);
+    if (!empty($changed)) {
+      _query_subscription_email($uid, $changed);
+    }
+
+  // poor mans finally
+  } catch (Exception $e) {
+    $GLOBALS['user'] = $old_user;
+    throw $e;
   }
+  $GLOBALS['user'] = $old_user;
+
 }
 
-function _query_subscription_email($uid, $changes) {
-
-  $user = user_load($uid);
-  if(empty($user)) return;
-
-  $params = array(
-    'subject' => t('Subject', array(), array('langcode' => $user->language)),
-    'body' => t('Body', array(), array('langcode' => $user->language)),
-  );
-  drupal_mail('query_subscription', 'notification', $user->mail, $user->language, $params);
-}
 
 function _query_subscription_query_result($query) {
   $connectors = mica_connector_query_multiple($query->dataset_id);
@@ -204,9 +223,8 @@ class QuerySubscription extends Entity {
   const MONTHLY = 3;
   const ALLWAYS = 4;
 
-  const QUNS = 'query_subscription';
+  const QS = 'query_subscription';
 
-//  private $_descriptors = NULL;
 
   public function __construct($arg = array()) {
     if(is_a($arg, 'MicaDatasetQuery')) {
@@ -219,19 +237,18 @@ class QuerySubscription extends Entity {
     if(isset($arg['updated']) && is_object($arg['updated'])) {
       $arg['updated'] = $arg['updated']->getTimestamp();
     }
-    parent::__construct($arg, self::QUNS);
+    parent::__construct($arg, self::QS);
   }
 
-//  public function __sleep() {
-//    $ret = get_object_vars($this);
-//    unset($ret['_descriptors']);
-//    return array_keys($ret);
-//  }
-
+  /**
+   * Get a QuerySubscription
+   * @param $id Numeric entity ID
+   * @return QuerySubscription|null
+   */
   public static function get($id) {
-    $entity = entity_load(self::QUNS, array($id));
-    if(empty($entity)) { return NULL; }
-    return array_pop($entity);
+    $subscription = entity_load(self::QS, array($id));
+    if(empty($subscription)) { return NULL; }
+    return array_pop($subscription);
   }
 
   public static function hasNotification($query) {
@@ -247,6 +264,9 @@ class QuerySubscription extends Entity {
     return self::get($id);
   }
 
+  /**
+   * @return MicaDatasetQuery
+   */
   public function query() {
     // entity_load already caches
     $q = entity_load('mica_query', array($this->query_id));
@@ -279,7 +299,7 @@ class QuerySubscription extends Entity {
   public function getSignificantDifferences() {
     if(!$this->needsUpdate()) return array();
 
-    $new_result = $this->getResult(); // _query_subscription_query_result($this->query());
+    $new_result = $this->getResults();
 
     if(is_null($this->updated) || is_null($this->last_result)) {
       $this->update($new_result);
@@ -289,15 +309,15 @@ class QuerySubscription extends Entity {
     $old_result = unserialize($this->last_result);
 
     $changed = array();
-    if(!$this->recursiveCompare($old_result, $new_result, array('connection', 'variable', 'category'), $changed)) {
+    if(!$this->_recursiveCompare($old_result, $new_result, array('connection', 'term', 'category'), $changed)) {
       $this->update($new_result);
       return array();
     }
 
     return $changed;
   }
-
-  private function recursiveCompare($old, $new, $names, &$changed, $path = array()) {
+  /* document return value / $changed */
+  private function _recursiveCompare($old, $new, $names, &$changed, $path = array()) {
     if (count($names) == 0) {
       $diff = $old * $this->threshold;
       if ($new > $old + $diff || $new < $old - $diff) {
@@ -308,7 +328,7 @@ class QuerySubscription extends Entity {
       if (count($old) != count($new)) return FALSE;
       foreach ($old as $key => $old_value) {
         if (!isset($new[$key])) return FALSE;
-        $ret = $this->recursiveCompare($old_value, $new[$key], $names, $changed, $path + array($keyname => $key));
+        $ret = $this->_recursiveCompare($old_value, $new[$key], $names, $changed, $path + array($keyname => $key));
         if (!$ret) return FALSE;
       }
     }
@@ -316,42 +336,34 @@ class QuerySubscription extends Entity {
   }
 
   public function descriptors() {
-//    if(!is_null($this->_descriptors)) {
-//      return $this->_descriptors;
-//    }
-
     $query = $this->query();
 
     $ret = array();
-    $ret['connectors'] = mica_connector_query_multiple($query->dataset_id);
+    $ret['connectors'] = self::id_map(mica_connector_query_multiple($query->dataset_id));
     $ret['terms'] = mica_query_term_query($query);
+    $ret['dataset'] = self::metaload($query->dataset_id);
+
+    $ret['studies'] = array();
+    foreach($ret['connectors'] as $connid => $conn) {
+      $ret['studies'][$connid] = self::metaload($conn->study_id);
+    }
 
     $ret['term_variables'] = array();
     foreach ($ret['terms'] as $tid => $term) {
-      $ret['term_variables'][$tid] = node_load($term->variable_id);
+      $ret['term_variables'][$tid] = self::metaload($term->variable_id);
     }
-    $ret['cross_variable'] = node_load($query->cross_variable_id);
+    $ret['cross_variable'] = self::metaload($query->cross_variable_id);
 
-    $categories = array('_all' => 'total', 'total' => 'total', '_matched' => 'matched');
+//    $categories = array('_all' => 'total', 'total' => 'total', '_matched' => 'matched');
+    $ret['categories'] = array();
     if ($ret['cross_variable']) {
       foreach (entity_metadata_wrapper('node', $ret['cross_variable'])->field_variable_categories->value() as $cat) {
-        $categories[$cat['name']] = $cat['label'];
+        $ret['categories'][$cat['name']] = $cat['label'];
       }
     }
-    $ret['categories'] = $categories;
 
     return $ret;
   }
-
-//  private function xx() {
-//
-//    $mapped = array();
-//    foreach($changed as $change) {
-//      foreach($change as $type => $value) {
-//
-//      }
-//    }
-//  }
 
   private function update($new_result) {
     $this->updated = time();
@@ -361,6 +373,20 @@ class QuerySubscription extends Entity {
 
   public function getResults() {
     return _query_subscription_query_result($this->query());
+  }
+
+
+  private static function id_map($arr) {
+    $ret = array();
+    foreach($arr as $item) {
+      $ret[$item->id] = $item;
+    }
+    return $ret;
+  }
+
+  private static function metaload($id) {
+    //return entity_metadata_wrapper('node', node_load($id));
+    return node_load($id);
   }
 
 }

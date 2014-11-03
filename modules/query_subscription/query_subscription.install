@@ -69,3 +69,17 @@ function query_subscription_schema() {
     ),
   );
 }
+
+/**
+ * Implements hook_enable
+ */
+function query_subscription_enable() {
+  mailsystem_set(array('query_subscription' => 'HTMLMailSystem'));
+}
+
+/**
+ * Implements hook_disable
+ */
+function query_subscription_disable() {
+  mailsystem_clear(array('query_subscription' => ''));
+}
