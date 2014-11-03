@@ -3,7 +3,7 @@
 # drupal_init.sh
 # --------------
 # This script mainly configures the initial contents for Mica Sesi project.
-# 
+#
 
 set -e
 
@@ -13,8 +13,8 @@ echo '(()/(  (     (           ) )\  (()/(     (  ( /(                         '
 echo ' /(_)) )(   ))\ `  )  ( /(((_)  /(_))(   )\ )\())                        '
 echo '(_))_ (()\ /((_)/(/(  )(_))_   (_))  )\ |(_|_))/                         '
 echo '|   \ ((_|_))(((_)_\((_)_| |  |_ _|_(_/((_) |_                           '
-echo '| |) | ,_| || | ,_ \) _` | |   | || , \)) |  _|                          ' 
-echo '|___/|_|  \_,_| .__/\__,_|_|  |___|_||_||_|\__|                          ' 
+echo '| |) | ,_| || | ,_ \) _` | |   | || , \)) |  _|                          '
+echo '|___/|_|  \_,_| .__/\__,_|_|  |___|_||_||_|\__|                          '
 echo '               |_|                                                       '
 
 # --------------- #
@@ -35,6 +35,18 @@ drush --yes features-revert sesi_menu_links
 drush --yes pm-enable sesi_site_map
 drush --yes features-revert sesi_site_map
 
+# ------------------ #
+# Enable Easy Social #
+# ------------------ #
+drush --yes pm-enable sesi_easy_social
+drush --yes features-revert sesi_easy_social
+
+# --------------------------------- #
+# Enable feature for News and Event #
+# --------------------------------- #
+drush --yes pm-enable sesi_events
+drush --yes features-revert sesi_events
+
 # ------------------------------ #
 # Enable Printer Friendly Config #
 # ------------------------------ #
@@ -45,3 +57,4 @@ drush --yes features-revert sesi_printer_friendly
 # Display list of features to check status manually. #
 # -------------------------------------------------- #
 drush features
+
