@@ -102,7 +102,7 @@ if( typeof Sesi.QueryInterface == 'undefined' )
         if( dataRows.length > 1 ) {
             // The first row (with totals) must have a green background
             var totalsRow = dataRows.last();
-            totalsRow.find( "td" ).css( "background-color", "#B7FF85" );
+            totalsRow.find( "td" ).css( "background-color", "#dff0d8" );
 
             // We have to check whether the table is crossed with another variable.
             // If that is the case, 'totals' column have a colspan > 1. In that
@@ -126,13 +126,36 @@ if( typeof Sesi.QueryInterface == 'undefined' )
             }
         }
         
-        // There must be labels underneath the table:
-        // Below the column 'matched', there must be the label "Matching all criteria"
-        // Below the column 'total', there must be the label "Total sample set size"
-        // Below the other columns, there should be "Totals for specific criteria" (only once, spanning all other columns)
-        
+        // There must be labels underneath the table
+        // The columns must have a colspan just like the ones in the header
+        var colspans = [];
+        headers.each(function() {
+            var colspan = $(this).attr( "colspan" )
+            colspans.push( colspan ? parseInt( colspan ) : 1 );
+        });
 
+        var tr = $( '<tr>' ).addClass( "query-result-labels" );
         
+        // Add an empty cell underneath the study column
+        tr.append( $( "<td>" ) );
+
+        // Below the column 'matched', there must be the label "Matching all criteria"
+        tr.append( $( "<td>" ).attr( "colspan", colspans[1] ).text( "Matching all criteria" ) );
+
+        // Below the other columns, there should be "Totals for specific criteria" (only once, spanning all other columns)
+        // The colspan for this column should be enough to span all data columns
+        var remainingColspan = 0;
+        for( i = 2; i < headers.length - 1; i++ ) {
+            remainingColspan += colspans[i];
+        }
+        tr.append( $( "<td>" ).attr( "colspan", remainingColspan ).text( "Totals for specific criteria" ) );
+        
+        // Below the column 'total', there must be the label "Total sample set size"
+        tr.append( $( "<td>" ).attr( "colspan", colspans[ colspans.length - 1 ] ).text( "Total sample set size" ) );
+        
+        // Add the row to the table
+        table.find( "tbody" ).append( tr );
+
         // Mark the table as being processed, to prevent it to be processed twice
         table.data( "sesi-changed", true );
     }

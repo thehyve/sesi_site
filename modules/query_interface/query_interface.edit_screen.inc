@@ -234,7 +234,7 @@ function sesi_mica_query_edit_form($variables) {
     // Add custom interface scripts
     drupal_add_js(drupal_get_path('module', 'query_interface') . '/query_interface.filter-variables.js');
     drupal_add_js(drupal_get_path('module', 'query_interface') . '/query_interface.taxonomy_tree.js');
-    drupal_add_css(drupal_get_path('module', 'query_interface') . '/query_interface.taxonomy_tree.css');
+    drupal_add_css(drupal_get_path('module', 'query_interface') . '/query_interface.css');
     
     $output .= "<div id='query_interface_tree'>";
     $output .= "<a href='#' onClick='Sesi.QueryInterface.TaxonomyTree.selectAll(); return false;'>Select all</a> / ";
