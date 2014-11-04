@@ -1,13 +1,7 @@
 <?php
 
 
-function _query_subscription_email($uid, $changes) {
-  $user = user_load($uid);
-  if(empty($user)) {
-    watchdog('query_subscription', 'Attempting to send notification mail non-existing user, uid @uid', array('@uid' => $uid), WATCHDOG_WARNING);
-    return;
-  }
-  drupal_mail('query_subscription', 'notification', $user->mail, $user->language, array('user' => $user, 'changes' => $changes));
+function query_subscription_email($uid, $changes) {
 }
 
 
@@ -35,26 +29,26 @@ function query_subscription_mail($key, &$message, $params) {
   foreach($changes as $change) {
     $subscription = $change['subscription'];
     $query = $subscription->query();
-    $descriptors = $change['descriptors'];
+    $descriptors = $subscription->descriptors();
 
     $variable_names = array('_all' => $ht('total'), 'total' => $ht('total'), '_matched' => $ht('matched'));
     foreach ($descriptors['term_variables'] as $tid => $var) {
       $variable_names[$tid] = $e($var->title);
     }
 
-    $query_url = $e(call_user_func_array('url', entity_uri('mica_query', $query)));
-    $query_name = $e($query->name) ? : $ht("unnamed query");
-    $dataset_name = $e($descriptors['dataset']->title);
+    $query_uri = entity_uri('mica_query', $query);
+    $query_link = l($query->name ? : $ht("unnamed query"), $query_uri['path'], array('absolute' => TRUE));
+    $dataset_link = l($descriptors['dataset']->title, 'node/'.$descriptors['dataset']->nid, array('absolute' => TRUE));
     $prevdate = $e($subscription->updated()->format("d-m-Y"));
 
-    // we cannot use stylesheets in html mail, as many webmail systems such as gmail don't support it.
+    // we cannot use stylesheets in html mail, as many webmail systems such as gmail don't support it. Use inline styles.
     $th = "th style='text-align: left'";
     $td = "td style='padding: 0 .2em'";
 
     // The per-query header
     $data .= "<div style='margin: 1em 0 1em -.2em'><table>\n" .
-      "  <tr><$th>{$ht('Query')}:</th><$td><a href=\"$query_url\">$query_name</a></td></tr>\n" .
-      "  <tr><$th>{$ht('Dataset')}:</th><$td>$dataset_name</td></tr>\n" .
+      "  <tr><$th>{$ht('Query')}:</th><$td>$query_link</td></tr>\n" .
+      "  <tr><$th>{$ht('Dataset')}:</th><$td>$dataset_link</td></tr>\n" .
       "  <tr><$th>{$ht('Previous check date')}:</th><$td>$prevdate</td></tr>\n" .
       "</table></div><br>\n\n";
 
@@ -75,7 +69,8 @@ function query_subscription_mail($key, &$message, $params) {
         $cross = '&nbsp;';
       } else {
         $cross_name = $descriptors['cross_variable']->title;
-        $cross = $e("{$cross_name} = {$difference['category']}");
+        $cross_label = $descriptors['categories'][$difference['category']];
+        $cross = $e("{$cross_name} = \"$cross_label\" ({$difference['category']})");
       }
 
       $data .= "<tr><$td>$study_name</td><$td>$variable_name</td><$td>$cross</td><$td>$old</td><$td>$new</td></tr>\n";
@@ -84,8 +79,6 @@ function query_subscription_mail($key, &$message, $params) {
 
   }
 
-  $subscriptions_url = 'http://localhost:7880/mica/?q=node/590/queries';
-
   $body = <<<EOF
 <h1 style="font-size: 120%">CMI data update notification</h1>
 
@@ -93,13 +86,12 @@ function query_subscription_mail($key, &$message, $params) {
 
 !data
 
-<p style="font-size: small"><a href="@subscriptions_url">View update notification settings</a></p>
+<p style="font-size: 90%">!subscriptions_url</p>
 EOF;
 
+  // todo: link to user's queries page
+  $subscriptions_url = l('View update notification settings', "node/590/queries", array('language' => $user->language));
 
   $message['subject'] = t('CMI data update notification', array(), array('langcode' => $user->language));
-  $message['body'] = t($body, array('!data' => $data, '@subscriptions_url' => $subscriptions_url), array('langcode' => $user->language));
-  //$message['headers']['Content-Type'] = 'text/html; charset=UTF-8';
-
-  //drupal_mail('query_subscription', 'notification', $user->mail, $user->language, $params);
+  $message['body'] = t($body, array('!data' => $data, '!subscriptions_url' => $subscriptions_url), array('langcode' => $user->language));
 }

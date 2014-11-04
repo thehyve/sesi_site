@@ -55,8 +55,9 @@ drush --yes en image_captcha
 #drush archive-dump /tmp/micasitebk
 
 #install htmlmail dependency
-drush --yes dl htmlmail mailsystem
- 
+drush --yes dl htmlmail mailmime mailsystem
+drush --yes en htmlmail mailmime
+
 # ////////////////////////// Enable project features.
 drush --yes pm-enable sesi_eid_login
 drush --yes pm-disable beididp_button
