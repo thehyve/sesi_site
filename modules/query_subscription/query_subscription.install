@@ -71,6 +71,27 @@ function query_subscription_schema() {
 }
 
 /**
+ * Makes sure that query_subscription module callbacks are
+ * executed after mica_query and after query_interface.
+ *
+ * Implements hook_install.
+ */
+function query_subscription_install() {
+  // Get the weight of the modules we want to compare against
+  $weight = db_select('system', 's')
+    ->fields('s', array('weight'))
+    ->condition('name', 'query_interface', '=')
+    ->execute()
+    ->fetchField();
+
+  // Set our module to a weight 1 heavier, so ours moves lower in execution order
+  db_update('system')
+    ->fields(array('weight' => $weight + 1))
+    ->condition('name', 'query_subscription', '=')
+    ->execute();
+}
+
+/**
  * Implements hook_enable
  */
 function query_subscription_enable() {

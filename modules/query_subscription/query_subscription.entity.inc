@@ -9,6 +9,8 @@ class QuerySubscription extends Entity {
   public $updated = NULL;
   public $last_result = NULL;
 
+  private $cached_results = NULL;
+
   const ALWAYS = 0;  // ALWAYS is not exposed in the UI, just for testing
   const DAILY = 1;
   const WEEKLY = 2;
@@ -79,7 +81,7 @@ class QuerySubscription extends Entity {
     if(is_null($this->updated)) return TRUE;
     switch($this->poll_interval) {
       case self::ALWAYS:
-        return TRUE;
+        return true;
       case self::DAILY:
         return $this->updated < time() - 60*60*24;
       case self::WEEKLY:
@@ -91,9 +93,9 @@ class QuerySubscription extends Entity {
     }
   }
 
-  private function update($new_result) {
+  private function update() {
     $this->updated = time();
-    $this->last_result = serialize($new_result);
+    $this->last_result = serialize($this->results());
     $this->save();
   }
 
@@ -108,20 +110,32 @@ class QuerySubscription extends Entity {
   public function significantDifferences() {
     if(!$this->needsUpdate()) return array();
 
-    $new_result = $this->getResults();
+    $new_result = $this->results();
 
     if(is_null($this->updated) || is_null($this->last_result)) {
       $this->update($new_result);
       return array();
     }
 
-    $old_result = unserialize($this->last_result);
+    $old_result = $this->old_results();
 
     $changes = array();
     $structurechanged = ! $this->_recursiveCompare($old_result, $new_result, array('connection', 'term', 'category'), $changes);
 
+    $over_threshold = false;
+    foreach($changes as $change) {
+      $diff = $change['old_value'] * $this->threshold;
+      if ($change['new_value'] > $change['old_value'] + $diff || $change['new_value'] < $change['old_value'] - $diff) {
+        $over_threshold = true;
+        break;
+      }
+    }
+    if (!$over_threshold) {
+      $changes = array();
+    }
+
     if($structurechanged || !empty($changes)) {
-      $this->update($new_result);
+      $this->update();
     }
 
     if($structurechanged) {
@@ -150,20 +164,19 @@ class QuerySubscription extends Entity {
    */
   private function _recursiveCompare($old, $new, $names, &$changed, $path = array()) {
     if (count($names) == 0) {
-      $diff = $old * $this->threshold;
-      if ($new > $old + $diff || $new < $old - $diff) {
+      if ($new != $old) {
         $changed[] = $path + array('old_value' => $old, 'new_value' => $new);
       }
     } else {
       $keyname = array_shift($names);
-      if (count($old) != count($new)) return FALSE;
+      if (count($old) != count($new)) return false;
       foreach ($old as $key => $old_value) {
-        if (!isset($new[$key])) return FALSE;
+        if (!isset($new[$key])) return false;
         $ret = $this->_recursiveCompare($old_value, $new[$key], $names, $changed, $path + array($keyname => $key));
-        if (!$ret) return FALSE;
+        if (!$ret) return false;
       }
     }
-    return TRUE;
+    return true;
   }
 
   public function descriptors() {
@@ -196,8 +209,26 @@ class QuerySubscription extends Entity {
     return $ret;
   }
 
-  public function getResults() {
-    return query_subscription_query_result($this->query());
+  /**
+   * Query the current results for this subscription's query. The results are cached. To clear the cache, pass
+   * array('clear_cache') as argument.
+   *
+   * @param array $options
+   * @return array
+   */
+  public function results($options = array()) {
+    if(in_array('clear_cache', $options)) {
+      $this->cached_results = NULL;
+    }
+
+    if(is_null($this->cached_results)) {
+      $this->cached_results = query_subscription_query_result($this->query());
+    }
+    return $this->cached_results;
+  }
+
+  public function old_results() {
+    return unserialize($this->last_result);
   }
 
   private static function id_map($arr) {

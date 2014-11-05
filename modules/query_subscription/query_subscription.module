@@ -1,7 +1,7 @@
 <?php
 
-require_once 'query_subscription.email.inc';
-require_once 'query_subscription.entity.inc';
+module_load_include('inc', 'query_subscription', 'query_subscription.email');
+module_load_include('inc', 'query_subscription', 'query_subscription.entity');
 
 // implements hook_entity_info
 function query_subscription_entity_info() {
@@ -34,9 +34,6 @@ function query_subscription_query_url($query) {
 
 // implements hook_cron
 function query_subscription_cron() {
-//  $r = query_subscription_query_result(array_pop(entity_load('mica_query', array(24))));
-//  return;
-
   $result = db_query(
     "select n.id, q.user_id from {query_subscription} n join {mica_query} q on n.query_id = q.id
       where (
@@ -46,7 +43,7 @@ function query_subscription_cron() {
         or (n.poll_interval = ".QuerySubscription::WEEKLY."  and :now - 604800 > n.updated)  -- weekly
         or (n.poll_interval = ".QuerySubscription::MONTHLY." and :now - 2592000 > n.updated) -- monthly
       )
-      group by q.user_id",
+      order by q.user_id",
     array(':now' => time()))->fetchAllKeyed();
 
   $queue = DrupalQueue::get('query_subscription');
@@ -73,12 +70,11 @@ function query_subscription_cron_queue_info() {
 function query_subscription_entity_delete($entity, $type) {
   if($type !== 'mica_query') return;
 
-  $notify_state = QuerySubscription::getForQuery($entity);
-  if($notify_state) {
-    $notify_state->delete();
+  $subscription = QuerySubscription::getForQuery($entity);
+  if($subscription) {
+    $subscription->delete();
   }
 }
-
 
 // Implements hook_form_FORM_ID_alter
 function query_subscription_form_mica_query_edit_form_alter(&$form, &$form_state, $form_id) {
@@ -93,12 +89,12 @@ function query_subscription_form_mica_query_edit_form_alter(&$form, &$form_state
   }
 
   // Define a new button to update inherited fields
-  $xtra_fields = array(
+  $notification_fields = array(
     'notify_enabled' => array(
       '#type' => 'checkbox',
       '#title' => t("Receive notification of changes"),
       '#default_value' => $active,
-      '#description' => t("When enabled, you will receive email notifications if the result of the query changes. This requires that the query is saved."),
+      '#description' => t("When enabled, you will receive email notifications if the result of the query changes."),
     ),
 
     'notify_interval' => array(
@@ -123,7 +119,7 @@ function query_subscription_form_mica_query_edit_form_alter(&$form, &$form_state
       '#field_suffix' => '%',
       '#size' => 2,
       '#element_validate' => array('query_subscription_validate_percentage'),
-      '#description' => t("You will only receive a notification if at least one of the result values differs with at least this percentage from its previous value"),
+      '#description' => t("You will only receive a notification if at least one of the result values differs from its previous value with at least this percentage"),
       '#states' => array(
         // Only show this field when the notify_enabled checkbox is checked.
         'visible' => array(':input[name="notify_enabled"]' => array('checked' => TRUE)),
@@ -131,8 +127,23 @@ function query_subscription_form_mica_query_edit_form_alter(&$form, &$form_state
     ),
   );
 
-  $form['general'] += $xtra_fields;
+  if(isset($form['general'])) {
+    // default mica form, query_interface not active
+    $form['general'] += $notification_fields;
+  } else {
+    // The theme function from query_interface (sesi_mica_query_edit_form) doesn't look at #weight's, so we use this hack
+    // to enforce ordering.
+    $actions = $form['actions'];
+    unset($form['actions']);
+    $notification_fields['#type'] = 'fieldset';
+    $notification_fields['#title'] = 'Update notification';
+    $form['notification'] = $notification_fields;
+    $form['actions'] = $actions;
+  }
+
   $form['#submit'][] = 'query_subscription_save_submit_handler';
+
+  // Only needed if the query_interface form changes are disabled, as that removes the 'run' button.
   // Disable 'run' option without save if notification is selected
   if(isset($form['actions']['run'])) {
     if (!isset($form['actions']['run']['#states'])) {
@@ -174,14 +185,9 @@ function query_subscription_save_submit_handler($form, &$form_state) {
     return;
   }
 
-  if($new ||
-      $form_state['values']['notify_interval'] !== $form_state['input']['notify_interval'] ||
-      $form_state['values']['notify_threshold'] !== $form_state['input']['notify_threshold']) {
-    // something changed
-    $subscription->poll_interval = $form_state['values']['notify_interval'];
-    $subscription->threshold = ((float) str_replace(',', '.', trim($form_state['values']['notify_threshold']))) / 100;
-    $subscription->save();
-  }
+  $subscription->poll_interval = $form_state['values']['notify_interval'];
+  $subscription->threshold = ((float) str_replace(',', '.', trim($form_state['values']['notify_threshold']))) / 100;
+  $subscription->save();
 }
 
 // implements hook_form_FORM_ID_alter
@@ -191,6 +197,7 @@ function query_subscription_form_mica_query_run_page_alter(&$form, &$form_state,
   $form['notify'] = array(
     '#type' => 'submit',
     '#prefix' => '<br>',
+    '#suffix' => t('<br><br><p class="help-block">Go to the edit tab to edit detailed settings for this notification</p>'),
   );
 
   if(!empty($query) && QuerySubscription::hasNotification($query)) {
@@ -204,24 +211,29 @@ function query_subscription_form_mica_query_run_page_alter(&$form, &$form_state,
       '#submit' => array('query_subscription_subscribe'),
     );
   }
-
-  //drupal_set_message(serialize(drupal_cron_run()));
 }
 
 function query_subscription_subscribe($form, &$form_state) {
   $query = $form_state['mica']['query'];
 
-  $notification_state = new QuerySubscription($query);
-  $notification_state->save();
+  if (MicaDatasetQueryManager::isCached($query)) {
+    // save and remove from cache
+    MicaDatasetQueryManager::save($query);
+    $form_state['redirect'] = entity_uri('mica_query', $query);
+  }
+
+  $subscription = new QuerySubscription($query);
+  $subscription->save();
 }
 
 function query_subscription_unsubscribe($form, &$form_state) {
   $query = $form_state['mica']['query'];
-  $notify_state = QuerySubscription::getForQuery($query);
-  if($notify_state) {
-    $notify_state->delete();
+  $subscription = QuerySubscription::getForQuery($query);
+  if($subscription) {
+    $subscription->delete();
   }
 }
+
 
 function query_subscription_poll($arg) {
   list($uid, $ids) = $arg;
@@ -243,12 +255,17 @@ function query_subscription_poll($arg) {
       $subscription = QuerySubscription::get($id);
       if (is_null($subscription)) continue;
 
+      // significantDifferences updates the old values
+      $old_values = $subscription->old_results();
+
       $differences = $subscription->significantDifferences();
 
       if (!empty($differences)) {
         $changes[] = array(
           'differences' => $differences,
-          'subscription' => $subscription
+          'subscription' => $subscription,
+          'old_values' => $old_values,
+          'new_values' => $subscription->results(),
         );
       }
     }

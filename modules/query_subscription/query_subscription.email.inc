@@ -29,6 +29,7 @@ function query_subscription_mail($key, &$message, $params) {
   foreach($changes as $change) {
     $subscription = $change['subscription'];
     $query = $subscription->query();
+    // Emails are only sent if the structure of the query has not changed, so descriptors for old and new values are the same.
     $descriptors = $subscription->descriptors();
 
     $variable_names = array('_all' => $ht('total'), 'total' => $ht('total'), '_matched' => $ht('matched'));
@@ -40,6 +41,9 @@ function query_subscription_mail($key, &$message, $params) {
     $query_link = l($query->name ? : $ht("unnamed query"), $query_uri['path'], array('absolute' => TRUE));
     $dataset_link = l($descriptors['dataset']->title, 'node/'.$descriptors['dataset']->nid, array('absolute' => TRUE));
     $prevdate = $e($subscription->updated()->format("d-m-Y"));
+    $curdate = $e(date('d-m-Y'));
+    $old_matching = $e(array_sum(array_map(function($a) {return $a['_matched']['_all'];}, $change['old_values'])));
+    $new_matching = $e(array_sum(array_map(function($a) {return $a['_matched']['_all'];}, $change['new_values'])));
 
     // we cannot use stylesheets in html mail, as many webmail systems such as gmail don't support it. Use inline styles.
     $th = "th style='text-align: left'";
@@ -49,7 +53,10 @@ function query_subscription_mail($key, &$message, $params) {
     $data .= "<div style='margin: 1em 0 1em -.2em'><table>\n" .
       "  <tr><$th>{$ht('Query')}:</th><$td>$query_link</td></tr>\n" .
       "  <tr><$th>{$ht('Dataset')}:</th><$td>$dataset_link</td></tr>\n" .
+      "  <tr><$th>{$ht('Date')}:</th><$td>$curdate</td></tr>\n" .
       "  <tr><$th>{$ht('Previous check date')}:</th><$td>$prevdate</td></tr>\n" .
+      "  <tr><$th>{$ht('Total matching results')}:</th><$td>$new_matching</td></tr>\n" .
+      "  <tr><$th>{$ht('Previous total matching results')}:</th><$td>$old_matching</td></tr>\n" .
       "</table></div><br>\n\n";
 
     $th = "th style='padding: .2em .5em'";
@@ -87,11 +94,16 @@ function query_subscription_mail($key, &$message, $params) {
 !data
 
 <p style="font-size: 90%">!subscriptions_url</p>
+
+<p style="font-size: 90%">!home_link</p>
 EOF;
 
   // todo: link to user's queries page
-  $subscriptions_url = l('View update notification settings', "node/590/queries", array('language' => $user->language));
+  $subscriptions_url = l('View update notification settings', "node/590/queries", array('language' => $user->language, 'absolute' => TRUE));
+  $home_link = l("CMI home page", '/', array('language' => $user->language, 'absolute' => TRUE));
 
   $message['subject'] = t('CMI data update notification', array(), array('langcode' => $user->language));
-  $message['body'] = t($body, array('!data' => $data, '!subscriptions_url' => $subscriptions_url), array('langcode' => $user->language));
+  $message['body'] = t($body,
+    array('!data' => $data, '!subscriptions_url' => $subscriptions_url, '!home_link' => $home_link),
+    array('langcode' => $user->language));
 }
