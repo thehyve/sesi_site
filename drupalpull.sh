@@ -22,7 +22,7 @@ fi
 yes | cp -Rfv "$DRUPAL_ROOT/sites/all/patch/mica_distribution" "$DRUPAL_ROOT/profiles/"
 
 # Check drupal status
-drush status
+drush status  
  
 # Disable these themes to make sure they are never enabled.
 drush --yes pm-disable seven
@@ -33,14 +33,21 @@ drush --yes pm-enable features
 drush --yes pm-enable strongarm
 drush --yes pm-enable locale
 
+# Install and enable Features Extra module
+drush --yes dl features_extra
+drush --yes en fe_block
+
 # Activate organic groups
 drush --yes dl og
-sudo drush --yes en og og_ui og_context
-drush pm-enable sesi_communities_and_files
+drush --yes en og og_ui og_context og_access
+
+# enable sesi_communities_and_files feature
+drush pm-enable --yes sesi_communities_and_files
+drush --yes features-revert sesi_communities_and_files
 
 # Install captcha
 drush --yes dl captcha
-drush --yes en image_captcha
+drush --yes en captcha image_captcha
 
 # Install easy_social module
 drush --yes dl easy_social
@@ -85,7 +92,7 @@ drush --yes pm-enable sesi_autologout
 drush --yes features-revert sesi_autologout
 
 # Enable project theme.
-#drush --yes pm-enable ourprettytheme
+# drush --yes pm-enable ourprettytheme
 
 # Enable Contact Form
 drush --yes pm-enable contact
