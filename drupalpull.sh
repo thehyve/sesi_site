@@ -17,18 +17,9 @@ if ! type "drush" > /dev/null; then
   wget --quiet -O - http://ftp.drupal.org/files/projects/drush-7.x-5.9.tar.gz | tar -zxf - -C /usr/local/share
   ln -s /usr/local/share/drush/drush /usr/bin/drush
 fi
-   
-# Get field_group patch and apply it
-if [ ! -f 2078201-27-fieldgroup_notice_flood.patch ]; then
-    echo 'field_group module patch does not exist'
-    wget https://www.drupal.org/files/2078201-27-fieldgroup_notice_flood.patch
-fi
 
-patch -p1 -N --silent "$DRUPAL_ROOT/profiles/mica_distribution/modules/field_group/field_group.module" 2078201-27-fieldgroup_notice_flood.patch || true
-
-#adding patch for core mica xml converter
-patch -p1 -N --silent "$DRUPAL_ROOT/profiles/mica_distribution/modules/mica/extensions/mica_opal/mica_opal_view/ServicesOpalFormatter.inc" patch/fix_vocabulary_url.patch || true
-patch -p1 -N --silent "$DRUPAL_ROOT/profiles/mica_distribution/modules/mica/extensions/mica_opal/mica_opal_view/ServicesOpalFormatter.inc" patch/dataset_name_in_xml_export.patch || true
+# PATCH ORIGINAL MICA CODE
+yes | cp -Rfv "$DRUPAL_ROOT/sites/all/patch/mica_distribution" "$DRUPAL_ROOT/profiles/"
 
 # Check drupal status
 drush status  
@@ -46,40 +37,40 @@ drush --yes pm-enable locale
 drush --yes dl features_extra
 drush --yes en fe_block
 
-# activate organic groups
+# Activate organic groups
 drush --yes dl og
 drush --yes en og og_ui og_context og_access og_register
 
-# enable sesi_communities_and_files feature
+# Enable sesi_communities_and_files feature
 drush pm-enable --yes sesi_communities_and_files
 drush --yes features-revert sesi_communities_and_files
 
-# install and enable uuid_features module
+# Install and enable uuid_features module
 drush --yes dl uuid_features
 drush --yes en uuid_features
 
-#install captcha
+# Install captcha
 drush --yes dl captcha
 drush --yes en captcha image_captcha
 
-# install easy_social module
+# Install easy_social module
 drush --yes dl easy_social
 drush --yes en easy_social
 
-# install and enable oauth
-# this module is required by twitter module
+# Install and enable oauth
+# This module is required by twitter module
 drush --yes dl oauth
 drush --yes en oauth_common
 drush --yes en oauth_common_providerui
 
-# install and enable twitter module
+# Install and enable twitter module
 drush --yes dl twitter
 drush --yes en twitter
 
-#backup first
+# Backup first
 #drush archive-dump /tmp/micasitebk
  
-# ////////////////////////// Enable project features.
+# Enable project features.
 drush --yes pm-enable sesi_eid_login
 drush --yes pm-disable beididp_button
 drush --yes features-revert sesi_eid_login
@@ -96,11 +87,11 @@ drush --yes features-revert sesi_dataset_versioning
 drush --yes pm-enable sesi_vocabulary
 drush --yes features-revert sesi_vocabulary
 
-# ////////////////////////// Download Autologout module dependencies and enable it
+# Download Autologout module dependencies and enable it
 drush --yes dl autologout
 drush --yes en autologout
 
-# ////////////////////////// Enable and revert the auto logout feature
+# Enable and revert the auto logout feature
 drush --yes pm-enable sesi_autologout
 drush --yes features-revert sesi_autologout
 
