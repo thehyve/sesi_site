@@ -1,0 +1,19 @@
+name = Query Interface
+description = Implements an improved Query Interface for SESI
+package = Sesi
+core = 7.x
+dependencies[] = mica_query
+dependencies[] = field_group
+
+; Contains code for handling query terms (addition, deletion)
+files[] = query_interface.handling_terms.inc
+
+; Contains code for changing the query interface
+files[] = query_interface.edit_screen.inc
+
+; Information added by Drupal.org packaging script on 2014-07-10
+version = "7.x-1.0b"
+core = "7.x"
+project = "sesi"
+datestamp = "1407030771"
+
