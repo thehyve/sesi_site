@@ -39,11 +39,15 @@ drush --yes en fe_block
 
 # Activate organic groups
 drush --yes dl og
-drush --yes en og og_ui og_context og_access
+drush --yes en og og_ui og_context og_access og_register
 
-# enable sesi_communities_and_files feature
+# Enable sesi_communities_and_files feature
 drush pm-enable --yes sesi_communities_and_files
 drush --yes features-revert sesi_communities_and_files
+
+# Install and enable uuid_features module
+drush --yes dl uuid_features
+drush --yes en uuid_features
 
 # Install captcha
 drush --yes dl captcha
