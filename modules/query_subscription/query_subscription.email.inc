@@ -1,10 +1,5 @@
 <?php
 
-
-function query_subscription_email($uid, $changes) {
-}
-
-
 // implements hook_mail. What kind of monkey thought it was a good design to require constructing the message subject/body in a callback?!
 function query_subscription_mail($key, &$message, $params) {
   if ($key !== 'notification') return;

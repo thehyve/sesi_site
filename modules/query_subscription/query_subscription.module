@@ -44,7 +44,8 @@ function query_subscription_cron() {
         or (n.poll_interval = ".QuerySubscription::MONTHLY." and :now - 2592000 > n.updated) -- monthly
       )
       order by q.user_id",
-    array(':now' => time()))->fetchAllKeyed();
+    array(':now' => time()))
+    ->fetchAllKeyed();
 
   $queue = DrupalQueue::get('query_subscription');
 
@@ -136,7 +137,7 @@ function query_subscription_form_mica_query_edit_form_alter(&$form, &$form_state
     $actions = $form['actions'];
     unset($form['actions']);
     $notification_fields['#type'] = 'fieldset';
-    $notification_fields['#title'] = 'Update notification';
+    $notification_fields['#title'] = t('Update notification');
     $form['notification'] = $notification_fields;
     $form['actions'] = $actions;
   }
@@ -165,6 +166,9 @@ function query_subscription_save_submit_handler($form, &$form_state) {
   if(isset($form_state['build_info']['args'][1])) {
     $query = $form_state['build_info']['args'][1];
   } else if(isset($form_state['redirect'])) {
+    // If the query was saved and thus removed from the query cache, it is replaced by a new query object with a new id
+    // that is not part of the form. The only thing the mica_query handler changes is setting the redirect so we use
+    // that to get at the new query.
     $query = menu_get_object('mica_query', 3, $form_state['redirect']);
   } else {
     watchdog('query_subscription', 'Unable to retrieve query in subscription edit submit handler', array(), WATCHDOG_ERROR);
@@ -174,8 +178,8 @@ function query_subscription_save_submit_handler($form, &$form_state) {
   $new = false;
   $subscription = QuerySubscription::getForQuery($query);
   if(is_null($subscription)) {
-    $subscription = new QuerySubscription(array('query' => $query));
-    $new = TRUE;
+    $subscription = query_subscription_new($query, $form_state);
+    $new = true;
   }
 
   if (!$form_state['values']['notify_enabled']) {
@@ -216,13 +220,7 @@ function query_subscription_form_mica_query_run_page_alter(&$form, &$form_state,
 function query_subscription_subscribe($form, &$form_state) {
   $query = $form_state['mica']['query'];
 
-  if (MicaDatasetQueryManager::isCached($query)) {
-    // save and remove from cache
-    MicaDatasetQueryManager::save($query);
-    $form_state['redirect'] = entity_uri('mica_query', $query);
-  }
-
-  $subscription = new QuerySubscription($query);
+  $subscription = query_subscription_new($query, $form_state);
   $subscription->save();
 }
 
@@ -232,6 +230,25 @@ function query_subscription_unsubscribe($form, &$form_state) {
   if($subscription) {
     $subscription->delete();
   }
+}
+
+/**
+ * Create a new subscription for a query
+ *
+ * @param MicaDatasetQuery $query
+ * @param array &$form_state If given a form state, will set a redirect to the changed query page.
+ * @return QuerySubscription
+ */
+function query_subscription_new(MicaDatasetQuery $query, &$form_state = NULL) {
+  if (MicaDatasetQueryManager::isCached($query)) {
+    // save and remove from cache
+    MicaDatasetQueryManager::save($query);
+    if (!is_null($form_state)) {
+      $form_state['redirect'] = entity_uri('mica_query', $query);
+    }
+  }
+
+  return new QuerySubscription($query);
 }
 
 
@@ -244,7 +261,7 @@ function query_subscription_poll($arg) {
     return;
   }
 
-    $changes = array();
+  $changes = array();
 
   // Some mica functions don't support passing a user object, they always use the global user so we set that
   $old_user = $GLOBALS['user'];
