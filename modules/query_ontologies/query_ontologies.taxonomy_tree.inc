@@ -10,7 +10,7 @@
  * @see query_ontologies_menu()
  * @see http://plugins.jquery.com/aciTree/
  */
-function query_ontologies_variable_taxonomy($variable_node) {
+function query_ontologies_variable_taxonomy($variable_node, $selectedIds = "" ) {
     // Retrieve the taxonomy for the variable
     $wrapper = entity_metadata_wrapper('node', $variable_node);
     $taxonomy = $wrapper->field_taxonomy->value();
@@ -19,11 +19,19 @@ function query_ontologies_variable_taxonomy($variable_node) {
         return array();
     }
 
+    // Selected IDs
+    if( $selectedIds ) {
+        $selectedIds = explode(",", $selectedIds);
+    } else {
+        $selectedIds = array();
+    }
+    
     // Find a tree from this taxonomy
     $tree = _query_ontologies_taxonomy_get_nested_tree($taxonomy->vid, 1);
     
     // Convert it into aciTree format
-    $aciTree = _query_ontologies_convert_to_aciTree_format( $tree );
+    $aciTree = _query_ontologies_convert_to_aciTree_format( $tree, $selectedIds  );
+    
     return $aciTree;
 }
 
@@ -64,26 +72,27 @@ function _query_ontologies_taxonomy_get_nested_tree($vid_or_terms = array(), $ma
  * @see _query_ontologies_taxonomy_get_nested_tree()
  * @see http://acoderinsights.ro/en/aciTree-tree-view-with-jQuery
  */
-function _query_ontologies_convert_to_aciTree_format($tree) {
+function _query_ontologies_convert_to_aciTree_format($tree, $selectedIds ) {
     // Start with the root node
     $aciTree = array();
     
     if( count( $tree ) > 0 ) {
         foreach( $tree as $child ) {
-            $aciTree[] = _query_ontologies_create_aciTree_node( $child );
+            $aciTree[] = _query_ontologies_create_aciTree_node( $child, $selectedIds );
         }
     }
     
     return $aciTree;
 }
 
-function _query_ontologies_create_aciTree_node( $node ) {
+function _query_ontologies_create_aciTree_node( $node, $selectedIds = array() ) {
     $hasChildren = property_exists( $node, "children" ) && count( $node->children ) > 0;
+    $selected = in_array( $node->tid, $selectedIds );
     $children = array();
     
     if( $hasChildren ) {
         foreach( $node->children as $child ) {
-            $children[] = _query_ontologies_create_aciTree_node( $child );
+            $children[] = _query_ontologies_create_aciTree_node( $child, $selectedIds );
         }
     }
     
@@ -93,7 +102,7 @@ function _query_ontologies_create_aciTree_node( $node ) {
         "open" => false,
         "inode" => $hasChildren,
         "checkbox" => true,
-        "checked" => false,
+        "checked" => $selected,
         "branch" => $hasChildren ? $children : null,
     );
 }

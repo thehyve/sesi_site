@@ -19,5 +19,17 @@ function query_ontologies_menu() {
         'delivery callback' => 'drupal_json_output',
     );
     
+    // This URL is used to retrieve the taxonomy tree for a given dataset
+    // using ajax
+    $items['sesi/variable/%node/variabletaxonomy/%'] = array(
+        'title' => 'Taxonomy',
+        'access callback' => '_mica_datasets_node_access',
+        'access arguments' => array(2, 'variable', 'update'),
+        'page callback' => 'query_ontologies_variable_taxonomy', 
+        'page arguments' => array(2, 4),
+        'delivery callback' => 'drupal_json_output',
+    );
+    
+    
     return $items;
 }

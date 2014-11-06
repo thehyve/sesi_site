@@ -65,7 +65,6 @@ if( typeof Sesi.QueryOntologies.TaxonomyTree == 'undefined' )
             // Also do the same to all descendants
             if( recursive ) {
                 var children = api.children(item, true, true);
-                console.log( "children", item, children );
                 for( i = 0; i < children.length; i++) {
                     Sesi.QueryOntologies.TaxonomyTree.markChecked( $(children.get(i)), api, form, checked, false );
                 }

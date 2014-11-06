@@ -11,11 +11,83 @@
  *   operator is either 'AND' or 'OR' (can be empty or null)
  */
 class OntologyTerm extends AbstractTerm {
-
+    const CODE_SEPARATOR = " - ";
+    
   function __construct(MicaDatasetQueryTerm $qt) {
-    parent::__construct('OntologyTerm', $qt);
+      // In order to avoid many changes in mica tell others that 
+      // I'm a categoryterm, as these types of queryterms are hardcoded.
+      parent::__construct('CategoryTerm', $qt);
   }
+  
+  /**
+   * Return the selected codes
+   */
+  function categories() {
+      $ids = $this->getSelectedTermIds();
+      
+      if( count( $ids ) == 0 ) 
+          return array();
+      
+      // Retrieve the variable and its taxonomy
+      $variable = $this->getVariable();
+      $wrapper = entity_metadata_wrapper('node', $variable);
+      $taxonomy = $wrapper->field_taxonomy->value();
 
+      if (!$taxonomy) {
+        return array();
+      }
+
+      $terms = taxonomy_term_load_multiple( $ids );
+      
+      $codes = array();
+      
+      foreach( $terms as $term ) {
+          $name = $term->name;
+          
+          // Retrieve the code from the title
+          $separatorLocation = strpos( $name, self::CODE_SEPARATOR );
+          
+          if( $separatorLocation > 0 ) {
+              $codes[] = substr( $name, 0, $separatorLocation );
+          }
+      }
+      
+      return $codes;
+  }
+  
+  function operator() {
+    return isset($this->options['operator']) ? $this->options['operator'] : 'OR';
+  }  
+  
+  /**
+   * Return a list of selected IDs
+   * @return type 
+   */
+  function getSelectedTermIds() {
+      if( array_key_exists( "termIds", $this->options ) && is_array( $this->options[ "termIds" ] ) )
+          return $this->options['termIds'];
+      else
+          return array();
+  }
+  
+  /**
+   * Set a list of selected term IDs
+   * @param type $termIds 
+   */
+  function setSelectedTermIds($termIds = array()) {
+    $this->options['termIds'] = $termIds;
+  }      
+  
+  /**
+   * Return the options and make sure that it behaves as an OntologyTerm
+   */
+  function getOptions() {
+      $options = parent::getOptions();
+      $options[ "type" ] = "OntologyTerm";
+      
+      return $options;
+  }
+  
   /**
    * Shows a table with information on the query term. However, as we
    * do not want to enumerate all possible ontology terms.
@@ -61,14 +133,26 @@ class OntologyTerm extends AbstractTerm {
     );
 
     // TODO: check selected values already at the start
-    $taxonomyUrl = url("sesi/variable/" . $this->getVariable()->nid . "/variabletaxonomy");
+    $uri = "sesi/variable/" . $this->getVariable()->nid . "/variabletaxonomy";
+    $selectedIds = $this->getSelectedTermIds();
+    if( count( $selectedIds ) > 0 )
+        $uri .= "/" . implode(',', $selectedIds );
+    
+    $taxonomyUrl = url($uri);
     $default_value = ''; // implode(" ", $this->match());
+    
     $treeMarkup = "<div id='taxonomy_query_tree' style='min-height: 120px; max-height: 400px; overflow: auto; ' class='aciTree' data-url='" . htmlspecialchars( $taxonomyUrl ). "'></div>";
     $initScript = '<script type="text/javascript">jQuery(function () { 
         Sesi.QueryOntologies.TaxonomyTree.init(); 
     });</script>';
+    
+    $hiddenFields = "";
+    foreach( $selectedIds as $id ) {
+        $hiddenFields .= "<input type='hidden' name='terms[]' id='term_selected_" . $id . "' value='" . $id . "' />";
+    }
+    
     $form['valuecontainer']['fieldset']['value'] = array(
-      '#markup' => $treeMarkup . $initScript,
+      '#markup' => $treeMarkup . $initScript . $hiddenFields,
     );
 
     drupal_add_js(drupal_get_path('module', 'query_interface') . '/aciTree/js/jquery.aciPlugin.min.js');
@@ -90,26 +174,26 @@ class OntologyTerm extends AbstractTerm {
   }
 
   function submit($form, &$form_state) {
-    $selection = $form_state['values']['categories'];
+    $selection = $form_state['input']['terms'];
     $inverted = $form_state['values']['inverted'];
 
     $this->setInverted($inverted == 'notin');
-    $this->setCategories($this->formToCategories($selection));
+    $this->setSelectedTermIds($selection);
   }
-
-  /**
-   * Undoes the categoriesToForm() function
-   * @param array $formCategories
-   */
-  private function formToCategories(array $formCategories) {
-    // array_filter will remove all non-selected categories
-    // array_keys will return only the array keys
-    $selected = array_keys(array_filter($formCategories));
-    $categories = array();
-    foreach ($selected as $c) {
-      $categories[] = substr($c, 2);
+  
+  function toString() {
+    $str = parent::toString();
+    if (count($this->categories()) > 0) {
+      switch ($this->operator()) {
+        case 'AND':
+          $str .= $this->isInverted() ? ' is not ' : ' is ';
+          break;
+        default:
+          $str .= $this->isInverted() ? ' not in ' : ' in ';
+          break;
+      }
+      $str .= '(' . implode(', ', $this->categories()) . ')';
     }
-    return $categories;
-  }
-
+    return $str;
+  }  
 }
