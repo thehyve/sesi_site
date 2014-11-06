@@ -25,7 +25,7 @@ function query_subscription_mail($key, &$message, $params) {
   };
 
   $l = function($txt, $link) use ($user) {
-    return l($txt, $link, array('language' => $user->language, 'absolute' => TRUE));
+    return l($txt, $link, array('language' => $user->language, 'absolute' => true));
   };
 
   // Build html containing tables with data on what changed

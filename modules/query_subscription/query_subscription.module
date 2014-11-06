@@ -8,7 +8,7 @@ function query_subscription_entity_info() {
   $info = array();
   $info['query_subscription'] = array(
     'label' => t('Query notification state'),
-    'metadata controller class' => FALSE,
+    'metadata controller class' => false,
     'entity class' => 'QuerySubscription',
     'controller class' => 'EntityAPIController',
     'base table' => 'query_subscription',
@@ -81,11 +81,11 @@ function query_subscription_form_mica_query_edit_form_alter(&$form, &$form_state
   $subscription = NULL;
   if(isset($form_state['build_info']['args'][1])) {
     $subscription = QuerySubscription::getForQuery($form_state['build_info']['args'][1]);
-    $active = TRUE;
+    $active = true;
   }
   if(is_null($subscription)) {
     $subscription = new QuerySubscription();
-    $active = FALSE;
+    $active = false;
   }
 
   // Define a new button to update inherited fields
@@ -108,7 +108,7 @@ function query_subscription_form_mica_query_edit_form_alter(&$form, &$form_state
       '#default_value' => $subscription->poll_interval,
       '#states' => array(
         // Only show this field when the notify_enabled checkbox is checked.
-        'visible' => array(':input[name="notify_enabled"]' => array('checked' => TRUE)),
+        'visible' => array(':input[name="notify_enabled"]' => array('checked' => true)),
       ),
     ),
 
@@ -122,7 +122,7 @@ function query_subscription_form_mica_query_edit_form_alter(&$form, &$form_state
       '#description' => t("You will only receive a notification if at least one of the result values differs from its previous value with at least this percentage"),
       '#states' => array(
         // Only show this field when the notify_enabled checkbox is checked.
-        'visible' => array(':input[name="notify_enabled"]' => array('checked' => TRUE)),
+        'visible' => array(':input[name="notify_enabled"]' => array('checked' => true)),
       ),
     ),
   );
@@ -149,7 +149,7 @@ function query_subscription_form_mica_query_edit_form_alter(&$form, &$form_state
     if (!isset($form['actions']['run']['#states'])) {
       $form['actions']['run']['#states'] = array();
     }
-    $form['actions']['run']['#states']['disabled'] = array(':input[name="notify_enabled"]' => array('checked' => TRUE));
+    $form['actions']['run']['#states']['disabled'] = array(':input[name="notify_enabled"]' => array('checked' => true));
   }
 }
 
@@ -171,7 +171,7 @@ function query_subscription_save_submit_handler($form, &$form_state) {
     throw new Exception('Unable to retrieve query in subscription edit submit handler');
   }
 
-  $new = FALSE;
+  $new = false;
   $subscription = QuerySubscription::getForQuery($query);
   if(is_null($subscription)) {
     $subscription = new QuerySubscription(array('query' => $query));

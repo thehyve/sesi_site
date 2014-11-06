@@ -57,7 +57,7 @@ class QuerySubscription extends Entity {
   public static function getForQuery(MicaDatasetQuery $query) {
     $id = db_query("select id from {query_subscription} where query_id = :qid",
       array(':qid' => $query->id))->fetchField();
-    if(is_null($id) || $id === FALSE) return NULL;
+    if(is_null($id) || $id === false) return NULL;
     return self::get($id);
   }
 
@@ -78,7 +78,7 @@ class QuerySubscription extends Entity {
   }
 
   private function needsUpdate() {
-    if(is_null($this->updated)) return TRUE;
+    if(is_null($this->updated)) return true;
     switch($this->poll_interval) {
       case self::ALWAYS:
         return true;
