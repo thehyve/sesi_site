@@ -25,14 +25,7 @@ function sesi_default_community_uuid_features_default_content() {
   'tnid' => 0,
   'translate' => 0,
   'uuid' => '36aa942a-6f7e-40e3-b95b-7a11a2e919c4',
-  'revision_uid' => 1,
-  'group_group' => array(
-    'und' => array(
-      0 => array(
-        'value' => 1,
-      ),
-    ),
-  ),
+  'revision_uid' => 0,
   'body' => array(
     'en' => array(
       0 => array(
@@ -46,14 +39,21 @@ function sesi_default_community_uuid_features_default_content() {
       ),
     ),
   ),
-  'group_register' => array(
+  'group_access' => array(
     'und' => array(
       0 => array(
         'value' => 1,
       ),
     ),
   ),
-  'group_access' => array(
+  'group_group' => array(
+    'und' => array(
+      0 => array(
+        'value' => 1,
+      ),
+    ),
+  ),
+  'group_register' => array(
     'und' => array(
       0 => array(
         'value' => 1,
