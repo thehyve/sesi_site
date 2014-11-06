@@ -257,11 +257,8 @@ function sesi_mica_query_edit_form($variables) {
     $output .= _query_interface_render_query_terms_table($form["list"], $form["remove-term"]);
     $output .= _query_interface_render_variables_table($form["not-selected"], $form["buttons-not-selected"]);
 
-    $output .= drupal_render_children($form, array('cross'));
-    $output .= drupal_render_children($form, array('actions'));
-
-    // add form hidden items, otherwise submit and validate will be ignored
-    $fieldsAlreadyPrinted = array('cross', 'actions', 'list', 'remove-term', 'not-selected', 'buttons-list', 'buttons-not-selected', 'fulltext-search');
+    // add remaining items and hidden items, otherwise submit and validate will be ignored
+    $fieldsAlreadyPrinted = array('list', 'remove-term', 'not-selected', 'buttons-list', 'buttons-not-selected', 'fulltext-search');
     foreach (element_children($form) as $key) {
         if (!in_array($key, $fieldsAlreadyPrinted)) {
             $output .= drupal_render($form[$key]);
