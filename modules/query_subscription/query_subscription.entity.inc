@@ -120,7 +120,7 @@ class QuerySubscription extends Entity {
     $old_result = $this->old_results();
 
     $changes = array();
-    $structurechanged = ! $this->_recursiveCompare($old_result, $new_result, array('connection', 'term', 'category'), $changes);
+    $structurechanged = ! $this->recursiveCompare($old_result, $new_result, array('connection', 'term', 'category'), $changes);
 
     $over_threshold = false;
     foreach($changes as $change) {
@@ -162,7 +162,7 @@ class QuerySubscription extends Entity {
    * @param array $path Used internally, do not specify
    * @return bool Whether the structure of $old and $new is the same
    */
-  private function _recursiveCompare($old, $new, $names, &$changed, $path = array()) {
+  private function recursiveCompare($old, $new, $names, &$changed, $path = array()) {
     if (count($names) == 0) {
       if ($new != $old) {
         $changed[] = $path + array('old_value' => $old, 'new_value' => $new);
@@ -172,13 +172,19 @@ class QuerySubscription extends Entity {
       if (count($old) != count($new)) return false;
       foreach ($old as $key => $old_value) {
         if (!isset($new[$key])) return false;
-        $ret = $this->_recursiveCompare($old_value, $new[$key], $names, $changed, $path + array($keyname => $key));
+        $ret = $this->recursiveCompare($old_value, $new[$key], $names, $changed, $path + array($keyname => $key));
         if (!$ret) return false;
       }
     }
     return true;
   }
 
+  /**
+   * This method packs all data structures related to this subscription and its query into a handy package so that e.g.
+   * the name of variables and of the study can be found easily.
+   *
+   * @return array
+   */
   public function descriptors() {
     $query = $this->query();
 

@@ -24,6 +24,10 @@ function query_subscription_mail($key, &$message, $params) {
     return htmlspecialchars($txt, ENT_QUOTES);
   };
 
+  $l = function($txt, $link) use ($user) {
+    return l($txt, $link, array('language' => $user->language, 'absolute' => TRUE));
+  };
+
   // Build html containing tables with data on what changed
   $data = '';
   foreach($changes as $change) {
@@ -38,8 +42,8 @@ function query_subscription_mail($key, &$message, $params) {
     }
 
     $query_uri = entity_uri('mica_query', $query);
-    $query_link = l($query->name ? : $ht("unnamed query"), $query_uri['path'], array('absolute' => TRUE));
-    $dataset_link = l($descriptors['dataset']->title, 'node/'.$descriptors['dataset']->nid, array('absolute' => TRUE));
+    $query_link = $l($query->name ? : $ht("unnamed query"), $query_uri['path']);
+    $dataset_link = $l($descriptors['dataset']->title, 'node/'.$descriptors['dataset']->nid);
     $prevdate = $e($subscription->updated()->format("d-m-Y"));
     $curdate = $e(date('d-m-Y'));
     $old_matching = $e(array_sum(array_map(function($a) {return $a['_matched']['_all'];}, $change['old_values'])));
@@ -67,7 +71,8 @@ function query_subscription_mail($key, &$message, $params) {
       "<tr><$th>{$ht('Study')}</th><$th>{$ht('Variable')}</th><$th>{$ht('Cross Category')}</th><$th>{$ht('Old value')}</th><$th>{$ht('New value')}</th></tr>\n";
     foreach ($change['differences'] as $difference) {
 
-      $study_name = $e($descriptors['studies'][$difference['connection']]->title);
+      $study = $descriptors['studies'][$difference['connection']];
+      $study_link = $l($study->title, 'node/'.$study->nid);
       $variable_name = $e($variable_names[$difference['term']]);
       $old = $difference['old_value'];
       $new = $difference['new_value'];
@@ -80,7 +85,7 @@ function query_subscription_mail($key, &$message, $params) {
         $cross = $e("{$cross_name} = \"$cross_label\" ({$difference['category']})");
       }
 
-      $data .= "<tr><$td>$study_name</td><$td>$variable_name</td><$td>$cross</td><$td>$old</td><$td>$new</td></tr>\n";
+      $data .= "<tr><$td>$study_link</td><$td>$variable_name</td><$td>$cross</td><$td>$old</td><$td>$new</td></tr>\n";
     }
     $data .= "</table></div><br>\n\n";
 
@@ -93,14 +98,14 @@ function query_subscription_mail($key, &$message, $params) {
 
 !data
 
-<p style="font-size: 90%">!subscriptions_url</p>
+<!-- p style="font-size: 90%">!subscriptions_url</p -->
 
 <p style="font-size: 90%">!home_link</p>
 EOF;
 
   // todo: link to user's queries page
-  $subscriptions_url = l('View update notification settings', "node/590/queries", array('language' => $user->language, 'absolute' => TRUE));
-  $home_link = l("CMI home page", '/', array('language' => $user->language, 'absolute' => TRUE));
+  $subscriptions_url = $l($ht('View update notification settings (not yet implemented)'), "/");
+  $home_link = $l($ht("CMI home page"), '/');
 
   $message['subject'] = t('CMI data update notification', array(), array('langcode' => $user->language));
   $message['body'] = t($body,
