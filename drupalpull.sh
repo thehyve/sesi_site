@@ -18,18 +18,11 @@ if ! type "drush" > /dev/null; then
   ln -s /usr/local/share/drush/drush /usr/bin/drush
 fi
 
-# Get field_group patch and apply it
-if [ ! -f 2078201-27-fieldgroup_notice_flood.patch ]; then
-    echo 'field_group module patch does not exist'
-    wget https://www.drupal.org/files/2078201-27-fieldgroup_notice_flood.patch
-fi
-
-#PATCH ORIGINAL MICA CODE
-yes | cp -Rf "$DRUPAL_ROOT/sites/all/patch" "$DRUPAL_ROOT/profiles/mica_distribution"
-
+# PATCH ORIGINAL MICA CODE
+yes | cp -Rfv "$DRUPAL_ROOT/sites/all/patch/mica_distribution" "$DRUPAL_ROOT/profiles/"
 
 # Check drupal status
-drush status
+drush status  
  
 # Disable these themes to make sure they are never enabled.
 drush --yes pm-disable seven
@@ -40,37 +33,48 @@ drush --yes pm-enable features
 drush --yes pm-enable strongarm
 drush --yes pm-enable locale
 
-#activate organic groups
+# Install and enable Features Extra module
+drush --yes dl features_extra
+drush --yes en fe_block
+
+# Activate organic groups
 drush --yes dl og
-sudo drush --yes en og og_ui og_context
-drush pm-enable sesi_communities_and_files
+drush --yes en og og_ui og_context og_access og_register
 
-#install captcha
+# Enable sesi_communities_and_files feature
+drush pm-enable --yes sesi_communities_and_files
+drush --yes features-revert sesi_communities_and_files
+
+# Install and enable uuid_features module
+drush --yes dl uuid_features
+drush --yes en uuid_features
+
+# Install captcha
 drush --yes dl captcha
-drush --yes en image_captcha
+drush --yes en captcha image_captcha
 
-# install easy_social module
+# Install easy_social module
 drush --yes dl easy_social
 drush --yes en easy_social
 
-# install and enable oauth
-# this module is required by twitter module
+# Install and enable oauth
+# This module is required by twitter module
 drush --yes dl oauth
 drush --yes en oauth_common
 drush --yes en oauth_common_providerui
 
-# install and enable twitter module
+# Install and enable twitter module
 drush --yes dl twitter
 drush --yes en twitter
 
-#backup first
+# Backup first
 #drush archive-dump /tmp/micasitebk
 
 #install htmlmail dependency
 drush --yes dl htmlmail mailmime mailsystem
 drush --yes en htmlmail mailmime
 
-# ////////////////////////// Enable project features.
+# Enable project features.
 drush --yes pm-enable sesi_eid_login
 drush --yes pm-disable beididp_button
 drush --yes features-revert sesi_eid_login
@@ -87,16 +91,16 @@ drush --yes features-revert sesi_dataset_versioning
 drush --yes pm-enable sesi_vocabulary
 drush --yes features-revert sesi_vocabulary
 
-# ////////////////////////// Download Autologout module dependencies and enable it
+# Download Autologout module dependencies and enable it
 drush --yes dl autologout
 drush --yes en autologout
 
-# ////////////////////////// Enable and revert the auto logout feature
+# Enable and revert the auto logout feature
 drush --yes pm-enable sesi_autologout
 drush --yes features-revert sesi_autologout
 
 # Enable project theme.
-#drush --yes pm-enable ourprettytheme
+# drush --yes pm-enable ourprettytheme
 
 # Enable Contact Form
 drush --yes pm-enable contact

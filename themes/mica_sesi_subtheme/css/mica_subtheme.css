@@ -1,3 +1,7 @@
+/*===========================================================================*/
+/* Icon definitions                                                          */    
+/*===========================================================================*/
+
 @font-face {
 	font-family: "Flaticon";
 	src: url("flaticon.eot");
@@ -45,8 +49,9 @@ margin-bottom: -100px;
 }
 
 /*===========================================================================*/
+/* Override default stylings                                                 */    
+/*===========================================================================*/
 
-h2 {color: #4183C4;}
 h2 {color: #CF0000;}
 
 a:hover, a:active {
@@ -70,14 +75,6 @@ a.thumbnail:hover {
     position:relative; 
 }
 
-/*===========================================================================*/
-
-#home-page .home-images .thumbnail .how-it-works:before,
-#home-page .home-images .thumbnail .resources:before,
-#home-page .home-images .thumbnail .events:before,
-#home-page .home-images .thumbnail .blog:before
-{background:url("../img/home.png") no-repeat scroll 0 0 transparent !important}
-
 /* To put the modal popup on top of the navigation bar, especially if the 
 browser window is small */
 #modalContent { 
@@ -85,6 +82,19 @@ browser window is small */
 }
 
 .container {width:1024px !important;}
+
+/* To hide OG selection box in the registration page */
+#edit-og-group-ref {display: none;}
+
+/*===========================================================================*/
+/* Styling for homepage                                                      */    
+/*===========================================================================*/
+
+#home-page .home-images .thumbnail .how-it-works:before,
+#home-page .home-images .thumbnail .resources:before,
+#home-page .home-images .thumbnail .events:before,
+#home-page .home-images .thumbnail .blog:before
+{background:url("../img/home.png") no-repeat scroll 0 0 transparent !important}
 
 .home-panel {
     background: url("../cmi_background.png");
@@ -152,13 +162,19 @@ browser window is small */
 
 .views-row h2 { font-weight: bold !important; padding-bottom: 5px !important; }
 
-#mini-panel-sesi_mini_panel_home_news .panel-col-first {width: 30%;}
-#mini-panel-sesi_mini_panel_home_news .panel-col-last {width: 70%;}
-#mini-panel-sesi_mini_panel_home_news .panel-col-first .views-field-title 
+#block-panels-mini-sesi-homepage-registered .panel-col-first,
+#block-panels-mini-sesi-homepage-unregistered .panel-col-first
+{width: 30%;}
+#block-panels-mini-sesi-homepage-registered .panel-col-last, 
+#block-panels-mini-sesi-homepage-unregistered .panel-col-last 
+{width: 70%;}
+#block-panels-mini-sesi-homepage-registered .panel-col-first .views-field-title,
+#block-panels-mini-sesi-homepage-unregistered .panel-col-first .views-field-title 
 {
     font-weight: bold;
 }
-#mini-panel-sesi_mini_panel_home_news .views-row 
+#block-panels-mini-sesi-homepage-registered .views-row,
+#block-panels-mini-sesi-homepage-unregistered .views-row
 {
     border-bottom: 1px dotted #CCC;
     padding: 5px;
