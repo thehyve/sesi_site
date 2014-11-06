@@ -41,8 +41,8 @@ function query_subscription_mail($key, &$message, $params) {
     $dataset_link = $l($descriptors['dataset']->title, 'node/'.$descriptors['dataset']->nid);
     $prevdate = $e($subscription->updated()->format("d-m-Y"));
     $curdate = $e(date('d-m-Y'));
-    $old_matching = $e(array_sum(array_map(function($a) {return $a['_matched']['_all'];}, $change['old_values'])));
-    $new_matching = $e(array_sum(array_map(function($a) {return $a['_matched']['_all'];}, $change['new_values'])));
+    $old_matching = $e($change['old_values']['_matched_sum']);
+    $new_matching = $e($change['new_values']['_matched_sum']);
 
     // we cannot use stylesheets in html mail, as many webmail systems such as gmail don't support it. Use inline styles.
     $th = "th style='text-align: left'";

@@ -269,21 +269,36 @@ function query_subscription_poll($arg) {
     $GLOBALS['user'] = $user;
 
     foreach ($ids as $id) {
-      $subscription = QuerySubscription::get($id);
-      if (is_null($subscription)) continue;
+      try {
+        $subscription = QuerySubscription::get($id);
+        if (is_null($subscription)) continue;
 
-      // significantDifferences updates the old values
-      $old_values = $subscription->old_results();
+        // significantDifferences updates the old values
+        $old_values = $subscription->old_results();
 
-      $differences = $subscription->significantDifferences();
+        $differences = $subscription->significantDifferences();
 
-      if (!empty($differences)) {
-        $changes[] = array(
-          'differences' => $differences,
-          'subscription' => $subscription,
-          'old_values' => $old_values,
-          'new_values' => $subscription->results(),
-        );
+        if (!empty($differences)) {
+          $changes[] = array(
+            'differences' => $differences,
+            'subscription' => $subscription,
+            'old_values' => $old_values,
+            'new_values' => $subscription->results(),
+          );
+        }
+      } catch (Exception $e) {
+        $msg = $e->getMessage();
+        if(stripos($msg, 'Curl Error') == 0 && stristr($msg, 'timed out')) {
+          // Curl timeout, probably an Opal server for this query is offline, ignore
+          watchdog('query_subscription',
+            'Timeout while connecting to Opal. Subscription id @id, uid @uid, exception: @ex',
+            array('@uid' => $uid, '@ids' => implode(', ', $ids), '@ex' => $msg), WATCHDOG_NOTICE);
+          continue;
+        }
+        watchdog('query_subscription',
+          'Caught exception while looking for updates on subscribed query. Uid @uid, subscription id @id, exception:\n@ex',
+          array('@uid' => $uid, '@id' => implode(', ', $id), '@ex' => $e), WATCHDOG_ERROR);
+
       }
     }
 
@@ -294,8 +309,10 @@ function query_subscription_poll($arg) {
 
   // poor mans finally
   } catch (Exception $e) {
+    watchdog('query_subscription',
+      'Caught exception while trying to send notification mail. Uid @uid, subscription ids @ids, exception:\n@ex',
+      array('@uid' => $uid, '@ids' => implode(', ', $ids), '@ex' => $e), WATCHDOG_ERROR);
     $GLOBALS['user'] = $old_user;
-    throw $e;
   }
   $GLOBALS['user'] = $old_user;
 

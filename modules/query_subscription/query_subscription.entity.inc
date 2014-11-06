@@ -124,8 +124,8 @@ class QuerySubscription extends Entity {
 
     $over_threshold = false;
     foreach($changes as $change) {
-      $diff = $change['old_value'] * $this->threshold;
-      if ($change['new_value'] > $change['old_value'] + $diff || $change['new_value'] < $change['old_value'] - $diff) {
+      $max_diff = $change['old_value'] * $this->threshold;
+      if (abs($change['new_value'] - $change['old_value']) > $max_diff) {
         $over_threshold = true;
         break;
       }
@@ -133,6 +133,8 @@ class QuerySubscription extends Entity {
     if (!$over_threshold) {
       $changes = array();
     }
+
+    $changes = array_filter($changes, function($c) {return $c['connection'] != '_matched_sum';});
 
     if($structurechanged || !empty($changes)) {
       $this->update();
@@ -146,9 +148,9 @@ class QuerySubscription extends Entity {
   }
 
   /**
-   * Recursively compare two arrays. Any differences that exceed $this->threshold are reported in &$changed. $names must
-   * contain a list of names that are used as keys in &$changed elements to indicate each level of the array. The depth
-   * of the arrays must match the length of $names.
+   * Recursively compare two arrays. Any differences are reported in &$changed. $names must contain a list of names that
+   * are used as keys in &$changed elements to indicate each level of the array. Recursion will stop if the end of
+   * $names is reached.
    *
    * The return value (boolean) indicates if the structure of the two arrays matches. If the structure does not match,
    * the function returns FALSE immediately without looking for further differences. If the structure matches returns
@@ -163,7 +165,7 @@ class QuerySubscription extends Entity {
    * @return bool Whether the structure of $old and $new is the same
    */
   private function recursiveCompare($old, $new, $names, &$changed, $path = array()) {
-    if (count($names) == 0) {
+    if (!is_array($old) || !is_array($new) || count($names) == 0) {
       if ($new != $old) {
         $changed[] = $path + array('old_value' => $old, 'new_value' => $new);
       }
@@ -228,7 +230,9 @@ class QuerySubscription extends Entity {
     }
 
     if(is_null($this->cached_results)) {
-      $this->cached_results = query_subscription_query_result($this->query());
+      $res = query_subscription_query_result($this->query());
+      $res['_matched_sum'] = array_sum(array_map(function($a) {return $a['_matched']['_all'];}, $res));
+      $this->cached_results = $res;
     }
     return $this->cached_results;
   }
