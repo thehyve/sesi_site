@@ -91,6 +91,8 @@ drush --yes features-revert sesi_dataset_versioning
 drush --yes pm-enable sesi_vocabulary
 drush --yes features-revert sesi_vocabulary
 
+drush --yes en query_subscription
+
 # Download Autologout module dependencies and enable it
 drush --yes dl autologout
 drush --yes en autologout
