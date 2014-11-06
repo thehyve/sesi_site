@@ -1,0 +1,345 @@
+<?php
+
+module_load_include('inc', 'query_subscription', 'query_subscription.email');
+module_load_include('inc', 'query_subscription', 'query_subscription.entity');
+
+// implements hook_entity_info
+function query_subscription_entity_info() {
+  $info = array();
+  $info['query_subscription'] = array(
+    'label' => t('Query notification state'),
+    'metadata controller class' => false,
+    'entity class' => 'QuerySubscription',
+    'controller class' => 'EntityAPIController',
+    'base table' => 'query_subscription',
+    'module' => 'query_subscription',
+    'entity keys' => array(
+      'id' => 'id',
+      'name' => 'id',
+    ),
+  );
+  return $info;
+}
+
+function query_subscription_entity_info_alter(&$info) {
+  // Fix broken query url
+  $info['mica_query']['uri callback'] = 'query_subscription_query_url';
+}
+
+// Replacement as the default from module mica_query is broken
+function query_subscription_query_url($query) {
+  return array('path' => "node/{$query->dataset_id}/queries/{$query->id}",
+    'options' => array());
+}
+
+// implements hook_cron
+function query_subscription_cron() {
+  $result = db_query(
+    "select n.id, q.user_id from {query_subscription} n join {mica_query} q on n.query_id = q.id
+      where (
+        n.updated is NULL
+        or  n.poll_interval = ".QuerySubscription::ALWAYS."                                  -- always
+        or (n.poll_interval = ".QuerySubscription::DAILY."   and :now - 86400 > n.updated)   -- daily
+        or (n.poll_interval = ".QuerySubscription::WEEKLY."  and :now - 604800 > n.updated)  -- weekly
+        or (n.poll_interval = ".QuerySubscription::MONTHLY." and :now - 2592000 > n.updated) -- monthly
+      )
+      order by q.user_id",
+    array(':now' => time()))
+    ->fetchAllKeyed();
+
+  $queue = DrupalQueue::get('query_subscription');
+
+  // Create one job per uid so we can send each user one email
+  $uidmap = array();
+  foreach($result as $id => $uid) {
+    $uidmap[$uid][] = $id;
+  }
+  foreach($uidmap as $uid => $ids) {
+    $queue->createItem(array($uid, $ids));
+  }
+}
+
+// implements hook_cron_queue_info
+function query_subscription_cron_queue_info() {
+  return array('query_subscription' => array(
+    'worker callback' => 'query_subscription_poll',
+    'time' => 1800,
+  ));
+}
+
+// implements hook_entity_delete
+function query_subscription_entity_delete($entity, $type) {
+  if($type !== 'mica_query') return;
+
+  $subscription = QuerySubscription::getForQuery($entity);
+  if($subscription) {
+    $subscription->delete();
+  }
+}
+
+// Implements hook_form_FORM_ID_alter
+function query_subscription_form_mica_query_edit_form_alter(&$form, &$form_state, $form_id) {
+  $subscription = NULL;
+  if(isset($form_state['build_info']['args'][1])) {
+    $subscription = QuerySubscription::getForQuery($form_state['build_info']['args'][1]);
+    $active = true;
+  }
+  if(is_null($subscription)) {
+    $subscription = new QuerySubscription();
+    $active = false;
+  }
+
+  // Define a new button to update inherited fields
+  $notification_fields = array(
+    'notify_enabled' => array(
+      '#type' => 'checkbox',
+      '#title' => t("Receive notification of changes"),
+      '#default_value' => $active,
+      '#description' => t("When enabled, you will receive email notifications if the result of the query changes."),
+    ),
+
+    'notify_interval' => array(
+      '#type' => 'select',
+      '#title' => t("Send notifications at most every..."),
+      '#options' => array(
+        QuerySubscription::DAILY => 'day',
+        QuerySubscription::WEEKLY => 'week',
+        QuerySubscription::MONTHLY => 'month',
+      ),
+      '#default_value' => $subscription->poll_interval,
+      '#states' => array(
+        // Only show this field when the notify_enabled checkbox is checked.
+        'visible' => array(':input[name="notify_enabled"]' => array('checked' => true)),
+      ),
+    ),
+
+    'notify_threshold' => array(
+      '#type' => 'textfield',
+      '#title' => t("Notification threshold"),
+      '#default_value' => $subscription->threshold * 100,
+      '#field_suffix' => '%',
+      '#size' => 2,
+      '#element_validate' => array('query_subscription_validate_percentage'),
+      '#description' => t("You will only receive a notification if at least one of the result values differs from its previous value with at least this percentage"),
+      '#states' => array(
+        // Only show this field when the notify_enabled checkbox is checked.
+        'visible' => array(':input[name="notify_enabled"]' => array('checked' => true)),
+      ),
+    ),
+  );
+
+  if(isset($form['general'])) {
+    // default mica form, query_interface not active
+    $form['general'] += $notification_fields;
+  } else {
+    // The theme function from query_interface (sesi_mica_query_edit_form) doesn't look at #weight's, so we use this hack
+    // to enforce ordering.
+    $actions = $form['actions'];
+    unset($form['actions']);
+    $notification_fields['#type'] = 'fieldset';
+    $notification_fields['#title'] = t('Update notification');
+    $form['notification'] = $notification_fields;
+    $form['actions'] = $actions;
+  }
+
+  $form['#submit'][] = 'query_subscription_save_submit_handler';
+
+  // Only needed if the query_interface form changes are disabled, as that removes the 'run' button.
+  // Disable 'run' option without save if notification is selected
+  if(isset($form['actions']['run'])) {
+    if (!isset($form['actions']['run']['#states'])) {
+      $form['actions']['run']['#states'] = array();
+    }
+    $form['actions']['run']['#states']['disabled'] = array(':input[name="notify_enabled"]' => array('checked' => true));
+  }
+}
+
+function query_subscription_validate_percentage($field) {
+  $value = (float) str_replace(',', '.', trim($field['#value']));
+  return preg_match('/^\d+((,|\.)\d+)?$/', trim($field['#value'])) === 1 &&
+    $value >= 0;
+}
+
+function query_subscription_save_submit_handler($form, &$form_state) {
+  if($form_state['clicked_button']['#id'] != 'edit-save') return;
+
+  if(isset($form_state['build_info']['args'][1])) {
+    $query = $form_state['build_info']['args'][1];
+  } else if(isset($form_state['redirect'])) {
+    // If the query was saved and thus removed from the query cache, it is replaced by a new query object with a new id
+    // that is not part of the form. The only thing the mica_query handler changes is setting the redirect so we use
+    // that to get at the new query.
+    $query = menu_get_object('mica_query', 3, $form_state['redirect']);
+  } else {
+    watchdog('query_subscription', 'Unable to retrieve query in subscription edit submit handler', array(), WATCHDOG_ERROR);
+    throw new Exception('Unable to retrieve query in subscription edit submit handler');
+  }
+
+  $new = false;
+  $subscription = QuerySubscription::getForQuery($query);
+  if(is_null($subscription)) {
+    $subscription = query_subscription_new($query, $form_state);
+    $new = true;
+  }
+
+  if (!$form_state['values']['notify_enabled']) {
+    if(!$new) {
+      $subscription->delete();
+    }
+    return;
+  }
+
+  $subscription->poll_interval = $form_state['values']['notify_interval'];
+  $subscription->threshold = ((float) str_replace(',', '.', trim($form_state['values']['notify_threshold']))) / 100;
+  $subscription->save();
+}
+
+// implements hook_form_FORM_ID_alter
+function query_subscription_form_mica_query_run_page_alter(&$form, &$form_state, $form_id) {
+  $query = $form_state['mica']['query'];
+
+  $form['notify'] = array(
+    '#type' => 'submit',
+    '#prefix' => '<br>',
+    '#suffix' => t('<br><br><p class="help-block">Go to the edit tab to edit detailed settings for this notification</p>'),
+  );
+
+  if(!empty($query) && QuerySubscription::hasNotification($query)) {
+    $form['notify'] += array(
+      '#value' => t('Unsubscribe from change notification'),
+      '#submit' => array('query_subscription_unsubscribe'),
+    );
+  } else {
+    $form['notify'] += array(
+      '#value' => t('Subscribe to change notification'),
+      '#submit' => array('query_subscription_subscribe'),
+    );
+  }
+}
+
+function query_subscription_subscribe($form, &$form_state) {
+  $query = $form_state['mica']['query'];
+
+  $subscription = query_subscription_new($query, $form_state);
+  $subscription->save();
+}
+
+function query_subscription_unsubscribe($form, &$form_state) {
+  $query = $form_state['mica']['query'];
+  $subscription = QuerySubscription::getForQuery($query);
+  if($subscription) {
+    $subscription->delete();
+  }
+}
+
+/**
+ * Create a new subscription for a query
+ *
+ * @param MicaDatasetQuery $query
+ * @param array &$form_state If given a form state, will set a redirect to the changed query page.
+ * @return QuerySubscription
+ */
+function query_subscription_new(MicaDatasetQuery $query, &$form_state = NULL) {
+  if (MicaDatasetQueryManager::isCached($query)) {
+    // save and remove from cache
+    MicaDatasetQueryManager::save($query);
+    if (!is_null($form_state)) {
+      $form_state['redirect'] = entity_uri('mica_query', $query);
+    }
+  }
+
+  return new QuerySubscription($query);
+}
+
+
+function query_subscription_poll($arg) {
+  list($uid, $ids) = $arg;
+
+  $user = user_load($uid);
+  if(empty($user)) {
+    watchdog('query_subscription', 'Attempting to check for query changes for non-existing user, uid @uid', array('@uid' => $uid), WATCHDOG_WARNING);
+    return;
+  }
+
+  $changes = array();
+
+  // Some mica functions don't support passing a user object, they always use the global user so we set that
+  $old_user = $GLOBALS['user'];
+  try {
+    $GLOBALS['user'] = $user;
+
+    foreach ($ids as $id) {
+      try {
+        $subscription = QuerySubscription::get($id);
+        if (is_null($subscription)) continue;
+
+        // significantDifferences updates the old values
+        $old_values = $subscription->old_results();
+
+        $differences = $subscription->significantDifferences();
+
+        if (!empty($differences)) {
+          $changes[] = array(
+            'differences' => $differences,
+            'subscription' => $subscription,
+            'old_values' => $old_values,
+            'new_values' => $subscription->results(),
+          );
+        }
+      } catch (Exception $e) {
+        $msg = $e->getMessage();
+        if(stripos($msg, 'Curl Error') == 0 && stristr($msg, 'timed out')) {
+          // Curl timeout, probably an Opal server for this query is offline, ignore
+          watchdog('query_subscription',
+            'Timeout while connecting to Opal. Subscription id @id, uid @uid, exception: @ex',
+            array('@uid' => $uid, '@ids' => implode(', ', $ids), '@ex' => $msg), WATCHDOG_NOTICE);
+          continue;
+        }
+        watchdog('query_subscription',
+          'Caught exception while looking for updates on subscribed query. Uid @uid, subscription id @id, exception:\n@ex',
+          array('@uid' => $uid, '@id' => implode(', ', $id), '@ex' => $e), WATCHDOG_ERROR);
+
+      }
+    }
+
+    if (!empty($changes)) {
+      drupal_mail('query_subscription', 'notification', $user->mail, $user->language,
+        array('user' => $user, 'changes' => $changes));
+    }
+
+  // poor mans finally
+  } catch (Exception $e) {
+    watchdog('query_subscription',
+      'Caught exception while trying to send notification mail. Uid @uid, subscription ids @ids, exception:\n@ex',
+      array('@uid' => $uid, '@ids' => implode(', ', $ids), '@ex' => $e), WATCHDOG_ERROR);
+    $GLOBALS['user'] = $old_user;
+  }
+  $GLOBALS['user'] = $old_user;
+
+}
+
+
+function query_subscription_query_result($query) {
+  $connectors = mica_connector_query_multiple($query->dataset_id);
+
+  $fullresult = array();
+  foreach($connectors as $connector) {
+
+    $terms = mica_query_term_query($query);
+    $cross_variable = node_load($query->cross_variable_id);
+
+    if(empty($cross_variable)) {
+      $result = $connector->query($terms);
+      unset($result['_all']);
+    } else {
+      $result = $connector->queryBy($terms, array($cross_variable->title));
+      // Depending on if it is a cross query use '_all' or 'total', unset the other.
+      // I'm not sure why this difference exists, but this is what the display code uses.
+      unset($result['total']);
+    }
+
+    $fullresult[$connector->id] = $result;
+  }
+  return $fullresult;
+}
+

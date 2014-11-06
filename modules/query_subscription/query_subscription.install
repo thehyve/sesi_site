@@ -1,0 +1,106 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the Sesi Query Update Notification module.
+ */
+
+class _QUN_constants {
+  public static $dbfields = array(
+    'id' => array(
+      'type' => 'serial',
+      'unsigned' => TRUE,
+      'not null' => TRUE,
+    ),
+    'query_id' => array(
+      'type' => 'int',
+      'unsigned' => TRUE,
+      'not null' => TRUE,
+      'description' => 'Reference to mica_query table of MicaDatasetQuery',
+    ),
+    'poll_interval' => array(
+      'type' => 'int',
+      'size' => 'tiny',
+      'unsigned' => TRUE,
+      'not null' => TRUE,
+      'default' => 2,
+      'description' => "The interval to check for changes. 1 = daily, 2 = weekly, 3 = monthly",
+    ),
+    'threshold' => array(
+      'type' => 'float',
+      'not null' => TRUE,
+      'default' => 0.05,
+      'description' => "The fraction of change required before sending a notification",
+    ),
+    'updated' => array(
+      'type' => 'int',
+      'size' => 'big',
+      'description' => 'Unix time of the last update',
+    ),
+    'last_result' => array(
+      'type' => 'text',
+      'size' => 'big',
+      'description' => 'The last query result',
+    ),
+  );
+
+  public static function fields() {
+    return array_keys(self::$dbfields);
+  }
+}
+
+/**
+ * Implements hook_schema
+ */
+function query_subscription_schema() {
+  return array(
+    'query_subscription' => array(
+      'description' => "query update notification state",
+      'fields' => _QUN_constants::$dbfields,
+      'primary key' => array('id'),
+      'unique keys' => array('qid_uniquekey' => array('query_id')),
+      'foreign keys' => array(
+        'mica_query relation' => array(
+          'table' => 'mica_query',
+          'columns' => array('query_id', 'id')
+        ),
+      ),
+      'indexes' => array('qid_index' => array('query_id')),
+    ),
+  );
+}
+
+/**
+ * Makes sure that query_subscription module callbacks are
+ * executed after mica_query and after query_interface.
+ *
+ * Implements hook_install.
+ */
+function query_subscription_install() {
+  // Get the weight of the modules we want to compare against
+  $weight = db_select('system', 's')
+    ->fields('s', array('weight'))
+    ->condition('name', 'query_interface', '=')
+    ->execute()
+    ->fetchField();
+
+  // Set our module to a weight 1 heavier, so ours moves lower in execution order
+  db_update('system')
+    ->fields(array('weight' => $weight + 1))
+    ->condition('name', 'query_subscription', '=')
+    ->execute();
+}
+
+/**
+ * Implements hook_enable
+ */
+function query_subscription_enable() {
+  mailsystem_set(array('query_subscription' => 'HTMLMailSystem'));
+}
+
+/**
+ * Implements hook_disable
+ */
+function query_subscription_disable() {
+  mailsystem_clear(array('query_subscription' => ''));
+}

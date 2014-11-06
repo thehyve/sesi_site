@@ -1,0 +1,12 @@
+name = Sesi Variable Ontologies
+description = Adding a reference from a variable to a taxonomy
+core = 7.x
+package = Sesi
+version = 7.x-1.0-beta1
+project = sesi_variable_ontologies
+features[features_api][] = api:2
+features[field_base][] = field_taxonomy
+features[field_instance][] = node-variable-field_taxonomy
+features_exclude[dependencies][entityreference] = entityreference
+features_exclude[dependencies][features] = features
+features_exclude[dependencies][options] = options

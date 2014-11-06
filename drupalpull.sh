@@ -69,7 +69,11 @@ drush --yes en twitter
 
 # Backup first
 #drush archive-dump /tmp/micasitebk
- 
+
+#install htmlmail dependency
+drush --yes dl htmlmail mailmime mailsystem
+drush --yes en htmlmail mailmime
+
 # Enable project features.
 drush --yes pm-enable sesi_eid_login
 drush --yes pm-disable beididp_button
@@ -86,6 +90,12 @@ drush --yes features-revert sesi_dataset_versioning
 
 drush --yes pm-enable sesi_vocabulary
 drush --yes features-revert sesi_vocabulary
+
+drush --yes pm-enable query_interface
+drush --yes en query_subscription
+
+drush --yes pm-enable sesi_variable_ontologies
+drush --yes features-revert sesi_variable_ontologies
 
 # Download Autologout module dependencies and enable it
 drush --yes dl autologout
