@@ -20,7 +20,7 @@ function query_ontologies_variable_taxonomy($variable_node) {
     }
 
     // Find a tree from this taxonomy
-    $tree = _query_ontologies_taxonomy_get_nested_tree($taxonomy->vid, 2);
+    $tree = _query_ontologies_taxonomy_get_nested_tree($taxonomy->vid, 1);
     
     // Convert it into aciTree format
     $aciTree = _query_ontologies_convert_to_aciTree_format( $tree );
@@ -93,7 +93,7 @@ function _query_ontologies_create_aciTree_node( $node ) {
         "open" => false,
         "inode" => $hasChildren,
         "checkbox" => true,
-        "checked" => true,
+        "checked" => false,
         "branch" => $hasChildren ? $children : null,
     );
 }

@@ -5,7 +5,6 @@ core = 7.x
 dependencies[] = query_interface
 dependencies[] = sesi_variable_ontologies
 
-
 ; Information added by Drupal.org packaging script on 2014-07-10
 version = "7.x-1.0b"
 core = "7.x"
