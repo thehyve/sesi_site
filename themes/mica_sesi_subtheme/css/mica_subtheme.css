@@ -160,7 +160,7 @@ browser window is small */
     text-decoration: none;
 }
 
-.views-row h2 { font-weight: bold !important; padding-bottom: 5px !important; }
+
 
 #block-panels-mini-sesi-homepage-registered .panel-col-first,
 #block-panels-mini-sesi-homepage-unregistered .panel-col-first
@@ -179,3 +179,14 @@ browser window is small */
     border-bottom: 1px dotted #CCC;
     padding: 5px;
 }
+
+#block-panels-mini-sesi-homepage-unregistered  .panel-col-first input
+{width: 200px;}
+#block-panels-mini-sesi-homepage-unregistered  .panel-col-first .control-group 
+{margin-bottom: 0px;}
+#block-panels-mini-sesi-homepage-unregistered  .panel-col-first .pane-title 
+{margin-bottom: 20px;}
+#block-panels-mini-sesi-homepage-unregistered  .panel-col-first .pane-content
+{margin-left: 0px;}
+#block-panels-mini-sesi-homepage-unregistered  .panel-col-first form 
+{margin-bottom: 40px;}
