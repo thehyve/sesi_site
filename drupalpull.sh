@@ -91,7 +91,11 @@ drush --yes features-revert sesi_dataset_versioning
 drush --yes pm-enable sesi_vocabulary
 drush --yes features-revert sesi_vocabulary
 
+drush --yes pm-enable query_interface
 drush --yes en query_subscription
+
+drush --yes pm-enable sesi_variable_ontologies
+drush --yes features-revert sesi_variable_ontologies
 
 # Download Autologout module dependencies and enable it
 drush --yes dl autologout
