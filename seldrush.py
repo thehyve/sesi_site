@@ -183,6 +183,9 @@ class Drush(SeleniumBase):
         chkbox = self.css("#edit-4-access-user-contact-forms")
         self.setcheckbox(chkbox, True)
 
+        chkbox = self.css("#edit-4-bypass-workbench-moderation")
+        self.setcheckbox(chkbox, True)
+
         chkbox = self.css("#edit-4-access-user-profiles")
         self.setcheckbox(chkbox, True)
  
