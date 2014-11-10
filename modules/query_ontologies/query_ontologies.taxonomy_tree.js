@@ -36,7 +36,10 @@ if( typeof Sesi.QueryOntologies.TaxonomyTree == 'undefined' )
 
                     // Add an hidden input for all selected items
                     $.each( selectedTerms, function(idx, el) { 
-                        console.log( "Checked: ", el );
+                        // Only use the checkboxes 'fully selected'
+                        if( treeApi.isTristate( $(el) ) )
+                            return;
+
                         var data = treeApi.itemData( $(el) );
                         if( data.id ) {
                             var id = data.id;
