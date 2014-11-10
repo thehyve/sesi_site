@@ -146,13 +146,8 @@ class OntologyTerm extends AbstractTerm {
         Sesi.QueryOntologies.TaxonomyTree.init(); 
     });</script>';
     
-    $hiddenFields = "";
-    foreach( $selectedIds as $id ) {
-        $hiddenFields .= "<input type='hidden' name='terms[]' id='term_selected_" . $id . "' value='" . $id . "' />";
-    }
-    
     $form['valuecontainer']['fieldset']['value'] = array(
-      '#markup' => $treeMarkup . $initScript . $hiddenFields,
+      '#markup' => $treeMarkup . $initScript,
     );
 
     drupal_add_js(drupal_get_path('module', 'query_interface') . '/aciTree/js/jquery.aciPlugin.min.js');
@@ -174,7 +169,12 @@ class OntologyTerm extends AbstractTerm {
   }
 
   function submit($form, &$form_state) {
-    $selection = $form_state['input']['terms'];
+    if( array_key_exists( 'terms', $form_state[ 'input' ] ) ) {
+        $selection = $form_state['input']['terms'];
+    } else {
+        $selection = array();
+    }
+    
     $inverted = $form_state['values']['inverted'];
 
     $this->setInverted($inverted == 'notin');

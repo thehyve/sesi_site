@@ -17,57 +17,37 @@ if( typeof Sesi.QueryOntologies.TaxonomyTree == 'undefined' )
             var form = tree.parents( "form" ).first();
             
             if( tree.length > 0 ) {
+                // Initialize the tree
                 tree.aciTree({
                     ajax: {
                         url: tree.data( 'url' )
                     },
                     checkbox: true
                 });
+                
+                // Make sure that all selections are taken into account when 
+                // the form is submitted
+                //form.find( ".form-submit" ).on( "click", function(e) {
+                form.on( "submit", function(e) {
+                    // Retrieve the selected term s
+                    var treeApi = tree.aciTree('api');
+                    var allItems = treeApi.children( null, true );
+                    var selectedTerms = treeApi.checkboxes( allItems, true );
 
-                tree.on('acitree', function(event, api, item, eventName, options) {
-                    switch( eventName ) {
-                        case "checked":
-                            Sesi.QueryOntologies.TaxonomyTree.markChecked(item, api, form, true);
-                            break;
-                        case "unchecked":
-                            Sesi.QueryOntologies.TaxonomyTree.markChecked(item, api, form, false);
-                            break;
-                    }
+                    // Add an hidden input for all selected items
+                    $.each( selectedTerms, function(idx, el) { 
+                        console.log( "Checked: ", el );
+                        var data = treeApi.itemData( $(el) );
+                        if( data.id ) {
+                            var id = data.id;
+                            form.append( 
+                                $( '<input type="hidden" />' ).attr( "name", "terms[]" ).attr( "id", "term_selected_" + id ).val( id )
+                            ); 
+                        }
+                    });
+
+                    return true;
                 });
-
-            }
-        };
-
-        // Marks an item in the taxonomy tree and its descendants as checked
-        // or not checked, depending on the parameter
-        Sesi.QueryOntologies.TaxonomyTree.markChecked = function( item, api, form, checked, recursive ) {
-            if( typeof checked == 'undefined' )
-                checked = true;
-
-            if( typeof recursive == 'undefined' )
-                recursive = true;
-
-            var id = api.getId(item);
-
-            if( checked ) {
-                // Add a hidden input field to mark this item selected
-                // if the item doesn't exist yet
-                if( $( '#term_selected_' + id ).length == 0 ) {
-                    form.append( 
-                        $( '<input type="hidden" />' ).attr( "name", "terms[]" ).attr( "id", "term_selected_" + id ).val( id )
-                    );
-                }            
-            } else {
-                // Remove the hidden input field if it exists
-                $( '#term_selected_' + id ).remove();
-            }
-
-            // Also do the same to all descendants
-            if( recursive ) {
-                var children = api.children(item, true, true);
-                for( i = 0; i < children.length; i++) {
-                    Sesi.QueryOntologies.TaxonomyTree.markChecked( $(children.get(i)), api, form, checked, false );
-                }
             }
         };
 
