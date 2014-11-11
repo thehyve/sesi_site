@@ -33,13 +33,21 @@ drush --yes pm-enable features
 drush --yes pm-enable strongarm
 drush --yes pm-enable locale
 
+
 # Install and enable Features Extra module
 drush --yes dl features_extra
 drush --yes en fe_block
 
+# Enable Rules
+drush --yes enable rules
+
 # Activate organic groups
 drush --yes dl og
 drush --yes en og og_ui og_context og_access og_register
+
+# Install and enable og_email
+drush --yes dl og_email
+drush --yes en og_email
 
 # Install and enable uuid_features module
 drush --yes dl uuid_features
@@ -66,7 +74,7 @@ drush --yes en twitter
 # Backup first
 #drush archive-dump /tmp/micasitebk
 
-#install htmlmail dependency
+# Install htmlmail dependency
 drush --yes dl htmlmail mailmime mailsystem
 drush --yes en htmlmail mailmime
 
