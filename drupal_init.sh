@@ -60,10 +60,10 @@ drush --yes pm-enable sesi_twitter
 drush --yes features-revert sesi_twitter
 
 # --------------------------------- #
-# Enable feature for News and Event #
+# Enable feature for Homepage       #
 # --------------------------------- #
-drush --yes pm-enable sesi_events
-drush --yes features-revert sesi_events
+drush --yes pm-enable sesi_homepage
+drush --yes features-revert sesi_homepage
 
 # ------------------------------ #
 # Enable Printer Friendly Config #
