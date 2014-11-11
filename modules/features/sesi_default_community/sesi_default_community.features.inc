@@ -40,17 +40,6 @@ function sesi_default_community_field_default_field_bases_alter(&$data) {
 }
 
 /**
- * Implements hook_uuid_default_entities_alter().
- */
-function sesi_default_community_uuid_default_entities_alter(&$data) {
-  if (isset($data['deploy_example_plan'])) {
-    $data['deploy_example_plan']['3']->og_group_ref = array(); /* WAS: '' */
-    $data['deploy_example_plan']['4']->og_group_ref = array(); /* WAS: '' */
-    $data['deploy_example_plan']['5']->og_group_ref = array(); /* WAS: '' */
-  }
-}
-
-/**
  * Implements hook_node_info().
  */
 function sesi_default_community_node_info() {

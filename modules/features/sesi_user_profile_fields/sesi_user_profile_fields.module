@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Sesi User Profile Fields feature.
+ */
+
+include_once 'sesi_user_profile_fields.features.inc';
