@@ -1,17 +1,17 @@
 <?php
 /**
  * @file
- * sesi_events.views_default.inc
+ * sesi_homepage.views_default.inc
  */
 
 /**
  * Implements hook_views_default_views().
  */
-function sesi_events_views_default_views() {
+function sesi_homepage_views_default_views() {
   $export = array();
 
   $view = new view();
-  $view->name = 'sesi_events';
+  $view->name = 'sesi_homepage';
   $view->description = 'The list of Events';
   $view->tag = 'default';
   $view->base_table = 'node';
@@ -222,7 +222,7 @@ function sesi_events_views_default_views() {
   $handler->display->display_options['menu']['weight'] = '0';
   $handler->display->display_options['menu']['name'] = 'main-menu';
   $handler->display->display_options['menu']['context'] = 0;
-  $translatables['sesi_events'] = array(
+  $translatables['sesi_homepage'] = array(
     t('Master'),
     t('Events'),
     t('more'),
@@ -248,7 +248,7 @@ function sesi_events_views_default_views() {
     t('No upcoming events found.'),
     t('Past Events'),
   );
-  $export['sesi_events'] = $view;
+  $export['sesi_homepage'] = $view;
 
   return $export;
 }

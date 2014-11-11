@@ -1,13 +1,13 @@
 <?php
 /**
  * @file
- * sesi_events.features.inc
+ * sesi_homepage.features.inc
  */
 
 /**
  * Implements hook_ctools_plugin_api().
  */
-function sesi_events_ctools_plugin_api($module = NULL, $api = NULL) {
+function sesi_homepage_ctools_plugin_api($module = NULL, $api = NULL) {
   if ($module == "panels_mini" && $api == "panels_default") {
     return array("version" => "1");
   }
@@ -16,6 +16,6 @@ function sesi_events_ctools_plugin_api($module = NULL, $api = NULL) {
 /**
  * Implements hook_views_api().
  */
-function sesi_events_views_api($module = NULL, $api = NULL) {
+function sesi_homepage_views_api($module = NULL, $api = NULL) {
   return array("api" => "3.0");
 }

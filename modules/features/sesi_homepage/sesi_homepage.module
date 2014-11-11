@@ -4,4 +4,4 @@
  * Code for the Sesi Events feature.
  */
 
-include_once 'sesi_events.features.inc';
+include_once 'sesi_homepage.features.inc';

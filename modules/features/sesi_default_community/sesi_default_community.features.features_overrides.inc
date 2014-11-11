@@ -31,10 +31,5 @@ function sesi_default_community_features_override_default_overrides() {
   $overrides["field_base.og_group_ref.settings|handler_settings|target_bundles|default_community"] = 'default_community';
   $overrides["field_base.og_group_ref.settings|profile2_private"] = FALSE;
 
-  // Exported overrides for: uuid_entities
-  $overrides["uuid_entities.deploy_example_plan.3|og_group_ref"] = array();
-  $overrides["uuid_entities.deploy_example_plan.4|og_group_ref"] = array();
-  $overrides["uuid_entities.deploy_example_plan.5|og_group_ref"] = array();
-
  return $overrides;
 }
