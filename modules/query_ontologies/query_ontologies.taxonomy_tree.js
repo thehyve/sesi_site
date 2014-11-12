@@ -64,24 +64,37 @@ if( typeof Sesi.QueryOntologies.TaxonomyTree == 'undefined' )
 
                 // Initialize filtering the tree
                 var treeApi = tree.aciTree('api');
-                var lastSearch = '';
+                var lastSearchTerm = '';
+                var searchTimer ;
 
                 $('#edit-filter').keyup(function() {
+                    var currentSearchTerm = $(this).val();
                     // Don't search if nothing has changed in the search term
-                    if ($(this).val() == lastSearch) {
+                    if (currentSearchTerm == lastSearchTerm) {
                         return;
                     }
-                    lastSearch = $(this).val();
 
-                    // Start filtering
-                    treeApi.filter(null, {
-                        search: $(this).val(),
-                        success: function(item, options) {
-                            if (!options.first) {
-                                alert('No results found!');
+                    // Implement a small delay to prevent filtering while
+                    // a user is still typing
+                    var delay = 400;
+                    if (searchTimer){
+                            clearTimeout(searchTimer);
+                    }
+                    searchTimer = setTimeout(function(){
+                        lastSearchTerm = currentSearchTerm;
+
+                        // Start filtering
+                        treeApi.filter(null, {
+                            search: currentSearchTerm,
+                            success: function(item, options) {
+                                if (!options.first) {
+                                    $('#edit-filter').after( "<span style='position: inline-block; margin-left: 5px; color: red;' class='empty'>No terms match</span>" );
+                                } else {
+                                    $( '#edit-filter').siblings( '.empty' ).remove();
+                                }
                             }
-                        }
-                    });
+                        });
+                    }, delay);
                 });
             }
         };
