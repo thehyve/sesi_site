@@ -48,7 +48,7 @@ class OntologyTerm extends AbstractTerm {
           $separatorLocation = strpos( $name, self::CODE_SEPARATOR );
           
           if( $separatorLocation > 0 ) {
-              $codes[] = substr( $name, 0, $separatorLocation );
+              $codes[] = trim( substr( $name, 0, $separatorLocation ) );
           }
       }
       
@@ -195,5 +195,15 @@ class OntologyTerm extends AbstractTerm {
       $str .= '(' . implode(', ', $this->categories()) . ')';
     }
     return $str;
+  }
+  
+  function checkStats() {
+    $stats = $this->stats();
+    foreach ($stats as $study_id => $stat) {
+      if (isset($stat['_all']) && $stat['_all'] != 0) {
+        return TRUE;
+      }
+    }
+    return FALSE;
   }  
 }
