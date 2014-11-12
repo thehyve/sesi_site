@@ -39,7 +39,7 @@ drush --yes dl features_extra
 drush --yes en fe_block
 
 # Enable Rules
-drush --yes enable rules
+drush --yes en rules rules_admin
 
 # Activate organic groups
 drush --yes dl og
