@@ -146,15 +146,22 @@ class OntologyTerm extends AbstractTerm {
         Sesi.QueryOntologies.TaxonomyTree.init(); 
     });</script>';
     
-    $form['valuecontainer']['fieldset']['value'] = array(
-      '#markup' => $treeMarkup . $initScript,
+    $form['valuecontainer']['fieldset']['filter'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Filter tree')
     );
+
+    $form['valuecontainer']['fieldset']['value'] = array(
+        '#markup' => $treeMarkup . $initScript,
+    );
+    
 
     drupal_add_js(drupal_get_path('module', 'query_interface') . '/aciTree/js/jquery.aciPlugin.min.js');
     drupal_add_js(drupal_get_path('module', 'query_interface') . '/aciTree/js/jquery.aciTree.dom.js');
     drupal_add_js(drupal_get_path('module', 'query_interface') . '/aciTree/js/jquery.aciTree.core.js');
     drupal_add_js(drupal_get_path('module', 'query_interface') . '/aciTree/js/jquery.aciTree.selectable.js');
     drupal_add_js(drupal_get_path('module', 'query_interface') . '/aciTree/js/jquery.aciTree.checkbox.js');
+    drupal_add_js(drupal_get_path('module', 'query_interface') . '/aciTree/js/jquery.aciTree.utils.js');
     drupal_add_css(drupal_get_path('module', 'query_interface') . '/aciTree/css/aciTree.css');
     
     // Add custom interface scripts. 

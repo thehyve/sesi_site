@@ -27,7 +27,7 @@ function query_ontologies_variable_taxonomy($variable_node, $selectedIds = "" ) 
     }
     
     // Find a tree from this taxonomy
-    $tree = _query_ontologies_taxonomy_get_nested_tree($taxonomy->vid, 1);
+    $tree = _query_ontologies_taxonomy_get_nested_tree($taxonomy->vid);
     
     // Convert it into aciTree format
     $aciTree = _query_ontologies_convert_to_aciTree_format( $tree, $selectedIds  );

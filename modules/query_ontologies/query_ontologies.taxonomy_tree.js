@@ -22,12 +22,22 @@ if( typeof Sesi.QueryOntologies.TaxonomyTree == 'undefined' )
                     ajax: {
                         url: tree.data( 'url' )
                     },
-                    checkbox: true
+                    checkbox: true,
+
+                    // our custom filter/search
+                    filterHook: function(item, search, regexp) {
+                        if (search.length) {
+                            // match the item
+                            return regexp.test(String(this.getLabel(item)));
+                        } else {
+                            // empty search, all matches
+                            return true;
+                        }
+                    }
                 });
                 
                 // Make sure that all selections are taken into account when 
                 // the form is submitted
-                //form.find( ".form-submit" ).on( "click", function(e) {
                 form.on( "submit", function(e) {
                     // Retrieve the selected term s
                     var treeApi = tree.aciTree('api');
@@ -50,6 +60,28 @@ if( typeof Sesi.QueryOntologies.TaxonomyTree == 'undefined' )
                     });
 
                     return true;
+                });
+
+                // Initialize filtering the tree
+                var treeApi = tree.aciTree('api');
+                var lastSearch = '';
+
+                $('#edit-filter').keyup(function() {
+                    // Don't search if nothing has changed in the search term
+                    if ($(this).val() == lastSearch) {
+                        return;
+                    }
+                    lastSearch = $(this).val();
+
+                    // Start filtering
+                    treeApi.filter(null, {
+                        search: $(this).val(),
+                        success: function(item, options) {
+                            if (!options.first) {
+                                alert('No results found!');
+                            }
+                        }
+                    });
                 });
             }
         };
