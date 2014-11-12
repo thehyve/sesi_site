@@ -858,6 +858,41 @@ function sesi_communities_and_files_field_default_field_instances() {
     ),
   );
 
+  // Exported field_instance: 'og_membership-og_membership_type_default-field_form2_motivation'
+  $field_instances['og_membership-og_membership_type_default-field_form2_motivation'] = array(
+    'bundle' => 'og_membership_type_default',
+    'default_value' => NULL,
+    'deleted' => 0,
+    'description' => 'Please provide your motivation why you want to join this community.',
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => 1,
+      ),
+    ),
+    'display_label' => '',
+    'entity_type' => 'og_membership',
+    'field_name' => 'field_form2_motivation',
+    'label' => 'Motivation',
+    'required' => 1,
+    'settings' => array(
+      'text_processing' => 0,
+      'user_register_form' => FALSE,
+    ),
+    'widget' => array(
+      'active' => 1,
+      'module' => 'text',
+      'settings' => array(
+        'rows' => 5,
+      ),
+      'type' => 'text_textarea',
+      'weight' => 3,
+    ),
+  );
+
   // Translatables
   // Included for use with string extractors like potx.
   t('Body');
@@ -868,6 +903,8 @@ function sesi_communities_and_files_field_default_field_instances() {
   t('Group roles and permissions');
   t('Group visibility');
   t('Groups audience');
+  t('Motivation');
+  t('Please provide your motivation why you want to join this community.');
 
   return $field_instances;
 }

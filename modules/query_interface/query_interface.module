@@ -1,5 +1,6 @@
 <?php
 
+// If set to true, do not change the edit form but use the original mica form.
 define("ORIGINAL_FORM", false);
 
 ctools_include('ajax');

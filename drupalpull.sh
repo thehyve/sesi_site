@@ -41,10 +41,6 @@ drush --yes en fe_block
 drush --yes dl og
 drush --yes en og og_ui og_context og_access og_register
 
-# Enable sesi_communities_and_files feature
-drush pm-enable --yes sesi_communities_and_files
-drush --yes features-revert sesi_communities_and_files
-
 # Install and enable uuid_features module
 drush --yes dl uuid_features
 drush --yes en uuid_features
@@ -69,7 +65,11 @@ drush --yes en twitter
 
 # Backup first
 #drush archive-dump /tmp/micasitebk
- 
+
+#install htmlmail dependency
+drush --yes dl htmlmail mailmime mailsystem
+drush --yes en htmlmail mailmime
+
 # Enable project features.
 drush --yes pm-enable sesi_eid_login
 drush --yes pm-disable beididp_button
@@ -88,6 +88,7 @@ drush --yes pm-enable sesi_vocabulary
 drush --yes features-revert sesi_vocabulary
 
 drush --yes pm-enable query_interface
+drush --yes en query_subscription
 
 drush --yes pm-enable sesi_variable_ontologies
 drush --yes features-revert sesi_variable_ontologies
