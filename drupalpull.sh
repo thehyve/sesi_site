@@ -23,6 +23,9 @@ yes | cp -Rfv "$DRUPAL_ROOT/sites/all/patch/mica_distribution" "$DRUPAL_ROOT/pro
 
 # Check drupal status
 drush status  
+
+# Clear drush cache
+drush cc drush
  
 # Disable these themes to make sure they are never enabled.
 drush --yes pm-disable seven
@@ -40,6 +43,10 @@ drush --yes en fe_block
 
 # Enable Rules
 drush --yes en rules rules_admin
+
+# Install and enable entityreference
+drush --yes dl entityreference
+drush --yes en entityreference
 
 # Activate organic groups
 drush --yes dl og
@@ -64,19 +71,19 @@ drush --yes en easy_social
 # Install and enable oauth
 # This module is required by twitter module
 drush --yes dl oauth
-drush --yes en oauth_common
-drush --yes en oauth_common_providerui
+drush --yes en oauth_common oauth_common_providerui
 
 # Install and enable twitter module
 drush --yes dl twitter
 drush --yes en twitter
 
-# Backup first
-#drush archive-dump /tmp/micasitebk
-
 # Install htmlmail dependency
 drush --yes dl htmlmail mailmime mailsystem
 drush --yes en htmlmail mailmime
+
+# Install and enable og_email
+drush --yes dl og_email
+drush --yes en og_email
 
 # Enable project features.
 drush --yes pm-enable sesi_eid_login
@@ -111,6 +118,9 @@ drush --yes features-revert sesi_autologout
 
 # Enable project theme.
 # drush --yes pm-enable ourprettytheme
+
+# Backup first
+#drush archive-dump /tmp/micasitebk
 
 # Enable Contact Form
 drush --yes pm-enable contact
