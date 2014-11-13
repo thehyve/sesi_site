@@ -23,11 +23,17 @@ echo '               |_|                                                       '
 DRUPAL_ROOT=`drush status | grep 'Drupal root' | sed 's/.*:[ ]*//' | sed 's/ *$//'`
 echo $DRUPAL_ROOT
 
-# ------------------------------- #
-# Enable sesi_communities_and_files feature
-# ------------------------------- #
+# --------------------------------- #
+# Enable sesi_communities_and_files #
+# --------------------------------- #
 drush pm-enable --yes sesi_communities_and_files
 drush --yes features-revert sesi_communities_and_files
+
+# ------------------------------- #
+# Enable sesi_user_profile_fields #
+# ------------------------------- #
+drush pm-enable --yes sesi_user_profile_fields
+drush --yes features-revert sesi_user_profile_fields
 
 # ------------------------------- #
 # Enable Default Community Config #
@@ -60,7 +66,7 @@ drush --yes pm-enable sesi_twitter
 drush --yes features-revert sesi_twitter
 
 # --------------------------------- #
-# Enable feature for Homepage       #
+# Enable feature for Homepage #
 # --------------------------------- #
 drush --yes pm-enable sesi_homepage
 drush --yes features-revert sesi_homepage
