@@ -52,10 +52,6 @@ drush --yes en entityreference
 drush --yes dl og
 drush --yes en og og_ui og_context og_access og_register
 
-# Install and enable og_email
-drush --yes dl og_email
-drush --yes en og_email
-
 # Install and enable uuid_features module
 drush --yes dl uuid_features
 drush --yes en uuid_features
