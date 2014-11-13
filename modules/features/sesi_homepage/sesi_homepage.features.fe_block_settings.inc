@@ -27,7 +27,7 @@ function sesi_homepage_default_fe_block_settings() {
         'region' => 'content',
         'status' => 1,
         'theme' => 'mica_subtheme',
-        'weight' => -41,
+        'weight' => -51,
       ),
     ),
     'title' => '',
@@ -49,11 +49,31 @@ function sesi_homepage_default_fe_block_settings() {
         'region' => 'content',
         'status' => 1,
         'theme' => 'mica_subtheme',
-        'weight' => -40,
+        'weight' => -50,
       ),
     ),
     'title' => '',
     'visibility' => 1,
+  );
+
+  $export['system-main'] = array(
+    'cache' => -1,
+    'custom' => 0,
+    'delta' => 'main',
+    'module' => 'system',
+    'node_types' => array(),
+    'pages' => '',
+    'roles' => array(),
+    'themes' => array(
+      'mica_subtheme' => array(
+        'region' => 'content',
+        'status' => 1,
+        'theme' => 'mica_subtheme',
+        'weight' => -52,
+      ),
+    ),
+    'title' => '',
+    'visibility' => 0,
   );
 
   $export['system-navigation'] = array(
