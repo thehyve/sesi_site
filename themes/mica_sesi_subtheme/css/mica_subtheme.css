@@ -84,7 +84,7 @@ browser window is small */
 .container {width:1024px !important;}
 
 /* To hide OG selection box in the registration page */
-#edit-og-group-ref {display: none;}
+#user-register-form #edit-og-group-ref {display: none;}
 
 /*===========================================================================*/
 /* Styling for homepage                                                      */    
