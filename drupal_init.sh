@@ -77,6 +77,11 @@ drush --yes features-revert sesi_homepage
 drush --yes pm-enable sesi_printer_friendly
 drush --yes features-revert sesi_printer_friendly
 
+# ------------------------------ #
+#             UPDATE             #
+# ------------------------------ #
+drush --yes pm-update drupal
+
 # -------------------------------------------------- #
 # Display list of features to check status manually. #
 # -------------------------------------------------- #
