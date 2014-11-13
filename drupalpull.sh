@@ -31,7 +31,7 @@ drush --yes pm-disable bartik
 # Enable some modules that must be enabled.
 drush --yes pm-enable features
 drush --yes pm-enable strongarm
-drush --yes pm-enable locale
+drush --yes dis locale
 
 # Install and enable Features Extra module
 drush --yes dl features_extra
