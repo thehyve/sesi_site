@@ -40,6 +40,15 @@ function query_interface_form_mica_datasets_query_term_edit_form_alter(&$form, $
 function query_interface_add_query_term_modal_page($js, $node, $query, $variable, $cross_variable = NULL) {
     // Create a term based on the variable
     $values = _query_interface_extract_new_query_term_values($query, $variable);
+    
+    // Mark the term as being added but not yet saved. We will delete 
+    // this term again when it is shown on screen without being saved.
+    // That could happen if the user clicks 'cancel' or closes the screen
+    if( !array_key_exists( "options", $values ) ) 
+        $values[ 'options' ] = array();
+    
+    $values[ "options" ][ "isSavedByUser" ] = false;
+    
     if (MicaDatasetQueryManager::isCached($query)) {
         // Add the term. Unfortunately, even though the documentation says so
         // this method doesn't return the new term ID
@@ -87,4 +96,27 @@ function _query_interface_extract_new_query_term_values( $query, $variable ) {
   $values['variable_id'] = $variable->nid;
   $values['weight'] = 0;
   return $values;    
+}
+
+/**
+ * Delete query terms that have not been saved by the user. That could
+ * happen if the user closes the popup or clicks cancel, without saving the
+ * term.
+ * @param type $query 
+ */
+function query_interface_cleanupTerms( $query ) {
+  // Loop through terms and see which terms are saved by the user. If not
+  // delete these terms
+  $originalTerms = mica_query_term_query($query);
+  foreach( $originalTerms as $term ) {
+      if( $term->options && array_key_exists( "isSavedByUser", $term->options ) && !$term->options[ "isSavedByUser" ] ) {
+          // Delete the query
+          if (is_numeric($term->id)) {
+              // delete term
+              $term->delete();
+          } else {
+              MicaDatasetQueryManager::getCache($query)->deleteTerm($term);
+          }
+      }
+  }    
 }
