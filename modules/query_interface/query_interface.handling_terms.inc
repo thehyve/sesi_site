@@ -14,14 +14,65 @@ function query_interface_form_mica_datasets_query_term_edit_form_alter(&$form, $
     $dataset_node = $form_state[ "build_info" ][ "args" ][0];
     $query = $form_state[ "build_info" ][ "args" ][1];
     $query_term = $form_state[ "build_info" ][ "args" ][2];
+    $origin = $form_state[ "build_info" ][ "args" ][3];
     
     // Update the form action to make sure not to add the (empty) query term again
     $form[ "#action" ] = url( "mica/ajax/node/" . $dataset_node->nid . "/queries/" . $query->id . "/term/" . $query_term->id . "/edit");
     
     // Update the cancel button to point to the edit query screen
-    $form[ "actions" ][ "cancel" ][ "#href" ] = _mica_query_url($dataset_node, $query, "edit");
+    $form[ "actions" ][ "cancel" ][ "#href" ] = _mica_query_url($dataset_node, $query, $origin);
+    
+    $form['actions']['origin'] = array(
+        '#type' => 'hidden',
+        '#name' => 'origin',
+        '#value' => $origin,
+    );
     
     return $form;
+}
+
+/**
+ * Page to display the edit query term form in a modal dialog. 
+ * This is separate from the normal method so we can set the origin 
+ * properly. See SESIDEV-78
+ * @param $js
+ * @param $node
+ * @param $query
+ * @param $term
+ */
+function query_interface_query_term_edit_modal_page($js = NULL, $node, $query, $term, $cross_variable = NULL) {
+  if ($js) {
+    $impl = $term->termImpl();
+    $title = t('Edit !term', array('!term' => $impl->getFieldName()));
+    $origin = "edit";
+    mica_core_modal_form_render($title, 'mica_datasets_query_term_edit_form', $node, $query, $term, $origin, $cross_variable);
+  }
+  else {
+    // fallback to plain page
+    return query_interface_query_term_edit_page($node, $query, $term, $cross_variable);
+  }
+}
+
+/**
+ * Page to display the edit query term form. This is separate from the normal
+ * method so we can set the origin properly. See SESIDEV-78
+ * @param $node
+ * @param $query
+ * @param $term
+ */
+function query_interface_query_term_edit_page($node, $query, $term, $cross_variable = NULL) {
+  $impl = $term->termImpl();
+  drupal_set_title(
+    t('!title -- Edit !term in !query',
+      array(
+        '!title' => $node->title,
+        '!query' => $query->name,
+        '!term' => $impl->getFieldName()
+      )
+    )
+  );
+  $origin = "edit";
+  return drupal_get_form('mica_datasets_query_term_edit_form', $node, $query, $term, $origin, $cross_variable);
 }
 
 /**
@@ -62,7 +113,7 @@ function query_interface_add_query_term_modal_page($js, $node, $query, $variable
     $term = mica_query_term_load( $termId );
     
     // Call the original method
-    $form = mica_datasets_query_term_edit_modal_page($js, $node, $query, $term, $cross_variable);
+    $form = query_interface_query_term_edit_modal_page($js, $node, $query, $term, $cross_variable);
     return $form;
 }
 
@@ -105,6 +156,10 @@ function _query_interface_extract_new_query_term_values( $query, $variable ) {
  * @param type $query 
  */
 function query_interface_cleanupTerms( $query ) {
+    if( !$query ) {
+        return;
+    }
+    
   // Loop through terms and see which terms are saved by the user. If not
   // delete these terms
   $originalTerms = mica_query_term_query($query);

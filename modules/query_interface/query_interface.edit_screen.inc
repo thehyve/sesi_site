@@ -131,7 +131,7 @@ function query_interface_form_mica_query_edit_form_alter(&$form, $form_state, $f
                     $buttons = array(
                         "edit" => array(
                             "#markup" => ctools_modal_text_button(
-                                    t('Edit'), 'mica/nojs/node/' . $dataset->nid . '/queries/' . $query->id . '/term/' . $termId . '/edit', t('Edit constraint'), 'btn ctools-modal-node-style highlight'
+                                    t('Edit'), 'sesi/nojs/node/' . $dataset->nid . '/queries/' . $query->id . '/term/' . $termId . '/edit', t('Edit constraint'), 'btn ctools-modal-node-style highlight'
                             ),
                         ),
                         "delete" => array(
