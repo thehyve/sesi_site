@@ -105,6 +105,10 @@ function _query_interface_extract_new_query_term_values( $query, $variable ) {
  * @param type $query 
  */
 function query_interface_cleanupTerms( $query ) {
+    if( !$query ) {
+        return;
+    }
+    
   // Loop through terms and see which terms are saved by the user. If not
   // delete these terms
   $originalTerms = mica_query_term_query($query);
