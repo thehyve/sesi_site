@@ -3,7 +3,7 @@
 require_once('mica_query.entity.inc');
 require_once('mica_query.pages.inc');
 require_once(drupal_get_path('module', 'mica_datasets') . '/mica_datasets.utils.inc');
- 
+
 /**
  * @file
  * Mica Datasets query term pages.
@@ -20,7 +20,7 @@ function mica_datasets_query_term_edit_modal_page($js = NULL, $node, $query, $te
   if ($js) {
     $impl = $term->termImpl();
     $title = t('Edit !term', array('!term' => $impl->getFieldName()));
-    mica_core_modal_form_render($title, 'mica_datasets_query_term_edit_form', $node, $query, $term, $cross_variable);
+    mica_core_modal_form_render($title, 'mica_datasets_query_term_edit_form', $node, $query, $term, "", $cross_variable);
   }
   else {
     // fallback to plain page
@@ -44,8 +44,8 @@ function mica_datasets_query_term_edit_page($node, $query, $term, $cross_variabl
         '!term' => $impl->getFieldName()
       )
     )
-  );
-  return drupal_get_form('mica_datasets_query_term_edit_form', $node, $query, $term, $cross_variable);
+  ); 
+  return drupal_get_form('mica_datasets_query_term_edit_form', $node, $query, $term, "", $cross_variable);
 }
 
 function mica_datasets_query_term_edit_form($form, &$form_state) {
@@ -53,7 +53,7 @@ function mica_datasets_query_term_edit_form($form, &$form_state) {
   $dataset_node = $form_state['build_info']['args'][0];
   $query = $form_state['build_info']['args'][1];
   $term = $form_state['build_info']['args'][2];
-//  $cross_variable = $form_state['build_info']['args'][3];
+  $origin = $form_state['build_info']['args'][3]; 
 
   $impl = $term->termImpl();
   $term_form = $impl->form($form, $form_state);
@@ -67,7 +67,7 @@ function mica_datasets_query_term_edit_form($form, &$form_state) {
   $form['actions']['cancel'] = array(
     '#type' => 'link',
     '#title' => t('Cancel'),
-    '#href' => _mica_query_url($dataset_node, $query),
+    '#href' => _mica_query_url($dataset_node, $query, $origin),
   );
 
   return $form;
@@ -83,7 +83,7 @@ function mica_datasets_query_term_edit_form_submit($form, &$form_state) {
   $dataset_node = $form_state['build_info']['args'][0];
   $query = $form_state['build_info']['args'][1];
   $term = $form_state['build_info']['args'][2];
-  $cross_variable = $form_state['build_info']['args'][3];
+  $cross_variable = $form_state['build_info']['args'][4];
 
   $impl = $term->termImpl();
   $impl->submit($form, $form_state);
@@ -109,7 +109,10 @@ function mica_datasets_query_term_edit_form_submit($form, &$form_state) {
         $form_state['cancel'] = TRUE;
         break;
     }
-    $form_state['redirect'] = _mica_query_url($dataset_node, $query, "edit");
+    
+    $origin = $form_state['values']['origin'];
+    $form_state['redirect'] = _mica_query_url($dataset_node, $query, $origin);
+    
     if (!empty($cross_variable)) {
       $form_state['redirect'] .= '/' . $cross_variable;
     }
