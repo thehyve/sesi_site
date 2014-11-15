@@ -123,6 +123,7 @@ function mica_query_edit_page($dataset_node, $query) {
     )
   ));
   
+  // Clean up temporary query terms, not saved by the user
   query_interface_cleanupTerms($query);
  
   return drupal_get_form('mica_query_edit_form', $dataset_node, $query);
@@ -673,6 +674,7 @@ function mica_query_delete_form_submit($form, &$form_state) {
 
 function mica_query_run_page($form, &$form_state, $dataset_node, $query, $cross_variable_nid = NULL) {
 
+  // Clean up temporary query terms, not saved by the user
   query_interface_cleanupTerms($query);
 
   drupal_set_title(t('!title -- !query', array('!title' => $dataset_node->title, '!query' => $query->name)));
