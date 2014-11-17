@@ -23,9 +23,9 @@ echo '               |_|                                                       '
 DRUPAL_ROOT=`drush status | grep 'Drupal root' | sed 's/.*:[ ]*//' | sed 's/ *$//'`
 echo $DRUPAL_ROOT
 
-# --------------------------------- #
-# Enable sesi_communities_and_files #
-# --------------------------------- #
+# ------------------------------- #
+# Enable sesi_communities_and_files feature
+# ------------------------------- #
 drush pm-enable --yes sesi_communities_and_files
 drush --yes features-revert sesi_communities_and_files
 
@@ -66,7 +66,7 @@ drush --yes pm-enable sesi_twitter
 drush --yes features-revert sesi_twitter
 
 # --------------------------------- #
-# Enable feature for Homepage #
+# Enable feature for Homepage       #
 # --------------------------------- #
 drush --yes pm-enable sesi_homepage
 drush --yes features-revert sesi_homepage
@@ -78,9 +78,10 @@ drush --yes pm-enable sesi_printer_friendly
 drush --yes features-revert sesi_printer_friendly
 
 # ------------------------------ #
-#             UPDATE             #
+# Enable Expiration Date         #
 # ------------------------------ #
-drush --yes pm-update drupal
+drush --yes pm-enable sesi_expiration_date
+drush --yes features-revert sesi_expiration_date
 
 # -------------------------------------------------- #
 # Display list of features to check status manually. #

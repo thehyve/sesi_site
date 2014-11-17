@@ -41,6 +41,9 @@ drush --yes en fe_block
 # Enable Rules
 drush --yes en rules rules_admin
 
+# Enable Date Popup
+drush --yes en date_popup
+
 # Activate organic groups
 drush --yes dl og
 drush --yes en og og_ui og_context og_access og_register
