@@ -65,11 +65,10 @@ function mica_datasets_query_term_edit_form($form, &$form_state) {
   );
 
   $form['actions']['cancel'] = array(
-    '#type' => 'link',
-    '#title' => t('Cancel'),
-    '#href' => _mica_query_url($dataset_node, $query, $origin),
+    '#type' => 'submit',
+    '#value' => t('Cancel'),
   );
-
+  
   return $form;
 }
 
