@@ -163,6 +163,10 @@ function query_interface_cleanupTerms( $query ) {
   // Loop through terms and see which terms are saved by the user. If not
   // delete these terms
   $originalTerms = mica_query_term_query($query);
+  
+  if( !$originalTerms )
+      return;
+  
   foreach( $originalTerms as $term ) {
       if( $term->options && array_key_exists( "isSavedByUser", $term->options ) && !$term->options[ "isSavedByUser" ] ) {
           // Delete the query
