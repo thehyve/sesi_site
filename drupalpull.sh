@@ -34,7 +34,7 @@ drush --yes pm-disable bartik
 # Enable some modules that must be enabled.
 drush --yes pm-enable features
 drush --yes pm-enable strongarm
-drush --yes dis locale
+drush --yes pm-enable locale
 
 
 # Install and enable Features Extra module
@@ -83,6 +83,22 @@ drush --yes en htmlmail mailmime
 # Install and enable og_email
 drush --yes dl og_email
 drush --yes en og_email
+
+# Install and enable webform
+drush --yes dl webform
+drush --yes en webform
+
+# Install and enable webform_rules
+drush --yes dl webform_rules
+drush --yes en webform_rules
+
+# Install and enable og_webform
+drush --yes dl og_webform
+drush --yes en og_webform
+
+# Install and enable pet
+drush --yes dl pet
+drush --yes en pet
 
 # Enable project features.
 drush --yes pm-enable sesi_eid_login
