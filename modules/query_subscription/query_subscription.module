@@ -144,6 +144,13 @@ function query_subscription_form_mica_query_edit_form_alter(&$form, &$form_state
 
   $form['#submit'][] = 'query_subscription_save_submit_handler';
 
+  // Add submit handler to all delete buttons
+  if( array_key_exists( "remove-term", $form ) ) {
+      foreach( $form[ "remove-term" ] as $idx => $buttons ) {
+          $form[ "remove-term" ][ $idx ][ "delete" ][ "#submit" ][] = 'query_subscription_save_submit_handler';
+      }
+  }
+  
   // Only needed if the query_interface form changes are disabled, as that removes the 'run' button.
   // Disable 'run' option without save if notification is selected
   if(isset($form['actions']['run'])) {
@@ -161,7 +168,7 @@ function query_subscription_validate_percentage($field) {
 }
 
 function query_subscription_save_submit_handler($form, &$form_state) {
-  if($form_state['clicked_button']['#id'] != 'edit-save') return;
+  if( in_array( $form_state['clicked_button']['#id'], array( 'edit-run' ) ) ) return;
 
   if(isset($form_state['build_info']['args'][1])) {
     $query = $form_state['build_info']['args'][1];
