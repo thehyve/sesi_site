@@ -45,7 +45,7 @@ function query_interface_query_term_edit_modal_page($js = NULL, $node, $query, $
     $impl = $term->termImpl();
     $title = t('Edit !term', array('!term' => $impl->getFieldName()));
     $origin = "edit";
-    mica_core_modal_form_render($title, 'mica_datasets_query_term_edit_form', $node, $query, $term, $origin, $cross_variable);
+    query_interface_modal_form_term_render($title, 'mica_datasets_query_term_edit_form', $node, $query, $term, $origin, $cross_variable);
   }
   else {
     // fallback to plain page
@@ -133,6 +133,10 @@ function query_interface_delete_query_term( &$form, $form_state ) {
     // Determine term ID
     $termId = $form_state[ "triggering_element" ][ "#termid" ];
     mica_query_term_delete($termId);
+    
+    // Make sure the form parameters are saved as well (SESIDEV-91)
+    $query = $form_state['build_info']['args'][1];
+    query_interface_store_query_parameters( $query, $form_state );
 }
 
 /**
@@ -178,4 +182,82 @@ function query_interface_cleanupTerms( $query ) {
           }
       }
   }    
+}
+
+/**
+ * Renders the form identified by $form_id in a modal dialog, with provided title. 
+ * Additional arguments are added to the $form_state.
+ * 
+ * This implementation differs from the original mica_core_modal_form_render 
+ * method in that it submits a parent form if form_state[ 'submit_parent_form' ]
+ * is given. The value of that variable is used as a selector for the form to submit
+ * 
+ * @see mica_core_modal_form_render
+ * @param $title
+ * @param $form_id
+ */
+function query_interface_modal_form_term_render($title, $form_id) {
+  ctools_include('ajax');
+  ctools_include('modal');
+  ctools_add_js('ajax-responder');
+
+  $args = func_get_args();
+  // Remove $title and $form_id from the arguments.
+  array_shift($args);
+  array_shift($args);
+  $form_state = array(
+    'ajax' => TRUE,
+    'title' => $title,
+  );
+  $form_state['build_info']['args'] = $args;
+
+  $commands = ctools_modal_form_wrapper($form_id, $form_state);
+
+  // If cancelling or complete, return to the activity.
+  if (!empty($form_state['complete'])) {
+    $commands = array();
+    $commands[] = ctools_modal_command_dismiss();
+    
+    if (!empty($form_state['submit_parent_form'])) {
+      $commands[] = ctools_ajax_command_submit($form_state['submit_parent_form']);
+    }
+    elseif (!empty($form_state['redirect'])) {
+      $commands[] = ctools_ajax_command_redirect($form_state['redirect']);
+    }
+  }
+  elseif (!empty($form_state['cancel'])) {
+    $commands = array();
+    $commands[] = ctools_modal_command_dismiss();
+  }
+
+  print ajax_render($commands);
+}
+
+/**
+ * Store query parameters (name, description) from the form state
+ * 
+ * Can be used when e.g. adding or deleting a term
+ * @param type $query
+ * @param type $form_state 
+ */
+function query_interface_store_query_parameters( $query, $form_state ) {
+      $query->name = check_plain($form_state['values']['name']);
+      $query->description = $form_state['values']['description'];
+      
+      if( !array_key_exists( 'cross-variable', $form_state[ 'values' ] ) || $form_state['values']['cross-variable'] == '-1' ) {
+        $query->cross_variable_id = NULL;
+      } else {
+          $query->cross_variable_id = $form_state['values']['cross-variable'];
+      }
+
+      if (MicaDatasetQueryManager::isCached($query)) {
+        // then save all and remove from cache
+        MicaDatasetQueryManager::save($query);
+      }
+      else {
+        // save query
+        $query->save();
+      }
+          
+    
 }

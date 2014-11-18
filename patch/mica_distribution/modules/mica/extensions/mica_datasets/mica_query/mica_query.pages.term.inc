@@ -20,7 +20,7 @@ function mica_datasets_query_term_edit_modal_page($js = NULL, $node, $query, $te
   if ($js) {
     $impl = $term->termImpl();
     $title = t('Edit !term', array('!term' => $impl->getFieldName()));
-    mica_core_modal_form_render($title, 'mica_datasets_query_term_edit_form', $node, $query, $term, "", $cross_variable);
+    query_interface_modal_form_term_render($title, 'mica_datasets_query_term_edit_form', $node, $query, $term, "", $cross_variable);
   }
   else {
     // fallback to plain page
@@ -68,7 +68,7 @@ function mica_datasets_query_term_edit_form($form, &$form_state) {
     '#type' => 'submit',
     '#value' => t('Cancel'),
   );
-  
+
   return $form;
 }
 
@@ -110,11 +110,7 @@ function mica_datasets_query_term_edit_form_submit($form, &$form_state) {
     }
     
     $origin = $form_state['input']['origin'];
-    $form_state['redirect'] = _mica_query_url($dataset_node, $query, $origin);
-    
-    if (!empty($cross_variable)) {
-      $form_state['redirect'] .= '/' . $cross_variable;
-    }
+    $form_state['submit_parent_form'] = "#mica-query-edit-form";
   }
 }
 
