@@ -23,9 +23,15 @@ echo '               |_|                                                       '
 DRUPAL_ROOT=`drush status | grep 'Drupal root' | sed 's/.*:[ ]*//' | sed 's/ *$//'`
 echo $DRUPAL_ROOT
 
-# ------------------------------- #
-# Enable sesi_communities_and_files feature
-# ------------------------------- #
+# -------------------- #
+# Update jQuery Update #
+# -------------------- #
+drush en update 
+drush up jquery_update
+
+# --------------------------------- #
+# Enable sesi_communities_and_files #
+# --------------------------------- #
 drush pm-enable --yes sesi_communities_and_files
 drush --yes features-revert sesi_communities_and_files
 
