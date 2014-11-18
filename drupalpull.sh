@@ -48,6 +48,9 @@ drush --yes en rules rules_admin
 drush --yes dl entityreference
 drush --yes en entityreference
 
+# Enable Date Popup
+drush --yes en date_popup
+
 # Activate organic groups
 drush --yes dl og
 drush --yes en og og_ui og_context og_access og_register
