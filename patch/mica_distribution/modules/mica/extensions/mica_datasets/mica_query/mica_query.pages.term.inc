@@ -110,7 +110,7 @@ function mica_datasets_query_term_edit_form_submit($form, &$form_state) {
         break;
     }
     
-    $origin = $form_state['values']['origin'];
+    $origin = $form_state['input']['origin'];
     $form_state['redirect'] = _mica_query_url($dataset_node, $query, $origin);
     
     if (!empty($cross_variable)) {
