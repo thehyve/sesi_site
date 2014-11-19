@@ -17,12 +17,19 @@ echo '| |) | ,_| || | ,_ \) _` | |   | || , \)) |  _|                          '
 echo '|___/|_|  \_,_| .__/\__,_|_|  |___|_||_||_|\__|                          '
 echo '               |_|                                                       '
 
+echo '---------------------------------------------------------- mmOvOmm -------'
+echo ' Remember this file is for adding features related to content '
+echo ' (we should not touch content more than once to avoid overwriting changes '
+echo ' made by administrator)'
+echo '--------------------------------------------------------------------------'
+
 # --------------- #
 # Get drupal root #
 # --------------- #
 DRUPAL_ROOT=`drush status | grep 'Drupal root' | sed 's/.*:[ ]*//' | sed 's/ *$//'`
 echo $DRUPAL_ROOT
 
+<<<<<<< HEAD
 # -------------------- #
 # Update jQuery Update #
 # -------------------- #
@@ -47,47 +54,19 @@ drush --yes features-revert sesi_user_profile_fields
 drush --yes pm-enable sesi_default_community
 drush --yes features-revert sesi_default_community
 
+=======
+>>>>>>> master
 # ------------------------ #
 # Enable Menu Links Config #
 # ------------------------ #
 drush --yes pm-enable sesi_menu_links
 drush --yes features-revert sesi_menu_links
 
-# --------------- #
-# Enable Site Map #
-# --------------- #
-drush --yes pm-enable sesi_site_map
-drush --yes features-revert sesi_site_map
-
-# ------------------ #
-# Enable Easy Social #
-# ------------------ #
-drush --yes pm-enable sesi_easy_social
-drush --yes features-revert sesi_easy_social
-
-# -------------- #
-# Enable Twitter #
-# -------------- #
-drush --yes pm-enable sesi_twitter
-drush --yes features-revert sesi_twitter
-
 # --------------------------------- #
 # Enable feature for Homepage       #
 # --------------------------------- #
 drush --yes pm-enable sesi_homepage
 drush --yes features-revert sesi_homepage
-
-# ------------------------------ #
-# Enable Printer Friendly Config #
-# ------------------------------ #
-drush --yes pm-enable sesi_printer_friendly
-drush --yes features-revert sesi_printer_friendly
-
-# ------------------------------ #
-# Enable Expiration Date         #
-# ------------------------------ #
-drush --yes pm-enable sesi_expiration_date
-drush --yes features-revert sesi_expiration_date
 
 # -------------------------------------------------- #
 # Display list of features to check status manually. #
