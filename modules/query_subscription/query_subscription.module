@@ -129,6 +129,15 @@ function query_subscription_entity_delete($entity, $type) {
   }
 }
 
+// implements hook_node_delete
+// this isn't done yet in mica_query (unfortunately)
+function query_subscription_node_delete($node) {
+  if($node->type !== 'dataset') return;
+
+  $ids = db_query("SELECT id FROM {mica_query} WHERE dataset_id = :dsid", array(':dsid' => $node->nid))->fetchCol();
+  entity_delete_multiple('mica_query', $ids);
+ }
+
 // Implements hook_form_FORM_ID_alter
 function query_subscription_form_mica_query_edit_form_alter(&$form, &$form_state, $form_id) {
   $subscription = NULL;
