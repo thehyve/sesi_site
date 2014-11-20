@@ -1,0 +1,17 @@
+name = Sesi Dataset Access Form
+description = Setting and configuration for dataset access request form.
+core = 7.x
+package = Sesi
+version = 7.x-1.0
+project = sesi_dataset_access_form
+dependencies[] = dataset_access_form
+dependencies[] = pet
+features[features_api][] = api:2
+features[pet][] = data_request_access_email_
+features[rules_config][] = og_email_rules_send_dataset_request_email
+features[user_permission][] = administer previewable email templates
+features[user_permission][] = use previewable email templates
+features_exclude[dependencies][entity] = entity
+features_exclude[dependencies][features] = features
+features_exclude[dependencies][og] = og
+features_exclude[dependencies][rules] = rules
