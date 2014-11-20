@@ -27,7 +27,7 @@ function query_vocabularies_menu() {
  * when the user searches in the autocomplete box
  */
 function query_vocabularies_suggest_terms( $variable_node, $term ) {
-    $vocabulary = _query_vocabularies_parse_vocabulary( $variable_node );
+    $vocabulary = _query_vocabularies_get_vocabulary( $variable_node );
     $lcTerm = strtolower( $term );
     
     $filteredVocabulary = array();
@@ -47,11 +47,38 @@ function query_vocabularies_suggest_terms( $variable_node, $term ) {
     return $filteredVocabulary;
 }
 
-
-function _query_vocabularies_parse_vocabulary( $variable_node ) {
+/**
+ * Retrieves the vocabulary for a given variable node.
+ * 
+ * This method first checks the cache, if the data is locally available.
+ * If not, the data is fetched from the URL
+ * 
+ * @param type $variable_node 
+ */
+function _query_vocabularies_get_vocabulary( $variable_node ) {
     $wrapper = entity_metadata_wrapper( 'node', $variable_node );
     $url = $wrapper->field_vocabulary_url->value();
+
+    // Store the data based on the URL, as the data will change if the URL changes
+    $cache_key = "variable-vocabulary-" . $url;
     
+    // First check cache if it exists
+    if( $cacheHit = cache_get( $cache_key ) ) {
+        return $cacheHit->data;
+    }
+    
+    // If not, retrieve the data from the URL
+    $vocabulary = _query_vocabularies_parse_vocabulary( $url );
+    
+    // Only store the data in cache if some results are found. This prevents
+    // storing something in cache while the remote server was down.
+    if( count( $vocabulary ) > 0  )
+        cache_set( $cache_key, $vocabulary );  
+    
+    return $vocabulary;
+}
+
+function _query_vocabularies_parse_vocabulary( $url ) {
     // Without URL, don't do anything
     if( !$url ) {
         return array();
