@@ -1,0 +1,8 @@
+name = Add to Group
+description = Adds a new user to an organic group called "GLOBAL"
+core = 7.x
+version = "7.x-beta"
+core = "7.x"
+package = Sesi
+project = sesi_addtogroup
+dependencies[] = og

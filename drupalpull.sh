@@ -101,6 +101,9 @@ drush --yes en query_subscription
 drush --yes pm-enable sesi_variable_ontologies
 drush --yes features-revert sesi_variable_ontologies
 
+drush --yes pm-enable sesi_addtogroup
+drush --yes features-revert sesi_addtogroup
+
 # Download Autologout module dependencies and enable it
 drush --yes dl autologout
 drush --yes en autologout
