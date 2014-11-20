@@ -10,12 +10,12 @@ function query_vocabularies_menu() {
     
     // This URL is used to retrieve a set of suggestions in the 
     // autocomplete when searching a variable with vocabulary
-    $items['sesi/variable/%node/suggest'] = array(
+    $items['sesi/variable/%node/suggest/%'] = array(
         'title' => 'Suggest',
         'access callback' => '_mica_datasets_node_access',
         'access arguments' => array(2, 'variable', 'view'),
         'page callback' => 'query_vocabularies_suggest_terms', 
-        'page arguments' => array(2),
+        'page arguments' => array(2, 4),
         'delivery callback' => 'drupal_json_output',
     );
     
@@ -26,6 +26,62 @@ function query_vocabularies_menu() {
  * Returns a set of suggestions for a specific variable
  * when the user searches in the autocomplete box
  */
-function query_vocabularies_suggest_terms( $variable_node ) {
-    return $variable_node;
+function query_vocabularies_suggest_terms( $variable_node, $term ) {
+    $vocabulary = _query_vocabularies_parse_vocabulary( $variable_node );
+    $lcTerm = strtolower( $term );
+    
+    $filteredVocabulary = array();
+    $numTerms = 0;
+    $maxTerms = 30;
+    
+    foreach( $vocabulary as $code => $description ) {
+        if( strpos( strtolower( $description ), $lcTerm ) !== false ) {
+            $filteredVocabulary[ $code ] = $description;
+            $numTerms++;
+        }
+        
+        if( $numTerms >= $maxTerms )
+            break;
+    }
+    
+    return $filteredVocabulary;
+}
+
+
+function _query_vocabularies_parse_vocabulary( $variable_node ) {
+    $wrapper = entity_metadata_wrapper( 'node', $variable_node );
+    $url = $wrapper->field_vocabulary_url->value();
+    
+    // Without URL, don't do anything
+    if( !$url ) {
+        return array();
+    }
+    
+    // Retrieve contents
+    $response = drupal_http_request( $url );
+    
+    // On invalid response, return nothing, but only log
+    if( !$response || $response->code != 200 ) {
+        watchdog('query_vocabularies', 'Unable to retrieve vocabulary for variable ' . $wrapper->label() . ' on URL ' . $url . ': Code ' . $response->code , array(), WATCHDOG_WARNING);
+        return array();
+    }
+    
+    // Split response in lines
+    $lines = preg_split('/[\n\r]+/',  $response->data );
+    
+    // Disregard the header line
+    array_shift( $lines );
+    
+    // Convert the other lines into an associative array
+    $vocabulary = array();
+    foreach( $lines as $line ) {
+        if( !$line || trim( $line ) == "" )
+            continue;
+        
+        $cells = str_getcsv( $line, "," );
+        
+        $vocabulary[ $cells[0] ] = $cells[1];
+    }
+    
+    return $vocabulary;
 }

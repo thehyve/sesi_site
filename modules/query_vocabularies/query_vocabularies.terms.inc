@@ -98,18 +98,19 @@ class VocabularyTerm extends AbstractTerm {
 
     $form['valuecontainer']['fieldset'] = array(
       '#type' => 'fieldset',
-      '#title' => 'Values',
+      '#title' => 'Values with autocomplete',
     );
 
     // For now we only support a single selected code in the frontend
+    // But we want to support an autocomplete. For that, we need the variable id
+    $variableId = $form_state[ "build_info" ][ "args" ][ 2 ]->variable_id;
+    
     $default_value = implode(" ", $this->getSelectedCodes());
     $form['valuecontainer']['fieldset']['value'] = array(
       '#type' => 'textfield',
       '#default_value' => $default_value,
+      '#autocomplete_path' => 'sesi/variable/' . $variableId . '/suggest'
     );
-    
-    // Add custom interface scripts. 
-    drupal_add_js(drupal_get_path('module', 'query_ontologies') . '/query_vocabularies.autocomplete.js');
     
     return $form;
   }
