@@ -1,0 +1,90 @@
+<?php
+
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ */
+function dataset_access_form_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+    global $user;
+    
+    if ($user->name === 'member') {
+        dpm('hello');
+    }
+}
+
+/**
+ * adds a button to dataset edit form to permit creating new version from there
+ */
+
+function dataset_access_form_form_alter(&$form, $form_state, $form_id) {
+    
+    if($form_id != 'data_access_request_form' ) {
+        return;
+    }
+
+    //if it's not editing
+    $node = $form_state['node'];
+    if (!isset($node->nid) || isset($node->is_new)) {
+        return;
+    }
+
+    //insert button after version text box: edit-field-dataset-version
+    $newbutton = array(
+        '#type'   => 'submit',
+        '#value'  => 'Create a new version',
+        '#weight' => $form['field_dataset_version']['#weight'],
+        '#submit' => array('dataset_access_form_custom_form_submit')
+    );
+    
+    $pos = array_search('field_dataset_version', array_keys($form)) +1;
+    $form = array_merge(array_slice($form, 0, $pos), array('new_version_button' => $newbutton), array_slice($form, $pos));
+
+ }
+ 
+
+/**
+ * create new version button onclick action
+ */
+function dataset_access_form_form_submit($form, &$form_state) {
+    global $user;
+    
+    $type = is_string($node) ? $node : $node->type;
+    // check if node type is data_access_request_form
+    if ($type  === "data_access_request_form") {
+        dpm ("node type issssss " . $type);
+        
+        // get form's important variables
+        // - query
+        // - dataset
+        // - user
+        // - motivation
+        
+        // get to which groups this dataset belongs to
+        // get to which groups this user belong to
+        // intersect groups
+        
+        // loop through groups to get list of admins and get their emails
+        
+        // invoke rule for send data request access email 
+    }
+    
+    // ORIGINAL // 
+    
+    // Decompose the selected menu parent option into 'menu_name' and 'plid', if
+    // the form used the default parent selection widget.
+    if (!empty($form_state['values']['menu']['parent'])) {
+      list($node->menu['menu_name'], $node->menu['plid']) = explode(':', $form_state['values']['menu']['parent']);
+    }
+}
+
+/**
+ * This hook is called before saving a new dataset, and is used to add
+ * the version number to the title. See SESI-220 for specifications
+ * @param type $node
+ * @return void 
+ */
+function dataset_access_form_node_presave($node) {
+    if( $node->type == 'dataset' ) {
+
+    }
+}
