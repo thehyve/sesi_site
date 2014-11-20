@@ -88,7 +88,7 @@ if isdisabled captcha; then
     drush --yes dl captcha
     drush --yes en captcha image_captcha
 fi
-ensure_feat sesi_captcha
+# ensure_feat sesi_captcha
 
 # Install easy_social module
 ensure_mod easy_social
@@ -114,18 +114,6 @@ fi
 # Install and enable og_email
 drush --yes dl og_email
 drush --yes en og_email
-
-# Install and enable webform
-drush --yes dl webform
-drush --yes en webform
-
-# Install and enable webform_rules
-drush --yes dl webform_rules
-drush --yes en webform_rules
-
-# Install and enable og_webform
-drush --yes dl og_webform
-drush --yes en og_webform
 
 # Install and enable pet
 drush --yes dl pet
