@@ -5,9 +5,8 @@ module_load_include('inc', 'query_subscription', 'query_subscription.entity');
 
 // implements hook_entity_info
 function query_subscription_entity_info() {
-  $info = array();
-  $info['query_subscription'] = array(
-    'label' => t('Query notification state'),
+  return array('query_subscription' => array(
+    'label' => t('Query subscription'),
     'metadata controller class' => false,
     'entity class' => 'QuerySubscription',
     'controller class' => 'EntityAPIController',
@@ -17,10 +16,40 @@ function query_subscription_entity_info() {
       'id' => 'id',
       'name' => 'id',
     ),
-  );
-  return $info;
+  ));
 }
 
+// implements hook_entity_property_info
+function query_subscription_entity_property_info() {
+  return array('query_subscription' => array('properties' => array(
+    'id' => array(
+      'label' => t('ID'),
+      'type' => 'integer',
+      'description' => t('Query Subscription identifier'),
+      'schema field' => 'id',
+    ),
+    'query' => array(
+      'type' => 'mica_query',
+      'label' => t("Query"),
+      'description' => t("Query"),
+      'schema field' => 'query_id',
+    ),
+    'interval' => array(
+      'type' => 'integer',
+      'label' => t("Poll Interval"),
+      'description' => t("Defines how often change notifications are sent"),
+      'schema field' => 'poll_interval',
+    ),
+    'threshold' => array(
+      'type' => 'decimal',
+      'label' => t("Change threshold"),
+      'description' => t("Send a notification if results have changed with at least this fraction"),
+      'schema field' => 'threshold',
+    ),
+  )));
+}
+
+// implements hook_entity_info_alter
 function query_subscription_entity_info_alter(&$info) {
   // Fix broken query url
   $info['mica_query']['uri callback'] = 'query_subscription_query_url';
@@ -31,6 +60,29 @@ function query_subscription_query_url($query) {
   return array('path' => "node/{$query->dataset_id}/queries/{$query->id}",
     'options' => array());
 }
+
+// implements hook_entity_property_info_alter
+function query_subscription_entity_property_info_alter(&$info) {
+  # The mica_query module does not define its properties as usable for Views, so edit them a bit.
+  $properties = &$info['mica_query']['properties'];
+  $properties['id']['schema field'] = 'id';
+  $properties['name']['schema field'] = 'name';
+  $properties['description']['schema field'] = 'description';
+  $properties['published']['schema field'] = 'published';
+  $properties['dataset'] = array(
+    'type' => 'node',
+    'label' => t('Dataset'),
+    'description' => t("The Dataset to which this query belongs"),
+    'schema field' => 'dataset_id',
+  );
+  $properties['user'] = array(
+    'type' => 'user',
+    'label' => t("User"),
+    'description' => t("The user who created this query"),
+    'schema field' => 'user_id',
+  );
+}
+
 
 // implements hook_cron
 function query_subscription_cron() {
