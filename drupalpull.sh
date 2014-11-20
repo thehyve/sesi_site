@@ -21,103 +21,127 @@ fi
 # PATCH ORIGINAL MICA CODE
 yes | cp -Rfv "$DRUPAL_ROOT/sites/all/patch/mica_distribution" "$DRUPAL_ROOT/profiles/"
 
-# Check drupal status
-drush status  
- 
-# Disable these themes to make sure they are never enabled.
-drush --yes pm-disable seven
-drush --yes pm-disable bartik
- 
+# ----------------------------- activate common functions
+drush pm-list --pipe --type=module --status=enabled > /tmp/enabledmods
+drush pm-list --pipe --type=module --no-core > /tmp/allmods
+function isenabled() { grep -Fxq "$1" /tmp/enabledmods  ;}
+function isdisabled() { ! grep -Fxq "$1" /tmp/enabledmods  ;}
+
+function ensure_mod() {
+    echo "ensure_mod $1";
+    if isdisabled $1; then
+        if grep -Fxqv "$1" /tmp/allmods; then
+            drush --yes dl $1 ;
+        fi
+        drush --yes en $1 ; 
+    fi
+}
+
+function ensure_feat() {
+    echo "ensure_feat $1";
+    if isdisabled $1; then
+        drush --yes pm-enable $1 ; 
+        drush --yes features-revert $1 ;
+    fi
+}
+# ---------------------------------------------------------
+
+# DISABLE these themes and modules to make sure they are never enabled.
+isenabled seven && drush --yes pm-disable seven
+isenabled bartik && drush --yes pm-disable bartik
+isenabled locale && drush --yes dis locale
+
 # Enable some modules that must be enabled.
-drush --yes pm-enable features
-drush --yes pm-enable strongarm
-drush --yes pm-enable locale
+isdisabled features && drush --yes pm-enable features
+isdisabled strongarm && drush --yes pm-enable strongarm
 
 # Install and enable Features Extra module
-drush --yes dl features_extra
-drush --yes en fe_block
+if isdisabled fe_block; then
+    drush --yes dl features_extra
+    drush --yes en fe_block
+fi
+
+# Enable Rules
+isdisabled rules_admin && drush --yes en rules rules_admin
+
+# Enable Date Popup
+isdisabled date_popup && drush --yes en date_popup
 
 # Activate organic groups
-drush --yes dl og
-drush --yes en og og_ui og_context og_access og_register
+if isdisabled og; then
+    drush --yes dl og
+    drush --yes en og og_ui og_context og_access og_register
+fi
 
-# Enable sesi_communities_and_files feature
-drush pm-enable --yes sesi_communities_and_files
-drush --yes features-revert sesi_communities_and_files
+# Install and enable og_email
+ensure_mod og_email
 
 # Install and enable uuid_features module
-drush --yes dl uuid_features
-drush --yes en uuid_features
+ensure_mod uuid_features
 
 # Install captcha
-drush --yes dl captcha
-drush --yes en captcha image_captcha
+if isdisabled captcha; then
+    drush --yes dl captcha
+    drush --yes en captcha image_captcha
+fi
+ensure_feat sesi_captcha
 
 # Install easy_social module
-drush --yes dl easy_social
-drush --yes en easy_social
+ensure_mod easy_social
 
 # Install and enable oauth
 # This module is required by twitter module
-drush --yes dl oauth
-drush --yes en oauth_common
-drush --yes en oauth_common_providerui
+if isdisabled oauth_common; then
+    drush --yes dl oauth
+    drush --yes en oauth_common
+    drush --yes en oauth_common_providerui
+fi
 
 # Install and enable twitter module
-drush --yes dl twitter
-drush --yes en twitter
+ensure_mod twitter
 
-# Backup first
-#drush archive-dump /tmp/micasitebk
-
-#install htmlmail dependency
-drush --yes dl htmlmail mailmime mailsystem
-drush --yes en htmlmail mailmime
+# Install htmlmail dependency
+if isdisabled mailmime; then
+    drush --yes dl htmlmail mailmime mailsystem
+    drush --yes en htmlmail mailmime
+fi
 
 # Enable project features.
-drush --yes pm-enable sesi_eid_login
-drush --yes pm-disable beididp_button
-drush --yes features-revert sesi_eid_login
+if isdisabled sesi_eid_login; then
+    ensure_feat sesi_eid_login
+    drush --yes pm-disable beididp_button    
+fi
 
-drush --yes pm-enable sesi_user_registration
-drush --yes features-revert sesi_user_registration
+ensure_feat sesi_user_registration
+ensure_feat sesi_dataset_inheritance 
+ensure_feat sesi_dataset_versioning
+ensure_feat sesi_vocabulary
 
-drush --yes pm-enable sesi_dataset_inheritance
-drush --yes features-revert sesi_dataset_inheritance
+#query
+isdisabled query_interface && drush --yes en query_interface
+isdisabled query_subscription && drush --yes en query_subscription
 
-drush --yes pm-enable sesi_dataset_versioning
-drush --yes features-revert sesi_dataset_versioning
+#ontologies
+ensure_feat sesi_variable_ontologies
 
-drush --yes pm-enable sesi_vocabulary
-drush --yes features-revert sesi_vocabulary
-
-drush --yes pm-enable query_interface
-drush --yes en query_subscription
-
-drush --yes pm-enable sesi_variable_ontologies
-drush --yes features-revert sesi_variable_ontologies
-
-# Download Autologout module dependencies and enable it
-drush --yes dl autologout
-drush --yes en autologout
-
-# Enable and revert the auto logout feature
-drush --yes pm-enable sesi_autologout
-drush --yes features-revert sesi_autologout
-
-# Enable project theme.
-# drush --yes pm-enable ourprettytheme
+#autologout
+ensure_mod autologout
+ensure_feat sesi_autologout
 
 # Enable Contact Form
-drush --yes pm-enable contact
-drush --yes pm-enable sesi_contact_form
-drush --yes features-revert sesi_contact_form
+ensure_mod contact
+ensure_feat sesi_contact_form
 
-# ////////////////////////// 
-# Update
-#drush --yes updb
- 
-# Disable unused modules and features.
+#
+ensure_feat sesi_communities_and_files
+ensure_feat sesi_user_profile_fields
+ensure_feat sesi_default_community
+ensure_feat sesi_site_map
+ensure_feat sesi_easy_social
+ensure_feat sesi_twitter
+ensure_feat sesi_printer_friendly
+ensure_feat sesi_expiration_date
+
  
 # Remove an old content type and some fields.
 #drush --yes php-eval "node_type_delete('page');"
@@ -130,7 +154,7 @@ drush --yes features-revert sesi_contact_form
 
 # Revert all features and clear cache.
 ### drush --yes features-revert-all
-drush cache-clear all
+#drush cache-clear all
  
 # Display list of features to check status manually.
-drush features
+#drush features

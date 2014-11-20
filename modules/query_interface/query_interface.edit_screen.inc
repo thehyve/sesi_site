@@ -12,7 +12,7 @@ module_load_include('inc', 'query_interface', 'query_interface.handling_terms');
 function query_interface_form_mica_query_edit_form_alter(&$form, $form_state, $form_id) {
     if (ORIGINAL_FORM)
         return $form;
-
+    
     // If no query has been created, create a new one and 
     // store it in cache
     $dataset = $form_state['build_info']['args'][0];
@@ -25,30 +25,17 @@ function query_interface_form_mica_query_edit_form_alter(&$form, $form_state, $f
     // Make sure to post the form to the edit-action
     $form["#action"] = url("node/" . $dataset->nid . "/queries/" . $query->id . "/edit");
 
-    // Make sure the name field is filled (as it is required within mica)
-    // and the complete box with metainformation is hidden from the user
-    if (array_key_exists("general", $form)) {
-        // Add the name and description hidden field to the form itself
-        $nameElement = $form["general"]["name"];
-        $nameElement["#weight"] = 1;
-        $nameElement["#type"] = "hidden";
-
-        // Set a default value for the name of the query.
-        // This is needed because the name field is required
-        if (!$nameElement["#default_value"])
-            $nameElement["#default_value"] = "Query " . mktime() . "." . rand(0, 10000);
-
-        $descriptionElement = $form["general"]["description"];
-        $descriptionElement["#type"] = "hidden";
-
-        // Remove the fieldset with name, description etc.
-        unset($form["general"]);
-
-        // Add fields to the form itself
-        $form["name"] = $nameElement;
-        $form["description"] = $descriptionElement;
-    }
-
+    // Make sure the name field is filled
+    // This is needed because the name field is required
+    if (!$form["general"]["name"]["#default_value"])
+        $form["general"]["name"]["#default_value"] = "Query " . mktime() . "." . rand(0, 10000);
+    
+    
+    // Hide the description and publish checkbox from the screen
+    $form["general"]["#title"] = t('General');    
+    $form["general"]["description"]["#type"] = "hidden";    
+    $form["general"]["publish"]["#type"] = "hidden";    
+    
     // By default, show a list of all variables, with the possibility to add
     // and remove constraints for the variable.
     // First remove the add-term box, if it exists
@@ -144,7 +131,7 @@ function query_interface_form_mica_query_edit_form_alter(&$form, $form_state, $f
                     $buttons = array(
                         "edit" => array(
                             "#markup" => ctools_modal_text_button(
-                                    t('Edit'), 'mica/nojs/node/' . $dataset->nid . '/queries/' . $query->id . '/term/' . $termId . '/edit', t('Edit constraint'), 'btn ctools-modal-node-style highlight'
+                                    t('Edit'), 'sesi/nojs/node/' . $dataset->nid . '/queries/' . $query->id . '/term/' . $termId . '/edit', t('Edit constraint'), 'btn ctools-modal-node-style highlight'
                             ),
                         ),
                         "delete" => array(
@@ -257,8 +244,12 @@ function sesi_mica_query_edit_form($variables) {
     $output .= _query_interface_render_query_terms_table($form["list"], $form["remove-term"]);
     $output .= _query_interface_render_variables_table($form["not-selected"], $form["buttons-not-selected"]);
 
-    // add remaining items and hidden items, otherwise submit and validate will be ignored
-    $fieldsAlreadyPrinted = array('list', 'remove-term', 'not-selected', 'buttons-list', 'buttons-not-selected', 'fulltext-search');
+    $output .= drupal_render_children($form, array('cross'));
+    $output .= drupal_render_children($form, array('general'));
+    $output .= drupal_render_children($form, array('actions'));
+
+    // add form hidden items, otherwise submit and validate will be ignored
+    $fieldsAlreadyPrinted = array('general', 'cross', 'actions', 'list', 'remove-term', 'not-selected', 'buttons-list', 'buttons-not-selected', 'fulltext-search');
     foreach (element_children($form) as $key) {
         if (!in_array($key, $fieldsAlreadyPrinted)) {
             $output .= drupal_render($form[$key]);

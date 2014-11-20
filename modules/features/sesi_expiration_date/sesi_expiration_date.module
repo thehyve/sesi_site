@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Sesi Expiration date feature.
+ */
+
+include_once 'sesi_expiration_date.features.inc';
