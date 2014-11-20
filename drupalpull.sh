@@ -88,7 +88,7 @@ if isdisabled captcha; then
     drush --yes dl captcha
     drush --yes en captcha image_captcha
 fi
-# ensure_feat sesi_captcha
+ensure_feat sesi_captcha
 
 # Install easy_social module
 ensure_mod easy_social
