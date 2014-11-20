@@ -14,7 +14,6 @@ function sesi_my_queries_screen_default_fe_block_settings() {
 
   $export['views-my_queries-block_1'] = array(
     'cache' => -1,
-    'custom' => 0,
     'delta' => 'my_queries-block_1',
     'module' => 'views',
     'node_types' => array(),
@@ -28,8 +27,6 @@ function sesi_my_queries_screen_default_fe_block_settings() {
         'weight' => 0,
       ),
     ),
-    'title' => '',
-    'visibility' => 0,
   );
 
   return $export;

@@ -137,6 +137,8 @@ function sesi_my_queries_screen_views_default_views() {
   $handler->display->display_options['fields']['name']['table'] = 'mica_query';
   $handler->display->display_options['fields']['name']['field'] = 'name';
   $handler->display->display_options['fields']['name']['label'] = 'Query Name';
+  $handler->display->display_options['fields']['name']['alter']['make_link'] = TRUE;
+  $handler->display->display_options['fields']['name']['alter']['path'] = '/node/[dataset]/queries/[id]';
   /* Field: Content: Title */
   $handler->display->display_options['fields']['title_field']['id'] = 'title_field';
   $handler->display->display_options['fields']['title_field']['table'] = 'field_data_title_field';

@@ -15,7 +15,7 @@ function sesi_my_queries_screen_menu_default_menu_links() {
     'menu_name' => 'user-menu',
     'link_path' => 'my-queries',
     'router_path' => 'my-queries',
-    'link_title' => 'My Queries',
+    'link_title' => 'My queries',
     'options' => array(
       'attributes' => array(
         'title' => 'Show all your queries',
@@ -30,7 +30,7 @@ function sesi_my_queries_screen_menu_default_menu_links() {
   );
   // Translatables
   // Included for use with string extractors like potx.
-  t('My Queries');
+  t('My queries');
 
 
   return $menu_links;
