@@ -1,0 +1,31 @@
+<?php
+module_load_include('inc', 'query_vocabularies', 'query_ontologies.taxonomy_tree');
+
+/**
+ * Registers urls specific for new query interface 
+ * Implements hook_menu().
+ */
+function query_vocabularies_menu() {
+    $items = array();
+    
+    // This URL is used to retrieve a set of suggestions in the 
+    // autocomplete when searching a variable with vocabulary
+    $items['sesi/variable/%node/suggest'] = array(
+        'title' => 'Suggest',
+        'access callback' => '_mica_datasets_node_access',
+        'access arguments' => array(2, 'variable', 'view'),
+        'page callback' => 'query_vocabularies_suggest_terms', 
+        'page arguments' => array(2),
+        'delivery callback' => 'drupal_json_output',
+    );
+    
+    return $items;
+}
+
+/**
+ * Returns a set of suggestions for a specific variable
+ * when the user searches in the autocomplete box
+ */
+function query_vocabularies_suggest_terms( $variable_node ) {
+    return $variable_node;
+}
