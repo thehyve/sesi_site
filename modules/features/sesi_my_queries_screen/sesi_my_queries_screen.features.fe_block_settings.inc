@@ -12,10 +12,10 @@ function sesi_my_queries_screen_default_fe_block_settings() {
 
   $export['version'] = '2.0';
 
-  $export['views-test_query_3-block_1'] = array(
+  $export['views-my_queries-block_1'] = array(
     'cache' => -1,
     'custom' => 0,
-    'delta' => 'test_query_3-block_1',
+    'delta' => 'my_queries-block_1',
     'module' => 'views',
     'node_types' => array(),
     'pages' => '',

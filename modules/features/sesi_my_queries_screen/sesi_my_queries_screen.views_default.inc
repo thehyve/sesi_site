@@ -11,7 +11,7 @@ function sesi_my_queries_screen_views_default_views() {
   $export = array();
 
   $view = new view();
-  $view->name = 'test_query_3';
+  $view->name = 'my_queries';
   $view->description = 'The list of a user\'s queries';
   $view->tag = 'default';
   $view->base_table = 'mica_query';
@@ -214,7 +214,7 @@ function sesi_my_queries_screen_views_default_views() {
 
   /* Display: Block */
   $handler = $view->new_display('block', 'Block', 'block_1');
-  $export['test_query_3'] = $view;
+  $export['my_queries'] = $view;
 
   return $export;
 }
