@@ -1,6 +1,7 @@
 <?php
 
 /**
+ * Module: sesi_notifyexpiration
  * Time-bound table view in MICA
  * Add expiration date to user on subscription form to community.
  * Create a cron PHP to check permissions, 1 week before send email to user to notify expiration
@@ -8,45 +9,14 @@
  */
 
 /**
- * Implements hook_user_cron().
+ * Implements hook_cron().
  * Arguments:
  * no arguments
  * references:
  * https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_cron/7
  * https://api.drupal.org/api/examples/cron_example!cron_example.module/7
  */
-function sesi_addtogroup_user_insert(&$edit, $account, $category) {
-  if ($account->uid) {
-    $groupname = 'GLOBAL';
-    // Drupal User Object: $account
-    // OG Group Node Object: $group
-    $group_nid = _get_group_nid($groupname, 'default_community');
-
-    // check if $group_nid is valid
-    if ($group_nid > 0) {
-
-    // subscribe user to group by og_group()
-    $og_membership = og_group('node', $group_nid, array('entity' => intval($account->uid)));
-
-    // give message
-    drupal_set_message(t('User ' . $account->name . ' added to group ' . $groupname));
-    }
-  }
+function sesi_notifyexpiration_cron() {
+  watchdog('sesi_notifyexpiration','Cron executed sesi_notifyexpiration');
 }
 
-function _get_group_nid($groupname, $grouptype) {
-  // grab the GLOBAL OG
-  $query = db_select('node', 'n');
-  $query->fields('n', array('nid')) //SELECT fields from node
-    ->condition('title', $groupname, '=')
-    ->condition('type',  $grouptype, '=');
-  $result = $query->execute();
-  $recordcount = $query->countQuery()->execute()->fetchField();
-  //dsm($recordcount);
-  if ($recordcount > 0) {
-      $record = $result->fetchAssoc();
-      return $record['nid'];
-  } else {
-      return 0;
-  }  
-}
