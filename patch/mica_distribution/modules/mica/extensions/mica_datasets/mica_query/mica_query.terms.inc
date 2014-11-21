@@ -100,6 +100,10 @@ abstract class AbstractTerm implements QueryTermInterface {
     if( $wrapper->field_taxonomy->value() ) {
         return 'OntologyTerm';
     }
+    
+    if( $wrapper->field_vocabulary_url->value() ) {
+        return 'VocabularyTerm';
+    }
 
     $is_categorical = FALSE;
     foreach ($wrapper->field_variable_categories->value() as $category) {

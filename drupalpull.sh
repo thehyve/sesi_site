@@ -122,8 +122,9 @@ isdisabled query_interface && drush --yes en query_interface
 isdisabled query_subscription && drush --yes en query_subscription
 ensure_feat sesi_my_queries_screen
 
-#ontologies
+#ontologies and vocabularies
 ensure_feat sesi_variable_ontologies
+isdisabled query_vocabularies && drush --yes en query_vocabularies
 
 #autologout
 ensure_mod autologout
