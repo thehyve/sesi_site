@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Sesi My Queries screen feature.
+ */
+
+include_once 'sesi_my_queries_screen.features.inc';
