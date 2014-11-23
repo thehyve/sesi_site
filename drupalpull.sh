@@ -128,6 +128,7 @@ fi
 ensure_feat sesi_user_registration
 ensure_feat sesi_dataset_inheritance 
 ensure_feat sesi_dataset_versioning
+ensure_feat sesi_dataset_access_form
 ensure_feat sesi_vocabulary
 
 #query
