@@ -47,12 +47,12 @@
     $data['actions']['output'] = array_merge($data['actions']['output'], $links);
 }   
 
-// TODO
-function _dataset_access_form_node_get_groups_admin_mails($user, $dataset_id) {
+
+/**
+ * Get group ids of dataset and user belong to
+ */
+function _dataset_access_form_get_intersect_groups(&$user, $dataset_id) {
     
-    // *********************************
-    // Get group ids from database
-    // *********************************    
     $query = db_select("og_membership", "ogm");
     $db_or = db_or();
     $db_or->condition("ogm.etid", $dataset_id, "=");
@@ -65,19 +65,52 @@ function _dataset_access_form_node_get_groups_admin_mails($user, $dataset_id) {
     
     $belong_to_groups = array();
     foreach(array_count_values($fetch_arr) as $val => $c)
-        if($c > 1) $belong_to_groups[] = $val;    
+        if($c > 1) $belong_to_groups[] = strval($val);    
     
-    watchdog('dataset_access_form', 'Just fetch data from DB.', WATCHDOG_INFO);
+    watchdog('dataset_access_form', 'Just fetch data from DB.', WATCHDOG_INFO);       
     
-    // TODO: 
-    // *********************************
-    // Get admin email from $groups
-    // *********************************    
-
-    
+    return $belong_to_groups;
 }
 
+/**
+ * Get admin emails from a group
+ * return 
+ */
+function _dataset_access_form_get_group_admin_mails($gids) {
+    
+    /**
+     * select 
+     *  mail 
+     * from 
+     *  og_users_roles ogur 
+     *  inner join og_role ogr 
+     *      on (ogur.rid = ogr.rid) 
+     *  inner join users usr 
+     *      on (ogur.uid = usr.uid)
+     * where group_bundle = 'community' and ogur.gid = $gid;
+     */
+    $admin_mails = array();
+    $role_admin = array('administrator member', 'moderator');
+    
+    $query = db_select('og_users_roles', 'ogur');
+    $query->innerJoin('og_role', 'ogr', 'ogur.rid = ogr.rid');
+    $query->innerJoin('users', 'usr', 'ogur.uid = usr.uid');
 
+    $result = $query
+            ->fields('usr', array ('mail'))
+            ->condition('ogr.group_bundle', 'community')
+            ->condition('ogr.name', $role_admin, 'IN')
+            ->condition('ogur.gid', $gids, 'IN')
+            ->execute();
+    
+    $fetch_arr = array_values($result->fetchAll(PDO::FETCH_COLUMN, 0));
+    
+    return $fetch_arr;
+}
+
+/**
+ * 
+ */
 function dataset_access_form_node_insert($node) {
     
     global $user;
@@ -90,12 +123,14 @@ function dataset_access_form_node_insert($node) {
     $pet = pet_load('pet_data_access_request');
     $dataset_id = $node->field_dataset_id['und']['0']['value']; 
     
-    // **TODO**
     // Get Group Admin emails which the dataset is being queried and user 
     // belong to.
-    _dataset_access_form_node_get_groups_admin_mails($user, $dataset_id);
+    $gids = _dataset_access_form_get_intersect_groups($user, $dataset_id);
+    if ($gids) {
+        $admin_mails = _dataset_access_form_get_group_admin_mails($gids);  
+    }
 
-    $recipients = array('rnugraha@gmail.com'); // TODO
+    $recipients = $admin_mails; // TODO
     $froms = array(); // TODO
     
     $query_uri = $node->field_query_path['und']['0']['value'];
@@ -118,8 +153,7 @@ function dataset_access_form_node_insert($node) {
         _dataset_access_form_pet_send_mail($pet, $recipients, $froms);            
     } else {
          watchdog('dataset_access_form', 'Invalid PET template.', WATCHDOG_ERROR);
-    }
-    
+    }    
 }
 
 /**
@@ -161,7 +195,7 @@ function dataset_access_form_form_alter(&$form, $form_state, $form_id) {
     
     if (array_key_exists('field_dataset_access', $_GET)) {
       $form['field_dataset_id']['und'][0]['value']['#default_value'] = $_GET['field_dataset_access'];  
-      $form['field_query_path']['und'][0]['value']['#default_value'] =  $referrer . '/user/' .$user->uid;
+      $form['field_query_path']['und'][0]['value']['#default_value'] = $referrer . '/user/' .$user->uid;
     }    
     
  }
@@ -204,6 +238,7 @@ function _dataset_access_form_pet_send_mail($pet, $recipients, $options) {
     watchdog('pet', 'Unable to load PET %name.', array('%name' => $name), WATCHDOG_ERROR);
     return;
   }
+  
   if (!is_array($recipients) || count($recipients) < 1) {
     watchdog('pet', 'At least one recipient must be provided for PET %name.', array('%name' => $name), WATCHDOG_NOTICE);
     return;
@@ -235,6 +270,7 @@ function _dataset_access_form_pet_send_mail($pet, $recipients, $options) {
     'pet_reply_to' => pet_isset_or($options['reply_to']),
     'pet_options' => $options,
   );
+  
   // array to hold status of messages send
   $message_status = array();
   foreach ($recipients as $recipient) {
