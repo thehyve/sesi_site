@@ -130,8 +130,8 @@ function dataset_access_form_node_insert($node) {
         $admin_mails = _dataset_access_form_get_group_admin_mails($gids);  
     }
 
-    $recipients = $admin_mails; // TODO
-    $froms = array(); // TODO
+    $recipients = $admin_mails; 
+    $froms = array();
     
     $query_uri = $node->field_query_path['und']['0']['value'];
     $txt_message = $node->body['und']['0']['value'];
