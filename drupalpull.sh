@@ -144,6 +144,9 @@ isdisabled query_vocabularies && drush --yes en query_vocabularies
 ensure_mod autologout
 ensure_feat sesi_autologout
 
+#addtogroup
+ensure_mod sesi_addtogroup
+
 # Backup first
 #drush archive-dump /tmp/micasitebk
 

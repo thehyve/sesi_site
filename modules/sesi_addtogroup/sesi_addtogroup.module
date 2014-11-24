@@ -1,0 +1,44 @@
+<?php
+/**
+ * Used to automagically add a new user to a specific organic Group
+ * OG name = "GLOBAL", content type = "default_community"
+ */
+/**
+ * Implements hook_user_insert().
+ * $edit: The array of form values submitted by the user.
+ * $account: The user object on which the operation is being performed.
+ * $category: The active category of user information being edited.
+ * references:
+ * https://www.drupal.org/node/1098700
+ */
+function sesi_addtogroup_user_insert(&$edit, $account, $category) {
+  if ($account->uid) {
+    $groupname = 'GLOBAL';
+    // Drupal User Object: $account
+    // OG Group Node Object: $group
+    $group_nid = _get_group_nid($groupname, 'default_community');
+    // check if $group_nid is valid
+    if ($group_nid > 0) {
+    // subscribe user to group by og_group()
+    $og_membership = og_group('node', $group_nid, array('entity' => intval($account->uid)));
+    // give message
+    drupal_set_message(t('User ' . $account->name . ' added to group ' . $groupname));
+    }
+  }
+}
+function _get_group_nid($groupname, $grouptype) {
+  // grab the GLOBAL OG
+  $query = db_select('node', 'n');
+  $query->fields('n', array('nid')) //SELECT fields from node
+    ->condition('title', $groupname, '=')
+    ->condition('type',  $grouptype, '=');
+  $result = $query->execute();
+  $recordcount = $query->countQuery()->execute()->fetchField();
+  //dsm($recordcount);
+  if ($recordcount > 0) {
+      $record = $result->fetchAssoc();
+      return $record['nid'];
+  } else {
+      return 0;
+  }  
+}
