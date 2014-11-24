@@ -93,13 +93,12 @@ function query_subscription_mail($key, &$message, $params) {
 
 !data
 
-<!-- p style="font-size: 90%">!subscriptions_url</p -->
+<p style="font-size: 90%">!subscriptions_url</p>
 
 <p style="font-size: 90%">!home_link</p>
 EOF;
 
-  // todo: link to user's queries page
-  $subscriptions_url = $l($ht('View update notification settings (not yet implemented)'), "/");
+  $subscriptions_url = $l($ht('View update notification settings'), "my-queries");
   $home_link = $l($ht("CMI home page"), '/');
 
   $message['subject'] = t('CMI data update notification', array(), array('langcode' => $user->language));
