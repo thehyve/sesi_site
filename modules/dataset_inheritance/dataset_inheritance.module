@@ -177,18 +177,28 @@ function dataset_inheritance_update_inherited_fields($form, &$form_state) {
     // last save)
     $parent_nid = _dataset_inheritance_get_parent_from_dataset( $dataset_wrapper );
     
+    
     if( $parent_nid ) {
         // Update inherited fields
         $num_fields = _dataset_inheritance_update_inheritance( $dataset_wrapper, $parent_nid );
-
         drupal_set_message(t('Inherited fields are updated.', array()));
     } else {
         // If the dataset doesn't have a parent, delete the inherited variables
         _dataset_inheritance_delete_inherited_variables($dataset_wrapper);
-        
         drupal_set_message(t('Inherited fields have been removed.', array()));
     }
     
+    //update form with current fields
+    $query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', 'node')
+            ->entityCondition('bundle', 'variable')
+            ->fieldCondition('field_dataset', 'nid', $dataset->nid, '=');
+    $result = $query->execute();
+    if (array_key_exists( 'node', $result ) && is_array( $result[ 'node' ] )) {
+        $newform = array_keys($result['node']);
+        $dataset_wrapper->field_dataset_variables->set( $newform );
+        node_save($dataset);  
+    }
     // Redirect the user
     $form_state['redirect'] = "/node/" . $dataset->nid . "/edit";
 }
@@ -311,6 +321,8 @@ function _dataset_inheritance_clone_variables_from_parent($child_dataset, $paren
         $child_variables = $child_dataset->field_dataset_variables->value();
         if( is_array( $child_variables ) ) {
             foreach( $child_variables as $child_variable ) {
+                if(is_null($child_variable))
+                    continue;
                 $existing_variable_titles[] = $child_variable->title;
             }
         }
