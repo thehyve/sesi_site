@@ -64,6 +64,10 @@ fi
 # Enable Rules
 isdisabled rules_admin && drush --yes en rules rules_admin
 
+# Install and enable entityreference
+drush --yes dl entityreference
+drush --yes en entityreference
+
 # Enable Date Popup
 isdisabled date_popup && drush --yes en date_popup
 
@@ -91,6 +95,7 @@ ensure_mod easy_social
 
 # Install and enable oauth
 # This module is required by twitter module
+
 if isdisabled oauth_common; then
     drush --yes dl oauth
     drush --yes en oauth_common
@@ -106,6 +111,14 @@ if isdisabled mailmime; then
     drush --yes en htmlmail mailmime
 fi
 
+# Install and enable og_email
+drush --yes dl og_email
+drush --yes en og_email
+
+# Install and enable pet
+drush --yes dl pet
+drush --yes en pet
+
 # Enable project features.
 if isdisabled sesi_eid_login; then
     ensure_feat sesi_eid_login
@@ -115,6 +128,7 @@ fi
 ensure_feat sesi_user_registration
 ensure_feat sesi_dataset_inheritance 
 ensure_feat sesi_dataset_versioning
+ensure_feat sesi_dataset_access_form
 ensure_feat sesi_vocabulary
 
 #query
@@ -129,6 +143,9 @@ isdisabled query_vocabularies && drush --yes en query_vocabularies
 #autologout
 ensure_mod autologout
 ensure_feat sesi_autologout
+
+# Backup first
+#drush archive-dump /tmp/micasitebk
 
 # Enable Contact Form
 ensure_mod contact
