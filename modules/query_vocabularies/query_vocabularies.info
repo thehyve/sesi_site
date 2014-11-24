@@ -1,0 +1,13 @@
+name = Query vocabularies
+description = Implements a screen for querying variables with an extended vocabulary
+package = Sesi
+core = 7.x
+dependencies[] = query_interface
+files[] = query_vocabularies.terms.inc
+
+; Information added by Drupal.org packaging script on 2014-07-10
+version = "7.x-1.0b"
+core = "7.x"
+project = "sesi"
+datestamp = "1415273982"
+

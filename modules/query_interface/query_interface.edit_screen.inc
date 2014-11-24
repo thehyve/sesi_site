@@ -36,6 +36,17 @@ function query_interface_form_mica_query_edit_form_alter(&$form, $form_state, $f
     $form["general"]["description"]["#type"] = "hidden";    
     $form["general"]["publish"]["#type"] = "hidden";    
     
+
+    // Add a hidden submit button to be used for persisting query details
+    // when adding or editing a term.
+    // This button is added as first button in the form, as that is the
+    // default button when the form is submitted programmatically.
+    $form['general']['tmp-store'] = array(
+        '#type' => 'submit',
+        '#value' => t('Store temporarily'),
+        '#attributes' => array( 'style' => 'display: none;' )
+    );    
+    
     // By default, show a list of all variables, with the possibility to add
     // and remove constraints for the variable.
     // First remove the add-term box, if it exists
