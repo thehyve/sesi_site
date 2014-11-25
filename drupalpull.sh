@@ -65,8 +65,7 @@ fi
 isdisabled rules_admin && drush --yes en rules rules_admin
 
 # Install and enable entityreference
-drush --yes dl entityreference
-drush --yes en entityreference
+ensure_mod entityreference
 
 # Enable Date Popup
 isdisabled date_popup && drush --yes en date_popup
@@ -112,12 +111,10 @@ if isdisabled mailmime; then
 fi
 
 # Install and enable og_email
-drush --yes dl og_email
-drush --yes en og_email
+ensure_mod og_email
 
 # Install and enable pet
-drush --yes dl pet
-drush --yes en pet
+ensure_mod pet
 
 # Enable project features.
 if isdisabled sesi_eid_login; then
