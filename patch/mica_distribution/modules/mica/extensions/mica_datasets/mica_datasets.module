@@ -1449,6 +1449,12 @@ function _mica_datasets_node_crosstab_access($node, $op = 'update') {
 function _mica_datasets_query_access($dataset_node, $query, $op = 'update') {
   global $user;
 
+  // _mica_datasets_query_access gets called directly from mica_query_load(_multiple), so just overriding a callback
+  // doesn't work.
+  if (query_access_rights_access_override($dataset_node, $query, $op)) {
+    return TRUE;
+  }
+
   // consistency check
   if ($dataset_node->nid != $query->dataset_id) {
     return FALSE;

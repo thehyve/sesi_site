@@ -132,9 +132,10 @@ ensure_feat sesi_dataset_access_form
 ensure_feat sesi_vocabulary
 
 #query
-isdisabled query_interface && drush --yes en query_interface
-isdisabled query_subscription && drush --yes en query_subscription
+ensure_mod query_interface
+ensure_mod query_subscription
 ensure_feat sesi_my_queries_screen
+ensure_mod data_access_form
 
 #ontologies and vocabularies
 ensure_feat sesi_variable_ontologies
