@@ -14,7 +14,6 @@ function query_subscription_entity_info() {
     'module' => 'query_subscription',
     'entity keys' => array(
       'id' => 'id',
-      'name' => 'id',
     ),
   ));
 }
@@ -341,6 +340,14 @@ function query_subscription_poll($arg) {
         $subscription = QuerySubscription::get($id);
         if (is_null($subscription)) continue;
 
+        if ($subscription->isExpired()) {
+          $changes[] = array(
+            'subscription' => $subscription,
+            'expired' => true,
+          );
+          continue;
+        }
+
         // significantDifferences updates the old values
         $old_values = $subscription->old_results();
 
@@ -348,8 +355,9 @@ function query_subscription_poll($arg) {
 
         if (!empty($differences)) {
           $changes[] = array(
-            'differences' => $differences,
             'subscription' => $subscription,
+            'expired' => false,
+            'differences' => $differences,
             'old_values' => $old_values,
             'new_values' => $subscription->results(),
           );
@@ -359,7 +367,7 @@ function query_subscription_poll($arg) {
         if(stripos($msg, 'Curl Error') == 0 && stristr($msg, 'timed out')) {
           // Curl timeout, probably an Opal server for this query is offline, ignore
           watchdog('query_subscription',
-            'Timeout while connecting to Opal. Subscription id @id, uid @uid, exception: @ex',
+            'Timeout while connecting to Opal, server may be offline. Subscription id @id, uid @uid, exception: @ex',
             array('@uid' => $uid, '@ids' => implode(', ', $ids), '@ex' => $msg), WATCHDOG_NOTICE);
           continue;
         }
@@ -373,6 +381,12 @@ function query_subscription_poll($arg) {
     if (!empty($changes)) {
       drupal_mail('query_subscription', 'notification', $user->mail, $user->language,
         array('user' => $user, 'changes' => $changes));
+    }
+
+    foreach($changes as $change) {
+      if ($change['expired']) {
+        entity_delete('query_subscription', $change['subscription']->id);
+      }
     }
 
   // poor mans finally
