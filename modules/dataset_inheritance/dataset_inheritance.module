@@ -141,7 +141,7 @@ function dataset_inheritance_form_alter(&$form, $form_state, $form_id) {
         $newbutton = array(
             '#type' => 'submit',
             '#value' => 'Update inherited fields',
-            '#weight' => $form['field_dataset_parent']['#weight'] + 1,
+            '#weight' => $form['field_inherit_permissions']['#weight'] + 1,
             '#submit' => array( 'node_form_submit', 'dataset_inheritance_update_inherited_fields' )
         );
 
