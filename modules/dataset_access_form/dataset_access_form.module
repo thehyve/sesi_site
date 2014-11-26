@@ -36,12 +36,18 @@
               ),          
             );       
         
-          $dataset_node = $router_item['page_arguments'][1];
-          $links['add-data-access-request-form']['#link']['localized_options'] = array(
+            $dataset_node = $router_item['page_arguments'][1];
+            $links['add-data-access-request-form']['#link']['localized_options'] = array(
               'query' => array (
                   'field_dataset_access' => $dataset_node->nid,
                )
-          );
+            );          
+    
+            // delete the unecessary original request data access link
+            if ($data['actions']['output']['add-data-access-request']) {
+                unset($data['actions']['output']['add-data-access-request']);
+            }
+            
     }
     
     $data['actions']['output'] = array_merge($data['actions']['output'], $links);
@@ -50,6 +56,11 @@
 
 /**
  * Get group ids of dataset and user belong to
+ * 
+ * @param &$user user
+ *  User object
+ * @param $dataset_id 
+ *  Dataset ID
  */
 function _dataset_access_form_get_intersect_groups(&$user, $dataset_id) {
     
@@ -74,7 +85,9 @@ function _dataset_access_form_get_intersect_groups(&$user, $dataset_id) {
 
 /**
  * Get admin emails from a group
- * return 
+ * 
+ * @param $gids 
+ *  String array of Group IDs 
  */
 function _dataset_access_form_get_group_admin_mails($gids) {
     
@@ -109,7 +122,12 @@ function _dataset_access_form_get_group_admin_mails($gids) {
 }
 
 /**
+ * Implement hook_node_insert where it get user input from the request form and 
+ * send them to group admin(s) by email.
  * 
+ * @param $node
+ *  New node being inserted which in this case the Create Request Data Access
+ *  Form node.
  */
 function dataset_access_form_node_insert($node) {
     
@@ -149,6 +167,7 @@ function dataset_access_form_node_insert($node) {
             $dataset_id,
             $txt_message,            
         );
+        $pet->subject = $node->title_field['und']['0']['value'];
         $pet->mail_body = str_replace($search, $replace, $pet->mail_body);
         _dataset_access_form_pet_send_mail($pet, $recipients, $froms);            
     } else {
@@ -194,7 +213,7 @@ function dataset_access_form_form_alter(&$form, $form_state, $form_id) {
     } 
     
     if (array_key_exists('field_dataset_access', $_GET)) {
-      $form['title_field']['und'][0]['value']['#default_value'] = 'NEW DATASET REQUEST AT ' . $referrer;  
+      $form['title_field']['und'][0]['value']['#default_value'] = 'New Dataset Access Request for Dataset ID:' . $_GET['field_dataset_access'] . ' From: ' . $user->name;  
       $form['field_dataset_id']['und'][0]['value']['#default_value'] = $_GET['field_dataset_access'];  
       $form['field_query_path']['und'][0]['value']['#default_value'] = $referrer; 
     }    
