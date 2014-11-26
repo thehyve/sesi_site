@@ -13,6 +13,7 @@ features[field_base][] = field_dataset_id
 features[field_base][] = field_query_path
 features[field_instance][] = node-data_access_request_form-field_dataset_id
 features[field_instance][] = node-data_access_request_form-field_query_path
+features[field_instance][] = node-data_access_request_form-title_field
 features[node][] = data_access_request_form
 features[pet][] = pet_data_access_request
 features[user_permission][] = administer previewable email templates

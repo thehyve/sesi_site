@@ -18,7 +18,7 @@ function sesi_dataset_access_form_field_default_field_bases() {
     'entity_types' => array(),
     'field_name' => 'field_dataset_id',
     'field_permissions' => array(
-      'type' => 0,
+      'type' => 2,
     ),
     'foreign keys' => array(
       'format' => array(
@@ -57,7 +57,7 @@ function sesi_dataset_access_form_field_default_field_bases() {
     'entity_types' => array(),
     'field_name' => 'field_query_path',
     'field_permissions' => array(
-      'type' => 1,
+      'type' => 2,
     ),
     'foreign keys' => array(
       'format' => array(
