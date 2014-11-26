@@ -1451,7 +1451,7 @@ function _mica_datasets_query_access($dataset_node, $query, $op = 'update') {
 
   // _mica_datasets_query_access gets called directly from mica_query_load(_multiple), so just overriding a callback
   // doesn't work.
-  if (query_access_rights_access_override($dataset_node, $query, $op)) {
+  if (module_exists('query_access_rights') && query_access_rights_user_is_admin($dataset_node)) {
     return TRUE;
   }
 
