@@ -260,7 +260,7 @@ function _dataset_inheritance_update_inheritance($child_dataset, $parent_dataset
     
     // Only clone variables from the parent, if one is given
     if( $parent_dataset_id ) 
-        _dataset_inheritance_clone_variables_from_parent($child_dataset, $parent_dataset_id);
+        _dataset_inheritance_clone_variables_from_parent($child_dataset, $parent_dataset_id, $child_dataset->field_inherit_permissions->value());
 }
 
 /**
