@@ -25,7 +25,7 @@ function sesi_menu_links_menu_default_menu_links() {
     'external' => 0,
     'has_children' => 0,
     'expanded' => 1,
-    'weight' => 20,
+    'weight' => -43,
   );
   // Exported menu link: main-menu:<front>
   $menu_links['main-menu:<front>'] = array(
@@ -39,7 +39,7 @@ function sesi_menu_links_menu_default_menu_links() {
     'external' => 1,
     'has_children' => 0,
     'expanded' => 0,
-    'weight' => 0,
+    'weight' => -47,
   );
   // Exported menu link: main-menu:blog
   $menu_links['main-menu:blog'] = array(
@@ -49,7 +49,7 @@ function sesi_menu_links_menu_default_menu_links() {
     'link_title' => 'Blogs',
     'options' => array(),
     'module' => 'menu',
-    'hidden' => 0,
+    'hidden' => 1,
     'external' => 0,
     'has_children' => 0,
     'expanded' => 0,
@@ -94,7 +94,7 @@ function sesi_menu_links_menu_default_menu_links() {
     'link_title' => 'DACO Approved Projects',
     'options' => array(),
     'module' => 'menu',
-    'hidden' => 0,
+    'hidden' => 1,
     'external' => 0,
     'has_children' => 0,
     'expanded' => 0,
@@ -128,8 +128,8 @@ function sesi_menu_links_menu_default_menu_links() {
     'external' => 0,
     'has_children' => 0,
     'expanded' => 0,
-    'weight' => 20,
-    'parent_path' => '<firstchild>',
+    'weight' => -50,
+    'parent_path' => 'datasets',
   );
   // Exported menu link: main-menu:data-access/requests
   $menu_links['main-menu:data-access/requests'] = array(
@@ -152,14 +152,17 @@ function sesi_menu_links_menu_default_menu_links() {
     'link_path' => 'datasets',
     'router_path' => 'datasets',
     'link_title' => 'Datasets',
-    'options' => array(),
+    'options' => array(
+      'attributes' => array(
+        'title' => '',
+      ),
+    ),
     'module' => 'menu',
-    'hidden' => 1,
+    'hidden' => 0,
     'external' => 0,
-    'has_children' => 0,
-    'expanded' => 0,
-    'weight' => 5,
-    'parent_path' => '<firstchild>',
+    'has_children' => 1,
+    'expanded' => 1,
+    'weight' => -44,
   );
   // Exported menu link: main-menu:events
   $menu_links['main-menu:events'] = array(
@@ -184,7 +187,7 @@ function sesi_menu_links_menu_default_menu_links() {
     'link_title' => 'Forums',
     'options' => array(),
     'module' => 'menu',
-    'hidden' => 0,
+    'hidden' => 1,
     'external' => 0,
     'has_children' => 0,
     'expanded' => 0,
@@ -214,11 +217,11 @@ function sesi_menu_links_menu_default_menu_links() {
     'link_title' => 'Resources',
     'options' => array(),
     'module' => 'menu',
-    'hidden' => 0,
+    'hidden' => 1,
     'external' => 0,
     'has_children' => 1,
     'expanded' => 1,
-    'weight' => 10,
+    'weight' => -45,
   );
   // Exported menu link: main-menu:node/3
   $menu_links['main-menu:node/3'] = array(
@@ -228,11 +231,11 @@ function sesi_menu_links_menu_default_menu_links() {
     'link_title' => 'Research',
     'options' => array(),
     'module' => 'menu',
-    'hidden' => 0,
+    'hidden' => 1,
     'external' => 0,
-    'has_children' => 1,
+    'has_children' => 0,
     'expanded' => 1,
-    'weight' => 30,
+    'weight' => -42,
   );
   // Exported menu link: main-menu:node/4
   $menu_links['main-menu:node/4'] = array(
@@ -240,27 +243,35 @@ function sesi_menu_links_menu_default_menu_links() {
     'link_path' => 'node/4',
     'router_path' => 'node/%',
     'link_title' => 'About',
-    'options' => array(),
+    'options' => array(
+      'attributes' => array(
+        'title' => '',
+      ),
+    ),
     'module' => 'menu',
     'hidden' => 0,
     'external' => 0,
-    'has_children' => 0,
-    'expanded' => 0,
-    'weight' => 50,
+    'has_children' => 1,
+    'expanded' => 1,
+    'weight' => -40,
   );
   // Exported menu link: main-menu:node/5
   $menu_links['main-menu:node/5'] = array(
     'menu_name' => 'main-menu',
     'link_path' => 'node/5',
     'router_path' => 'node/%',
-    'link_title' => 'Community',
-    'options' => array(),
+    'link_title' => 'News & Events',
+    'options' => array(
+      'attributes' => array(
+        'title' => '',
+      ),
+    ),
     'module' => 'menu',
     'hidden' => 0,
     'external' => 0,
     'has_children' => 1,
     'expanded' => 1,
-    'weight' => 45,
+    'weight' => -41,
   );
   // Exported menu link: main-menu:node/6
   $menu_links['main-menu:node/6'] = array(
@@ -285,7 +296,7 @@ function sesi_menu_links_menu_default_menu_links() {
     'link_title' => 'Projects',
     'options' => array(),
     'module' => 'menu',
-    'hidden' => 0,
+    'hidden' => 1,
     'external' => 0,
     'has_children' => 0,
     'expanded' => 0,
@@ -300,7 +311,7 @@ function sesi_menu_links_menu_default_menu_links() {
     'link_title' => 'Publications',
     'options' => array(),
     'module' => 'menu',
-    'hidden' => 0,
+    'hidden' => 1,
     'external' => 0,
     'has_children' => 0,
     'expanded' => 0,
@@ -313,13 +324,17 @@ function sesi_menu_links_menu_default_menu_links() {
     'link_path' => 'studies',
     'router_path' => 'studies',
     'link_title' => 'Studies',
-    'options' => array(),
+    'options' => array(
+      'attributes' => array(
+        'title' => '',
+      ),
+    ),
     'module' => 'menu',
     'hidden' => 0,
     'external' => 0,
     'has_children' => 1,
-    'expanded' => 0,
-    'weight' => 5,
+    'expanded' => 1,
+    'weight' => -46,
   );
   // Exported menu link: main-menu:studies-search
   $menu_links['main-menu:studies-search'] = array(
@@ -344,53 +359,18 @@ function sesi_menu_links_menu_default_menu_links() {
     'link_title' => 'Variables Search',
     'options' => array(),
     'module' => 'menu',
-    'hidden' => 1,
-    'external' => 0,
-    'has_children' => 0,
-    'expanded' => 0,
-    'weight' => 10,
-    'parent_path' => '<firstchild>',
-  );
-  // Exported menu link: management:admin/config/development/maintenance
-  $menu_links['management:admin/config/development/maintenance'] = array(
-    'menu_name' => 'management',
-    'link_path' => 'admin/config/development/maintenance',
-    'router_path' => 'admin/config/development/maintenance',
-    'link_title' => 'Maintenance mode',
-    'options' => array(
-      'attributes' => array(
-        'title' => 'Take the site offline for maintenance or bring it back online.',
-      ),
-    ),
-    'module' => 'system',
     'hidden' => 0,
     'external' => 0,
     'has_children' => 0,
     'expanded' => 0,
-    'weight' => -10,
-    'parent_path' => 'admin/config/development',
-  );
-  // Exported menu link: management:admin/structure/menu/manage/main-menu
-  $menu_links['management:admin/structure/menu/manage/main-menu'] = array(
-    'menu_name' => 'management',
-    'link_path' => 'admin/structure/menu/manage/main-menu',
-    'router_path' => 'admin/structure/menu/manage/%',
-    'link_title' => 'Main menu',
-    'options' => array(),
-    'module' => 'menu',
-    'hidden' => 0,
-    'external' => 0,
-    'has_children' => 0,
-    'expanded' => 0,
-    'weight' => 0,
-    'parent_path' => 'admin/structure/menu',
+    'weight' => -49,
+    'parent_path' => 'datasets',
   );
   // Translatables
   // Included for use with string extractors like potx.
   t('About');
   t('Blogs');
   t('Calendar');
-  t('Community');
   t('Consortium Policies and Guidelines');
   t('DACO Approved Projects');
   t('Data Access');
@@ -401,10 +381,9 @@ function sesi_menu_links_menu_default_menu_links() {
   t('Events');
   t('Forums');
   t('Home');
-  t('Main menu');
-  t('Maintenance mode');
   t('My Data Access Requests');
   t('News');
+  t('News & Events');
   t('Projects');
   t('Publications');
   t('Research');
