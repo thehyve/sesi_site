@@ -1,15 +1,19 @@
 <?php
 
-function query_access_rights_access_override($dataset_node, $query, $op = 'update') {
+function query_access_rights_user_is_admin($dataset_node, $user_ = null) {
   global $user;
 
-  if (in_array('administrator', $user->roles)) {
+  if (is_null($user_)) {
+    $user_ = &$user;
+  }
+
+  if (in_array('administrator', $user_->roles)) {
     return true;
   }
 
-  $ds_groups = _dataset_access_form_get_intersect_groups($user, $dataset_node->nid);
+  $ds_groups = _dataset_access_form_get_intersect_groups($user_, $dataset_node->nid);
   foreach($ds_groups as $gid) {
-    $roles = og_get_user_roles('group', $gid, $user->uid);
+    $roles = og_get_user_roles('group', $gid, $user_->uid);
     if(in_array(OG_ADMINISTRATOR_ROLE, $roles)) {
       return true;
     }
