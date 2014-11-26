@@ -91,7 +91,7 @@ function dataset_inheritance_node_insert($node) {
         return;
     }
 
-    $num_variables = _dataset_inheritance_clone_variables_from_parent($wrapper, $parent_nid);
+    $num_variables = _dataset_inheritance_clone_variables_from_parent($wrapper, $parent_nid, $wrapper->field_inherit_permissions->value());
     if ( $num_variables > 0 ) {
         drupal_set_message(t("Added @entries variables.", array('@entries' => $num_variables)), 'status');
     }
@@ -299,9 +299,10 @@ function _dataset_inheritance_delete_inherited_variables($child_dataset) {
  * 
  * @param EntityMetadataWrapper $child_dataset
  * @param int $parent_dataset_id 
+ * @param boolean $inherit_permissions
  * @return Number of variables cloned
  */
-function _dataset_inheritance_clone_variables_from_parent($child_dataset, $parent_dataset_id) {
+function _dataset_inheritance_clone_variables_from_parent($child_dataset, $parent_dataset_id, $inherit_permissions) {
     //get all variables corresponding to parent_nid
     $query = new EntityFieldQuery();
     $query->entityCondition('entity_type', 'node')
@@ -340,6 +341,12 @@ function _dataset_inheritance_clone_variables_from_parent($child_dataset, $paren
             // Remove ids to clone the field
             unset($variable_node->nid);
             unset($variable_node->vid);
+            
+            // Remove group reference if the permissions are not to be inherited
+            // By default, the group reference is copied
+            if( !$inherit_permissions ) {
+                $variable_wrapper->og_group_ref->set( array() );
+            }
             
             // Store the new variable with the new child dataset
             $variable_wrapper->field_dataset->set( $child_dataset->getIdentifier() );
