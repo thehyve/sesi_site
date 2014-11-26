@@ -340,7 +340,7 @@ function query_subscription_poll($arg) {
         $subscription = QuerySubscription::get($id);
         if (is_null($subscription)) continue;
 
-        if ($subscription->isExpired()) {
+        if (query_access_rights_is_expired($subscription->query()->dataset_id)) {
           $changes[] = array(
             'subscription' => $subscription,
             'expired' => true,

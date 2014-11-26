@@ -265,17 +265,6 @@ class QuerySubscription extends Entity {
     return unserialize($this->last_result);
   }
 
-  public function isExpired() {
-    $dataset = node_load($this->query()->dataset_id);
-    try {
-      $expdate = new DateTime($dataset->field_expiration_date['und'][0]['value']);
-    } catch (Exception $e) {
-      // If there is no valid field_expiration_date set
-      return false;
-    }
-    return new DateTime() > $expdate;
-  }
-
   private static function id_map($arr) {
     $ret = array();
     foreach($arr as $item) {

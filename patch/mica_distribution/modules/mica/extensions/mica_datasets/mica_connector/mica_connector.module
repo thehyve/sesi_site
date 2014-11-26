@@ -137,6 +137,19 @@ function mica_connector_query($dataset_id, $study_id, $enabled = NULL) {
  *   An array of connectors (may be empty).
  */
 function mica_connector_query_multiple($dataset_id, $enabled = NULL) {
+
+  if(module_exists('query_access_rights')) {
+    $dataset = node_load($dataset_id);
+    if (!query_access_rights_user_has_access_rights($dataset)) {
+      drupal_set_message("You don't have access to this dataset", 'error', false);
+      return array();
+    }
+    if (query_access_rights_is_expired($dataset)) {
+      drupal_set_message("This dataset has expired, it can no longer be queried", 'error', false);
+      return array();
+    }
+  }
+
   $connectors = array();
 
   // check rights to make query
