@@ -160,9 +160,10 @@ function sesi_menu_links_menu_default_menu_links() {
     'module' => 'menu',
     'hidden' => 0,
     'external' => 0,
-    'has_children' => 1,
+    'has_children' => 0,
     'expanded' => 1,
-    'weight' => -44,
+    'weight' => -48,
+    'parent_path' => 'node/2',
   );
   // Exported menu link: main-menu:events
   $menu_links['main-menu:events'] = array(
@@ -217,7 +218,7 @@ function sesi_menu_links_menu_default_menu_links() {
     'link_title' => 'Resources',
     'options' => array(),
     'module' => 'menu',
-    'hidden' => 1,
+    'hidden' => 0,
     'external' => 0,
     'has_children' => 1,
     'expanded' => 1,
@@ -334,7 +335,8 @@ function sesi_menu_links_menu_default_menu_links() {
     'external' => 0,
     'has_children' => 1,
     'expanded' => 1,
-    'weight' => -46,
+    'weight' => -50,
+    'parent_path' => 'node/2',
   );
   // Exported menu link: main-menu:studies-search
   $menu_links['main-menu:studies-search'] = array(
@@ -363,8 +365,38 @@ function sesi_menu_links_menu_default_menu_links() {
     'external' => 0,
     'has_children' => 0,
     'expanded' => 0,
-    'weight' => -49,
-    'parent_path' => 'datasets',
+    'weight' => -47,
+    'parent_path' => 'node/2',
+  );
+  // Exported menu link: user-menu:user
+  $menu_links['user-menu:user'] = array(
+    'menu_name' => 'user-menu',
+    'link_path' => 'user',
+    'router_path' => 'user',
+    'link_title' => 'User account',
+    'options' => array(
+      'alter' => TRUE,
+    ),
+    'module' => 'system',
+    'hidden' => 0,
+    'external' => 0,
+    'has_children' => 0,
+    'expanded' => 0,
+    'weight' => -10,
+  );
+  // Exported menu link: user-menu:user/logout
+  $menu_links['user-menu:user/logout'] = array(
+    'menu_name' => 'user-menu',
+    'link_path' => 'user/logout',
+    'router_path' => 'user/logout',
+    'link_title' => 'Log out',
+    'options' => array(),
+    'module' => 'system',
+    'hidden' => 0,
+    'external' => 0,
+    'has_children' => 0,
+    'expanded' => 0,
+    'weight' => 10,
   );
   // Translatables
   // Included for use with string extractors like potx.
@@ -381,6 +413,7 @@ function sesi_menu_links_menu_default_menu_links() {
   t('Events');
   t('Forums');
   t('Home');
+  t('Log out');
   t('My Data Access Requests');
   t('News');
   t('News & Events');
@@ -390,6 +423,7 @@ function sesi_menu_links_menu_default_menu_links() {
   t('Resources');
   t('Search Studies');
   t('Studies');
+  t('User account');
   t('Variables Search');
 
 
