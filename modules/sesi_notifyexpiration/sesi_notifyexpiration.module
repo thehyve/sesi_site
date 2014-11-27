@@ -3,8 +3,9 @@
 /**
  * Module: sesi_notifyexpiration
  * Time-bound table view in MICA
- * Add expiration date to user on subscription form to community.
+ * Add expiration date to user on subscription form to community
  * Create a cron PHP to check permissions, 1 week before send email to user to notify expiration
+ * Added: Remove membership if expiration date has passed
  * Jan Pillaerds, 21/11/2014
  */
 
@@ -15,8 +16,285 @@
  * references:
  * https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_cron/7
  * https://api.drupal.org/api/examples/cron_example!cron_example.module/7
+ * http://artfulrobot.com/blog/understanding-organic-groups-views
  */
 function sesi_notifyexpiration_cron() {
-  watchdog('sesi_notifyexpiration','Cron executed sesi_notifyexpiration');
+  watchdog('sesi_notifyexpiration', 'Cron executed sesi_notifyexpiration');
+
+  // Module logic
+  // ------------
+  // Loop through memberships with expirations date that are NOT NULL
+  // If expiring membership found (that is: membership that expires in 7 days (hardcoded))
+  //    Send mail: trigger rule that sends mail
+  //    Flag that membership reminder mail was sent
+  // If membership HAS expired: Remove membership
+  //
+
+
+  // Note dsm() and dpm() do not work with cron; use drupal_set_message() in stead
+  drupal_set_message('sesi_notifyexpiration run by cron');
+  watchdog('sesi_notifyexpiration', 'Triggered by cron');
+
+
+  $query = db_select('og_membership', 'o')
+    ->fields('o', array('id', 'gid', 'entity_type', 'etid'))
+    ->fields('f', array('entity_id', 'field_expiration_date_value'));
+  $query->join('field_data_field_expiration_date', 'f', 'o.id = f.entity_id');
+  $result = $query->execute();
+
+
+  /* Koen:
+    $query = db_select('og_membership', 'o')
+      ->fields('o', array('id', 'entity_type'))
+      ->fields('f', array('entity_id', 'field_expiration_date_value'));
+    $query->join('field_data_field_expiration_date', 'f', 'o.id = f.entity_id');
+    $result = $query->execute();
+  */
+
+  if ($result->rowCount() > 0) {
+    while ($row = $result->fetchAssoc()) {
+      $groupname   = get_groupname($row['gid']);
+      $mailaddress = get_usermail(intval($row['etid']));
+      $profileid =   get_profileid(intval($row['etid']));
+      $firstname =   getfirstname($profileid);
+      $lastname =    getlastname($profileid);
+      $salutation=   getsalutation($profileid);
+      
+      drupal_set_message($groupname . ' mail: ' . $mailaddress . ' group nid: ' . $row['gid'] . ' ' . ' User id: ' . $row['etid'] . ' - Profile: ' . $profileid . ' - Sal: ' . $salutation . ' - Firstname: ' . $firstname . ' - Lastname: ' . $lastname . ' ' . 'Grp type: ' . $row['entity_type'] . ' ' . ' ' . $row['field_expiration_date_value']);
+    }
+  }
 }
 
+function get_groupname($gid) {
+  $query = db_select('node', 'n')
+    ->fields('n', array('title'))
+    ->condition('nid', $gid, '=');
+  $result = $query->execute();
+  $recordcount = $query->countQuery()->execute()->fetchField();
+  //dsm($recordcount);
+  if ($recordcount > 0) {
+    $record = $result->fetchAssoc();
+    return $record['title'];
+  }
+  else {
+    return '-';
+  }
+}
+
+function get_usermail($uid) {
+  $query = db_select('users', 'u')
+    ->fields('u', array('mail'))
+    ->condition('uid', $uid, '=');
+  $result = $query->execute();
+  $recordcount = $query->countQuery()->execute()->fetchField();
+  if ($recordcount > 0) {
+    $record = $result->fetchAssoc();
+    return $record['mail'];
+  }
+  else {
+    return '-';
+  }
+}
+
+function get_profileid($uid) {
+  $query = db_select('profile', 'p')
+    ->fields('p', array('pid'))
+    ->condition('uid', $uid, '=');
+  $result = $query->execute();
+  $recordcount = $query->countQuery()->execute()->fetchField();
+  if ($recordcount > 0) {
+    $record = $result->fetchAssoc();
+    return $record['pid'];
+  }
+  else {
+    return 0;
+  }
+}
+
+function getfirstname($uid) {
+  $query = db_select('field_data_field_profile_first_name', 'f')
+    ->fields('f', array('field_profile_first_name_value'))
+    ->condition('entity_id', $uid, '=');
+  $result = $query->execute();
+  $recordcount = $query->countQuery()->execute()->fetchField();
+  if ($recordcount > 0) {
+    $record = $result->fetchAssoc();
+    return $record['field_profile_first_name_value'];
+  }
+  else {
+    return '';
+  }
+}
+
+function getlastname($uid) {
+  $query = db_select('field_data_field_profile_last_name', 'f')
+    ->fields('f', array('field_profile_last_name_value'))
+    ->condition('entity_id', $uid, '=');
+  $result = $query->execute();
+  $recordcount = $query->countQuery()->execute()->fetchField();
+  if ($recordcount > 0) {
+    $record = $result->fetchAssoc();
+    return $record['field_profile_last_name_value'];
+  }
+  else {
+    return '';
+  }
+}
+
+function getsalutation($uid) {
+  $query = db_select('field_data_field_profile_salutation', 'f')
+    ->fields('f', array('field_profile_salutation_value'))
+    ->condition('entity_id', $uid, '=');
+  $result = $query->execute();
+  $recordcount = $query->countQuery()->execute()->fetchField();
+  if ($recordcount > 0) {
+    $record = $result->fetchAssoc();
+    return $record['field_profile_salutation_value'];
+  }
+  else {
+    return '';
+  }
+}
+
+
+/*
+ * Needed fields:
+ * ==============
+ * Table: users
+ * Fields: uid, mail
+ * 
+ * Table: node
+ * Fields: nid, title (=name group)
+ * 
+ * Table: og_membership
+ * Fields: id, gid (node ->id, node id of group), etid (user -> uid)
+ * 
+ * Table: field_data_field_expiration_date
+ * Fields: entity_id (-> og_membership.id), field_expiration_date_value 
+ * 
+ * Table:  field_data_field_profile_first_name
+ * Fields: entity_id (-> users.uid), field_profile_first_name_value
+ * 
+ * Table:  field_data_field_profile_last_name
+ * Fields: entity_id (-> users.uid), field_profile_last_name_value
+ * 
+ * Table:  field_data_field_profile_salutation
+ * Fields: entity_id (-> users.uid), field_profile_salutation_value
+ *  
+ * 
+ * ================================================================================
+ * Data structure for this functionality
+ * ================================================================================
+ * Description & dump of table with expiration date in it:
+ * ================================================================================
+ *
+ * Table: field_data_field_expiration_date;
+ * Contains the expiration date of the form2: field_expiration_date_value
+ *
+ * Do a select on the field_data_field_expiration_date
+ *
+ * mysql> desc field_data_field_expiration_date;
+  +-----------------------------+------------------+------+-----+---------+-------+
+  | Field                       | Type             | Null | Key | Default | Extra |
+  +-----------------------------+------------------+------+-----+---------+-------+
+  | entity_type                 | varchar(128)     | NO   | PRI |         |       |
+  | bundle                      | varchar(128)     | NO   | MUL |         |       |
+  | deleted                     | tinyint(4)       | NO   | PRI | 0       |       |
+  | entity_id                   | int(10) unsigned | NO   | PRI | NULL    |       |
+  | revision_id                 | int(10) unsigned | YES  | MUL | NULL    |       |
+  | language                    | varchar(32)      | NO   | PRI |         |       |
+  | delta                       | int(10) unsigned | NO   | PRI | NULL    |       |
+  | field_expiration_date_value | datetime         | YES  |     | NULL    |       |
+  +-----------------------------+------------------+------+-----+---------+-------+
+  8 rows in set (0.00 sec)
+ * mysql> select * from field_data_field_expiration_date;
+  +---------------+----------------------------+---------+-----------+-------------+----------+-------+-----------------------------+
+  | entity_type   | bundle                     | deleted | entity_id | revision_id | language | delta | field_expiration_date_value |
+  +---------------+----------------------------+---------+-----------+-------------+----------+-------+-----------------------------+
+  | node          | dataset                    |       0 |        51 |          72 | und      |     0 | 2014-11-14 00:00:00         |
+  | node          | dataset                    |       0 |        54 |          67 | und      |     0 | 2014-11-08 00:00:00         |
+  | node          | dataset                    |       0 |        55 |          74 | und      |     0 | 2014-10-15 00:00:00         |
+  | node          | dataset                    |       0 |        56 |          66 | und      |     0 | 2014-11-07 00:00:00         |
+  | node          | dataset                    |       0 |        57 |          73 | und      |     0 | 2014-12-25 00:00:00         |
+  | node          | dataset                    |       0 |        58 |          63 | und      |     0 | 2014-12-17 00:00:00         |
+  | node          | dataset                    |       0 |        59 |          62 | und      |     0 | 2014-11-14 00:00:00         |
+  | og_membership | og_membership_type_default |       0 |      3007 |        3007 | und      |     0 | 2099-11-24 00:00:00         |
+  | og_membership | og_membership_type_default |       0 |      3008 |        3008 | und      |     0 | 2099-11-24 00:00:00         |
+  | og_membership | og_membership_type_default |       0 |      3009 |        3009 | und      |     0 | 2098-11-24 00:00:00         |
+  | og_membership | og_membership_type_default |       0 |      3010 |        3010 | und      |     0 | 2097-11-24 00:00:00         |
+  +---------------+----------------------------+---------+-----------+-------------+----------+-------+-----------------------------+
+  11 rows in set (0.00 sec)
+ *
+ * ==================================================================================
+ * Description & dump of table with motivation date in it:
+ * ================================================================================
+ *
+ * Table: field_data_field_form2_motivation;
+ * Contains the motivation of the form2
+ *
+  mysql> desc field_data_field_form2_motivation;
+ +-------------------------------+------------------+------+-----+---------+-------+
+ | Field                         | Type             | Null | Key | Default | Extra |
+ +-------------------------------+------------------+------+-----+---------+-------+
+ | entity_type                   | varchar(128)     | NO   | PRI |         |       |
+ | bundle                        | varchar(128)     | NO   | MUL |         |       |
+ | deleted                       | tinyint(4)       | NO   | PRI | 0       |       |
+ | entity_id                     | int(10) unsigned | NO   | PRI | NULL    |       |
+ | revision_id                   | int(10) unsigned | YES  | MUL | NULL    |       |
+ | language                      | varchar(32)      | NO   | PRI |         |       |
+ | delta                         | int(10) unsigned | NO   | PRI | NULL    |       |
+ | field_form2_motivation_value  | longtext         | YES  |     | NULL    |       |
+ | field_form2_motivation_format | varchar(255)     | YES  | MUL | NULL    |       |
+ +-------------------------------+------------------+------+-----+---------+-------+
+ 9 rows in set (0.00 sec)
+ *
+ * Do a select on the field_data_field_form2_motivation
+ *
+ * mysql> select * from field_data_field_form2_motivation;
+  +---------------+----------------------------+---------+-----------+-------------+----------+-------+------------------------------+-------------------------------+
+  | entity_type   | bundle                     | deleted | entity_id | revision_id | language | delta | field_form2_motivation_value | field_form2_motivation_format |
+  +---------------+----------------------------+---------+-----------+-------------+----------+-------+------------------------------+-------------------------------+
+  | og_membership | og_membership_type_default |       0 |      3007 |        3007 | und      |     0 | SJENGOETNUTH                 | NULL                          |
+  | og_membership | og_membership_type_default |       0 |      3008 |        3008 | und      |     0 | SJENGOETNUTH                 | NULL                          |
+  | og_membership | og_membership_type_default |       0 |      3009 |        3009 | und      |     0 | SJENGOETNUTH                 | NULL                          |
+  | og_membership | og_membership_type_default |       0 |      3010 |        3010 | und      |     0 | SJENGOETNUTH                 | NULL                          |
+  +---------------+----------------------------+---------+-----------+-------------+----------+-------+------------------------------+-------------------------------+
+  4 rows in set (0.00 sec)
+ *
+ * ==================================================================================
+ * Connection to users / OG
+ * ================================================================================
+ * The field_data_field_expiration_date table has an entity_id (e.g. 3007)
+ * This entity_id is the id of the og_membership
+ * This id of the og_membership is the uid of the user table
+ * So you can join the field_data_field_expiration_date and the user table to find out which user has an expiring membership
+ * and you can join field_data_field_expiration_date, og_membership, node to find out the name of the OG
+ *
+ * These are the memberships of the Organic group node
+ * mysql> select * from og_membership where gid = 62;
+  +------+----------------------------+------+-------------+-----+------------+-------+------------+--------------+----------+
+  | id   | type                       | etid | entity_type | gid | group_type | state | created    | field_name   | language |
+  +------+----------------------------+------+-------------+-----+------------+-------+------------+--------------+----------+
+  |   18 | og_membership_type_default |    1 | user        |  62 | node       | 1     | 1416233911 | og_user_node | en       |
+  | 2929 | og_membership_type_default |  914 | user        |  62 | node       | 1     | 1416477536 | og_group_ref | en       |
+  | 2939 | og_membership_type_default |  919 | user        |  62 | node       | 1     | 1416479437 | og_user_node | en       |
+  | 2958 | og_membership_type_default |  924 | user        |  62 | node       | 1     | 1416480326 | og_group_ref | en       |
+  | 2973 | og_membership_type_default |  927 | user        |  62 | node       | 1     | 1416480491 | og_group_ref | en       |
+  | 2979 | og_membership_type_default |  928 | user        |  62 | node       | 1     | 1416480565 | og_group_ref | en       |
+  | 2984 | og_membership_type_default |  929 | user        |  62 | node       | 1     | 1416480750 | og_group_ref | en       |
+  | 3007 | og_membership_type_default |  933 | user        |  62 | node       | 1     | 1416839834 | og_user_node | en       |
+  | 3008 | og_membership_type_default |  915 | user        |  62 | node       | 1     | 1416840241 | og_user_node | en       |
+  | 3009 | og_membership_type_default |  930 | user        |  62 | node       | 1     | 1416840273 | og_user_node | en       |
+  | 3010 | og_membership_type_default |  925 | user        |  62 | node       | 1     | 1416840289 | og_user_node | en       |
+  +------+----------------------------+------+-------------+-----+------------+-------+------------+--------------+----------+
+  11 rows in set (0.00 sec)
+
+  * This is the Organic group node
+  mysql> select * from node where nid = 62;
+  +-----+------+-----------+----------+--------------+-----+--------+------------+------------+---------+---------+--------+------+-----------+--------------------------------------+
+  | nid | vid  | type      | language | title        | uid | status | created    | changed    | comment | promote | sticky | tnid | translate | uuid                                 |
+  +-----+------+-----------+----------+--------------+-----+--------+------------+------------+---------+---------+--------+------+-----------+--------------------------------------+
+  |  62 |   77 | community | und      | COM-MU-NI-TY |   1 |      1 | 1416233910 | 1416233910 |       1 |       1 |      0 |    0 |         0 | 7a452566-f891-4d90-a1d2-1278ec7c746f |
+  +-----+------+-----------+----------+--------------+-----+--------+------------+------------+---------+---------+--------+------+-----------+--------------------------------------+
+  1 row in set (0.00 sec)
+ */
