@@ -1466,7 +1466,7 @@ function _mica_datasets_query_access($dataset_node, $query, $op = 'update') {
 
   // All variables associated to the query terms must be visible
   $terms = mica_query_term_query($query);
-  if (isset($terms)) {
+  if (isset($terms) && is_array($terms)) {
     foreach ($terms as $term) {
       if (node_access('view', node_load($term->variable_id)) == FALSE) {
         return FALSE;
