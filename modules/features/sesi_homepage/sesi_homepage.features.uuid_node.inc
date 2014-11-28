@@ -57,6 +57,7 @@ function sesi_homepage_uuid_features_default_content() {
       ),
     ),
   ),
+  'field_hide_title' => array(),
   'rdf_mapping' => array(
     'rdftype' => array(
       0 => 'foaf:Document',
@@ -170,6 +171,7 @@ function sesi_homepage_uuid_features_default_content() {
       ),
     ),
   ),
+  'field_hide_title' => array(),
   'rdf_mapping' => array(
     'rdftype' => array(
       0 => 'foaf:Document',
@@ -284,6 +286,7 @@ Installing a site with Mica demo profile will help to illustrate its functionali
       ),
     ),
   ),
+  'field_hide_title' => array(),
   'rdf_mapping' => array(
     'rdftype' => array(
       0 => 'foaf:Document',
@@ -414,6 +417,13 @@ Installing a site with Mica demo profile will help to illustrate its functionali
       ),
     ),
   ),
+  'field_hide_title' => array(
+    'und' => array(
+      0 => array(
+        'value' => 1,
+      ),
+    ),
+  ),
   'rdf_mapping' => array(
     'rdftype' => array(
       0 => 'foaf:Document',
@@ -521,6 +531,7 @@ Installing a site with Mica demo profile will help to illustrate its functionali
       ),
     ),
   ),
+  'field_hide_title' => array(),
   'rdf_mapping' => array(
     'rdftype' => array(
       0 => 'foaf:Document',
@@ -646,6 +657,7 @@ Installing a site with Mica demo profile will help to illustrate its functionali
       ),
     ),
   ),
+  'field_hide_title' => array(),
   'rdf_mapping' => array(
     'rdftype' => array(
       0 => 'foaf:Document',
