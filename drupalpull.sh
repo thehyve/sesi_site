@@ -79,6 +79,13 @@ fi
 # Install and enable og_email
 ensure_mod og_email
 
+# Install and enable og_email_blast to send emails to a complete group
+# Please note that using the ensure_mod function doesn't work here
+# as we need a specific version
+if isdisabled og_email_blast; then
+    drush --yes dl og_email_blast-7.x-2.x-dev
+    drush --yes en og_email_blast
+fi
 # Install and enable uuid_features module
 ensure_mod uuid_features
 
