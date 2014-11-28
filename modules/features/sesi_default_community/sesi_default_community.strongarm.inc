@@ -17,7 +17,7 @@ function sesi_default_community_strongarm() {
   $strongarm->value = array(
     'default_community' => 'default_community',
     'article' => 0,
-    'page' => 0,
+    'page' => 'page',
     'blog' => 0,
     'community' => 0,
     'community_document' => 0,

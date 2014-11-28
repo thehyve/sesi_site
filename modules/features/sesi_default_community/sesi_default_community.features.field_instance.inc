@@ -235,7 +235,7 @@ function sesi_default_community_field_default_field_instances() {
     'entity_type' => 'user',
     'field_name' => 'og_group_ref',
     'label' => 'Groups audience',
-    'required' => 1,
+    'required' => 0,
     'settings' => array(
       'behaviors' => array(
         'og_widget' => array(
@@ -249,7 +249,7 @@ function sesi_default_community_field_default_field_instances() {
           'status' => TRUE,
         ),
       ),
-      'user_register_form' => 1,
+      'user_register_form' => 0,
     ),
     'widget' => array(
       'active' => 0,

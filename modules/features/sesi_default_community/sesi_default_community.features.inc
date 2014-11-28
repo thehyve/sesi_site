@@ -18,24 +18,7 @@ function sesi_default_community_ctools_plugin_api($module = NULL, $api = NULL) {
  */
 function sesi_default_community_field_default_field_bases_alter(&$data) {
   if (isset($data['og_group_ref'])) {
-    $data['og_group_ref']['field_permissions'] = array(
-      'type' => 0,
-    ); /* WAS: '' */
-    $data['og_group_ref']['settings']['field_description_infos'] = array(
-      'field_description' => 0,
-      'field_description_body' => '',
-      'field_description_label' => '',
-      'field_description_value_type' => 'text',
-    ); /* WAS: '' */
-    $data['og_group_ref']['settings']['handler_settings']['behaviors']['views-select-list'] = array(
-      'status' => 0,
-    ); /* WAS: '' */
-    $data['og_group_ref']['settings']['handler_settings']['sort'] = array(
-      'type' => 'none',
-    ); /* WAS: '' */
-    $data['og_group_ref']['settings']['handler_settings']['target_bundles']['community'] = 'community'; /* WAS: '' */
-    $data['og_group_ref']['settings']['handler_settings']['target_bundles']['default_community'] = 'default_community'; /* WAS: '' */
-    $data['og_group_ref']['settings']['profile2_private'] = FALSE; /* WAS: '' */
+    $data['og_group_ref']['field_permissions']['type'] = 2; /* WAS: 0 */
   }
 }
 
