@@ -22,6 +22,10 @@ function mica_subtheme_process_page(&$variables) {
         return;
     }
     
+    if (!isset($variables['node']->field_hide_title['und'])) {
+        return;
+    }        
+    
     if($variables['node']->field_hide_title['und'][0]['value']) {
       $variables['title'] = NULL;         
     }
