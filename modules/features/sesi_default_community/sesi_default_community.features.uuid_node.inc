@@ -20,20 +20,20 @@ function sesi_default_community_uuid_features_default_content() {
   'sticky' => 0,
   'vuuid' => 'ae66294b-03d9-4b93-a1dc-a5cde811a39c',
   'type' => 'default_community',
-  'language' => 'en',
+  'language' => 'und',
   'created' => 1415100709,
   'tnid' => 0,
   'translate' => 0,
   'uuid' => '36aa942a-6f7e-40e3-b95b-7a11a2e919c4',
-  'revision_uid' => 0,
+  'revision_uid' => 1,
   'body' => array(
-    'en' => array(
+    'und' => array(
       0 => array(
-        'value' => '<p>Global community.&nbsp;</p>
+        'value' => '<p>Global Community.</p>
 ',
         'summary' => '',
-        'format' => 'filtered_html',
-        'safe_value' => '<p>Global community. </p>
+        'format' => 'full_html',
+        'safe_value' => '<p>Global Community.</p>
 ',
         'safe_summary' => '',
       ),
@@ -56,7 +56,7 @@ function sesi_default_community_uuid_features_default_content() {
   'group_register' => array(
     'und' => array(
       0 => array(
-        'value' => 1,
+        'value' => 0,
       ),
     ),
   ),
