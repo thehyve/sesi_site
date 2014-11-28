@@ -174,6 +174,9 @@ ensure_feat sesi_expiration_date
 ensure_mod collapse_text
 ensure_feat sesi_collapse_text
 ensure_mod text_hierarchical
+
+# Statistics
+ensure_mod better_statistics
  
 # Remove an old content type and some fields.
 #drush --yes php-eval "node_type_delete('page');"
