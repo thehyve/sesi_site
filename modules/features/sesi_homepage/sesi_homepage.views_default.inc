@@ -222,6 +222,32 @@ function sesi_homepage_views_default_views() {
   $handler->display->display_options['menu']['weight'] = '0';
   $handler->display->display_options['menu']['name'] = 'main-menu';
   $handler->display->display_options['menu']['context'] = 0;
+  $translatables['sesi_homepage'] = array(
+    t('Master'),
+    t('Events'),
+    t('more'),
+    t('Apply'),
+    t('Reset'),
+    t('Sort by'),
+    t('Asc'),
+    t('Desc'),
+    t('Items per page'),
+    t('- All -'),
+    t('Offset'),
+    t('« first'),
+    t('‹ previous'),
+    t('next ›'),
+    t('last »'),
+    t('empty_past_events'),
+    t('No past events found.'),
+    t('Event Date -  start date (field_event_date)'),
+    t('Page'),
+    t('Feed'),
+    t('Upcoming Events'),
+    t('empty_upcoming_events'),
+    t('No upcoming events found.'),
+    t('Past Events'),
+  );
   $export['sesi_homepage'] = $view;
 
   return $export;
