@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Sesi Notify Expirations feature.
+ */
+
+include_once 'sesi_notify_expirations.features.inc';
