@@ -122,6 +122,9 @@ function mica_query_edit_page($dataset_node, $query) {
       '!action' => $query ? t('Edit') : t('Add'),
     )
   ));
+  
+  query_interface_cleanupTerms($query);
+  
   return drupal_get_form('mica_query_edit_form', $dataset_node, $query);
 }
 
@@ -318,7 +321,8 @@ function mica_query_edit_form($form, &$form_state) {
       '#value' => t('Run'),
     );
   }
-
+  
+  
   return $form;
 }
 
@@ -394,7 +398,7 @@ function _mica_query_edit_form_remove_term(&$form_state, &$data) {
 }
 
 function mica_query_edit_form_validate($form, &$form_state) {
-  if ($form_state['triggering_element']['#parents'][0] != 'add-variable') {
+  if (!in_array( $form_state['triggering_element']['#parents'][0], array('add-variable', 'tmp-store' ) ) ) {
     if (isset($form_state['values']['list']) == FALSE) {
       form_set_error('variables', t('At least one variable selection is required.'));
     }
@@ -511,6 +515,16 @@ function mica_query_edit_form_submit($form, &$form_state) {
         $form_state['redirect'] = _mica_query_url($dataset_node, $query);
         $form_state['complete'] = TRUE;
         break;
+      case 'tmp-store':
+          // This state is matched if the form is submitted from code, not
+          // pressing a button. That happens if a modal dialog is submitted.
+          
+          // update query parameter, but without the terms
+          query_interface_store_query_parameters( $query, $form_state );
+          
+          $form_state['redirect'] = _mica_query_url($dataset_node, $query, 'edit');
+          $form_state['complete'] = TRUE;
+          break;          
     }
   }
 }
@@ -670,6 +684,8 @@ function mica_query_delete_form_submit($form, &$form_state) {
 
 function mica_query_run_page($form, &$form_state, $dataset_node, $query, $cross_variable_nid = NULL) {
 
+  query_interface_cleanupTerms($query);
+    
   drupal_set_title(t('!title -- !query', array('!title' => $dataset_node->title, '!query' => $query->name)));
 
   ctools_add_css('mica_datasets', 'mica_datasets');

@@ -71,6 +71,25 @@ class QuerySubscription extends Entity {
     return array_pop($q);
   }
 
+  public function threshold() {
+    return $this->threshold * 100;
+  }
+
+  public function interval() {
+    switch($this->poll_interval) {
+      case self::ALWAYS:
+        return t('always');
+      case self::DAILY:
+        return t('daily');
+      case self::WEEKLY:
+        return t('weekly');
+      case self::MONTHLY:
+        return t('monthly');
+      default:
+        throw new Exception("Unknown poll_interval value: {$this->poll_interval}, must be in range 1-3. Subscription id {$this->id}.");
+    }
+  }
+
   public function updated() {
     $d = new DateTime();
     $d->setTimestamp($this->updated);
@@ -89,7 +108,7 @@ class QuerySubscription extends Entity {
       case self::MONTHLY:
         return $this-> updated < time() - 60*60*24*30;
       default:
-        throw new Exception("Unknown poll_interval value: {$this->poll_interval}, must be in range 1-3");
+        throw new Exception("Unknown poll_interval value: {$this->poll_interval}, must be in range 1-3. Subscription id {$this->id}.");
     }
   }
 
