@@ -41,8 +41,8 @@ function ensure_feat() {
     echo "ensure_feat $1";
     if isdisabled $1; then
         drush --yes pm-enable $1 ; 
-        drush --yes features-revert $1 ;
     fi
+    drush --yes features-revert $1 ;
 }
 # ---------------------------------------------------------
 
