@@ -57,7 +57,7 @@ function sesi_notifyexpiration_cron() {
 
       if ((mailsent($row['id']) == FALSE) && (membershipexpires($row['field_expiration_date_value'], 7))) { // Only send mail if this has not yet been done AND membership expires within 7 days
         // These subscriptions will be mailed
-        // drupal_set_message($groupname . ' -> mail: ' . $mailaddress . ' group nid: ' . $row['gid'] . ' ' . ' User id: ' . $row['etid'] . ' - Profile: ' . $profileid . ' - Sal: ' . $salutation . ' - Firstname: ' . $firstname . ' - Lastname: ' . $lastname . ' ' . 'Grp type: ' . $row['entity_type'] . ' ' . ' ' . $row['field_expiration_date_value'] . ' Membership id: '. $row['id'] . ' Mail sent: ' . (mailsent($row['id'])?'Yes':'No'));
+        // drupal_set_message($groupname . ' -> mail: ' . $mailaddress . ' group nid: ' . $row['gid'] . ' ' . ' User id: ' . $row['etid'] . ' - Profile: ' . $profileid . ' - Sal: ' . $salutation . ' - Firstname: ' . $firstname . ' - Lastname: ' . $lastname . ' ' . 'Grp type: ' . $row['entity_type'] . ' ' . ' ' . $row['field_expiration_date_value'] . ' Membership id: ' . $row['id'] . ' Mail sent: ' . (mailsent($row['id']) ? 'Yes' : 'No'));
 
         // send mail if expiration date has been reached (PET functionality)
         $recipients = array();
@@ -88,9 +88,9 @@ function sesi_notifyexpiration_cron() {
           $pet->mail_body = str_replace($search, $replace, $clean_pet_body);
           $pet->subject = str_replace($search, $replace, $pet->subject);
           _sesi_notifyexpiration_pet_send_mail($pet, $recipients, $froms);
-          
+
           // Set watchdog
-          watchdog('sesi_notifyexpiration', 'Mail sent for membership: ' . $row['id'] . ' -> ' . $firstname. ' ' . $lastname);
+          //watchdog('sesi_notifyexpiration', 'Mail sent for membership: ' . $row['id'] . ' -> ' . $firstname . ' ' . $lastname);
 
           // Mail has been sent, set boolean
           set_membership_mail_sent($row['id']); // set the boolean to TRUE for the membership
@@ -99,14 +99,44 @@ function sesi_notifyexpiration_cron() {
           watchdog('sesi_notifyexpiration', 'Invalid PET template.', WATCHDOG_ERROR);
         }
       }
+      if (membershipexpires($row['field_expiration_date_value'], 0)) { // remove membership if expired
+        delete_membership($row['id']);
+      }
     }
   }
 }
 
 function set_membership_mail_sent($membership) {
+  /*
+   * Set the "mail sent" flag for the membership
+   */
   $query = db_update('field_data_field_mail_sent')
     ->fields(array('field_mail_sent_value' => 1))
     ->condition('entity_id', $membership, '=')
+    ->execute();
+}
+
+function delete_membership($membership) {
+  /* 
+   * Delete membership 
+   * Rows have to be deleted form the following tables:
+   * og_membership
+   * field_data_field_expiration_date
+   * field_data_field_mail_sent
+   */
+
+  //drupal_set_message('Delete membership: ' . $membership);
+
+  $query = db_delete('field_data_field_mail_sent')
+    ->condition('entity_id', $membership, '=')
+    ->execute();
+
+  $query = db_delete('field_data_field_expiration_date')
+    ->condition('entity_id', $membership, '=')
+    ->execute();
+
+  $query = db_delete('og_membership')
+    ->condition('id', $membership, '=')
     ->execute();
 }
 
@@ -114,7 +144,7 @@ function membershipexpires($dateparam, $daysremaining) {
   $expirationdate = strtotime($dateparam);
   $timeremaining = $expirationdate - time();
 
-  if (($timeremaining > 0) && ($timeremaining <= $daysremaining * 24 * 60 * 60)) {
+  if ($timeremaining <= $daysremaining * 24 * 60 * 60) {
     // drupal_set_message(date('Y-m-d',$expirationdate) . ' is binnen nu en ' . $daysremaining . ' dagen');
     return TRUE;
   }
@@ -327,8 +357,8 @@ function _sesi_notifyexpiration_pet_send_mail($pet, $recipients, $options) {
 
 
 /*
- * Needed fields:
- * ==============
+ * Details about the data structure / needed fields:
+ * =================================================
  * Table: users
  * Fields: uid, mail
  *
@@ -376,7 +406,11 @@ function _sesi_notifyexpiration_pet_send_mail($pet, $recipients, $options) {
   | field_expiration_date_value | datetime         | YES  |     | NULL    |       |
   +-----------------------------+------------------+------+-----+---------+-------+
   8 rows in set (0.00 sec)
- * mysql> select * from field_data_field_expiration_date;
+ * 
+ * The field_data_field_expiration_date contains the field_expiration_date_value field that shows when a membership expires 
+ * the og_membership.id = field_data_field_mail_sent.entity_id
+ * 
+* mysql> select * from field_data_field_expiration_date;
   +---------------+----------------------------+---------+-----------+-------------+----------+-------+-----------------------------+
   | entity_type   | bundle                     | deleted | entity_id | revision_id | language | delta | field_expiration_date_value |
   +---------------+----------------------------+---------+-----------+-------------+----------+-------+-----------------------------+
@@ -393,7 +427,38 @@ function _sesi_notifyexpiration_pet_send_mail($pet, $recipients, $options) {
   | og_membership | og_membership_type_default |       0 |      3010 |        3010 | und      |     0 | 2097-11-24 00:00:00         |
   +---------------+----------------------------+---------+-----------+-------------+----------+-------+-----------------------------+
   11 rows in set (0.00 sec)
- *
+ * 
+ * The field_data_field_mail_sent contains the field_mail_sent_value field that shows if a mail has been sent for the membership with 
+ * the og_membership.id = field_data_field_mail_sent.entity_id
+ * 
+ mysql> select * from field_data_field_mail_sent;
++---------------+----------------------------+---------+-----------+-------------+----------+-------+-----------------------+
+| entity_type   | bundle                     | deleted | entity_id | revision_id | language | delta | field_mail_sent_value |
++---------------+----------------------------+---------+-----------+-------------+----------+-------+-----------------------+
+| og_membership | og_membership_type_default |       0 |      2939 |        2939 | und      |     0 |                     1 |
+| og_membership | og_membership_type_default |       0 |      2988 |        2988 | und      |     0 |                     1 |
+| og_membership | og_membership_type_default |       0 |      3007 |        3007 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3012 |        3012 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3013 |        3013 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3014 |        3014 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3015 |        3015 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3018 |        3018 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3020 |        3020 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3021 |        3021 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3022 |        3022 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3026 |        3026 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3027 |        3027 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3028 |        3028 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3030 |        3030 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3032 |        3032 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3033 |        3033 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3036 |        3036 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3037 |        3037 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3038 |        3038 | und      |     0 |                     1 |
++---------------+----------------------------+---------+-----------+-------------+----------+-------+-----------------------+
+20 rows in set (0.00 sec)
+
+ * *
  * ==================================================================================
  * Description & dump of table with motivation date in it:
  * ================================================================================
