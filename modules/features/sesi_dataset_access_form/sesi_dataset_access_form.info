@@ -9,6 +9,7 @@ dependencies[] = pet
 dependencies[] = text
 features[ctools][] = strongarm:strongarm:1
 features[features_api][] = api:2
+features[features_overrides][] = views_view.datasets.display|default|display_options|access|perm
 features[field_base][] = field_dataset_id
 features[field_base][] = field_query_path
 features[field_instance][] = node-data_access_request_form-field_dataset_id
