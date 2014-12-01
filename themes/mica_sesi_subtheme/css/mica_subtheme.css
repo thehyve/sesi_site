@@ -84,7 +84,7 @@ browser window is small */
 .container {width:1024px !important;}
 
 /* To hide OG selection box in the registration page */
-#user-register-form #edit-og-group-ref {display: none;}
+/*#user-register-form #edit-og-group-ref {display: none;}*/
 
 /*===========================================================================*/
 /* Styling for homepage                                                      */    
@@ -190,3 +190,5 @@ browser window is small */
 {margin-left: 0px;}
 #block-panels-mini-sesi-homepage-unregistered  .panel-col-first form 
 {margin-bottom: 40px;}
+
+#user-profile-form #edit-block {display: none !important;}
