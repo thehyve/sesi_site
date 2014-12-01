@@ -1,5 +1,7 @@
 <?php
 /**
  * @file
- * Drupal needs this blank file.
+ * Code for the Inherit variable permissions feature.
  */
+
+include_once 'sesi_inherit_variable_permissions.features.inc';
