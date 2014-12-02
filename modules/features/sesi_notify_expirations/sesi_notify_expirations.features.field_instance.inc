@@ -36,8 +36,8 @@ function sesi_notify_expirations_field_default_field_instances() {
     'label' => 'Expiration date',
     'required' => 0,
     'settings' => array(
-      'default_value' => 'now',
-      'default_value2' => 'same',
+      'default_value' => '',
+      'default_value2' => '',
       'default_value_code' => '',
       'default_value_code2' => '',
       'user_register_form' => FALSE,
