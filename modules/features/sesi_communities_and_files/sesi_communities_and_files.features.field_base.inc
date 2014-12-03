@@ -10,6 +10,49 @@
 function sesi_communities_and_files_field_default_field_bases() {
   $field_bases = array();
 
+  // Exported field_base: 'field_datasets'
+  $field_bases['field_datasets'] = array(
+    'active' => 1,
+    'cardinality' => 1,
+    'deleted' => 0,
+    'entity_types' => array(),
+    'field_name' => 'field_datasets',
+    'foreign keys' => array(
+      'node' => array(
+        'columns' => array(
+          'target_id' => 'nid',
+        ),
+        'table' => 'node',
+      ),
+    ),
+    'indexes' => array(
+      'target_id' => array(
+        0 => 'target_id',
+      ),
+    ),
+    'locked' => 0,
+    'module' => 'entityreference',
+    'settings' => array(
+      'handler' => 'base',
+      'handler_settings' => array(
+        'behaviors' => array(
+          'views-select-list' => array(
+            'status' => 0,
+          ),
+        ),
+        'sort' => array(
+          'type' => 'none',
+        ),
+        'target_bundles' => array(
+          'dataset' => 'dataset',
+        ),
+      ),
+      'target_type' => 'node',
+    ),
+    'translatable' => 0,
+    'type' => 'entityreference',
+  );
+
   // Exported field_base: 'field_form2_motivation'
   $field_bases['field_form2_motivation'] = array(
     'active' => 1,
@@ -137,7 +180,7 @@ function sesi_communities_and_files_field_default_field_bases() {
     'entity_types' => array(),
     'field_name' => 'og_group_ref',
     'field_permissions' => array(
-      'type' => 0,
+      'type' => 2,
     ),
     'foreign keys' => array(
       'node' => array(
