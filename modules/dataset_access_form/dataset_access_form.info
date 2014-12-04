@@ -1,0 +1,11 @@
+name = Dataset Access Form
+description = Form to notify group adminstrators
+package = Sesi
+core = 7.x
+;files[] = dataset_access_form.test
+
+; Information added by Drupal.org packaging script on 2014-11-20
+version = "7.x-1.0b"
+core = "7.x"
+project = "sesi"
+datestamp = "1407030771"

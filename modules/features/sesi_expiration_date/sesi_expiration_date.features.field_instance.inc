@@ -42,7 +42,7 @@ function sesi_expiration_date_field_default_field_instances() {
     'label' => 'Expiration date',
     'required' => 0,
     'settings' => array(
-      'default_value' => 'now',
+      'default_value' => 'null',
       'default_value2' => 'same',
       'default_value_code' => '',
       'default_value_code2' => '',

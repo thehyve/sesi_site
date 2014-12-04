@@ -12,9 +12,7 @@ function sesi_default_community_og_features_default_permissions() {
 
   // Exported og permission: 'node:default_community:subscribe without approval'
   $permissions['node:default_community:subscribe without approval'] = array(
-    'roles' => array(
-      'non-member' => 'non-member',
-    ),
+    'roles' => array(),
   );
 
   return $permissions;

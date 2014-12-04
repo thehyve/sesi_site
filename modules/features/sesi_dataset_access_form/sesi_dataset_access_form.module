@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Sesi Dataset Access Form feature.
+ */
+
+include_once 'sesi_dataset_access_form.features.inc';

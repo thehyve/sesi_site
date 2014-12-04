@@ -1,11 +1,8 @@
 <?php
-
 /**
  * Used to automagically add a new user to a specific organic Group
  * OG name = "GLOBAL", content type = "default_community"
- * Jan Pillaerds, 18/11/2014
  */
-
 /**
  * Implements hook_user_insert().
  * $edit: The array of form values submitted by the user.
@@ -28,7 +25,7 @@ function sesi_addtogroup_user_insert(&$edit, $account, $category) {
     $og_membership = og_group('node', $group_nid, array('entity' => intval($account->uid)));
 
     // give message
-    drupal_set_message(t('User ' . $account->name . ' added to group ' . $groupname));
+    // drupal_set_message(t('User ' . $account->name . ' added to group ' . $groupname));
     }
   }
 }
