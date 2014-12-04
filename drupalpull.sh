@@ -136,6 +136,13 @@ ensure_feat sesi_dataset_versioning
 ensure_feat sesi_dataset_access_form
 ensure_feat sesi_vocabulary
 
+ensure_mod sesi_addtogroup
+ensure_mod sesi_notifyexpiration
+
+# Download Autologout module dependencies and enable it
+drush --yes dl autologout
+drush --yes en autologout
+
 #query
 ensure_mod query_interface
 ensure_mod query_subscription

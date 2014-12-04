@@ -1,0 +1,7 @@
+name = Notify expiration of membership
+description = SESIDEV-70 - Create a cron PHP to check permissions, 1 week before send email to user to notify expiration, remove membership if expiration date has passed.
+core = "7.x"
+version = "7.0"
+package = Sesi
+project = sesi_notifyexpiration
+dependencies[] = og
