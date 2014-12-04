@@ -17,15 +17,19 @@ function sesi_addtogroup_user_insert(&$edit, $account, $category) {
     // Drupal User Object: $account
     // OG Group Node Object: $group
     $group_nid = _get_group_nid($groupname, 'default_community');
+
     // check if $group_nid is valid
     if ($group_nid > 0) {
+
     // subscribe user to group by og_group()
     $og_membership = og_group('node', $group_nid, array('entity' => intval($account->uid)));
+
     // give message
-    drupal_set_message(t('User ' . $account->name . ' added to group ' . $groupname));
+    // drupal_set_message(t('User ' . $account->name . ' added to group ' . $groupname));
     }
   }
 }
+
 function _get_group_nid($groupname, $grouptype) {
   // grab the GLOBAL OG
   $query = db_select('node', 'n');

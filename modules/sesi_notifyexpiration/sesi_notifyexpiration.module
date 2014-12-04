@@ -1,0 +1,534 @@
+<?php
+
+/**
+ * Module: sesi_notifyexpiration
+ * Time-bound table view in MICA
+ * Add expiration date to user on subscription form to community
+ * Create a cron PHP to check permissions, 1 week before send email to user to notify expiration
+ * Added: Remove membership if expiration date has passed
+ * Jan Pillaerds, 21/11/2014
+ */
+
+/**
+ * Implements hook_cron().
+ * Arguments:
+ * no arguments
+ * references:
+ * https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_cron/7
+ * https://api.drupal.org/api/examples/cron_example!cron_example.module/7
+ * http://artfulrobot.com/blog/understanding-organic-groups-views
+ *
+ * Required PET email template: subscription_expiration_mail
+ */
+function sesi_notifyexpiration_cron() {
+  watchdog('cron', 'Cron executed sesi_notifyexpiration');
+
+  // Module logic
+  // ------------
+  // Loop through memberships with expirations date that are NOT NULL
+  // If expiring membership found (that is: membership that expires in 7 days (hardcoded))
+  //    Send mail: trigger rule that sends mail
+  //    Flag that membership reminder mail was sent
+  // If membership HAS expired: Remove membership
+  //
+
+
+  // Note dsm() and dpm() do not work with cron; use drupal_set_message() in stead
+  // drupal_set_message('sesi_notifyexpiration run by cron');
+  watchdog('sesi_notifyexpiration', 'Triggered by cron');
+
+  $pet = pet_load('subscription_expiration_mail'); // load template just once
+  $clean_pet_body = $pet->mail_body;
+
+  $query = db_select('og_membership', 'o')
+    ->fields('o', array('id', 'gid', 'entity_type', 'etid'))
+    ->fields('f', array('entity_id', 'field_expiration_date_value'));
+  $query->join('field_data_field_expiration_date', 'f', 'o.id = f.entity_id');
+  $result = $query->execute();
+
+  if ($result->rowCount() > 0) {
+    while ($row = $result->fetchAssoc()) {
+      $groupname = get_groupname($row['gid']);
+      $mailaddress = get_usermail(intval($row['etid']));
+      $profileid = get_profileid(intval($row['etid']));
+      $firstname = getfirstname($profileid);
+      $lastname = getlastname($profileid);
+      $salutation = getsalutation($profileid);
+
+      if ((mailsent($row['id']) == FALSE) && (membershipexpires($row['field_expiration_date_value'], 7))) { // Only send mail if this has not yet been done AND membership expires within 7 days
+        // These subscriptions will be mailed
+        // drupal_set_message($groupname . ' -> mail: ' . $mailaddress . ' group nid: ' . $row['gid'] . ' ' . ' User id: ' . $row['etid'] . ' - Profile: ' . $profileid . ' - Sal: ' . $salutation . ' - Firstname: ' . $firstname . ' - Lastname: ' . $lastname . ' ' . 'Grp type: ' . $row['entity_type'] . ' ' . ' ' . $row['field_expiration_date_value'] . ' Membership id: ' . $row['id'] . ' Mail sent: ' . (mailsent($row['id']) ? 'Yes' : 'No'));
+
+        // send mail if expiration date has been reached (PET functionality)
+        $recipients = array();
+        $recipients[] = $mailaddress;
+        $froms = array();
+
+        // check pet validity
+        if (pet_is_valid($pet)) {
+
+          if (isset($replace)) {
+            unset($replace);
+          }
+
+          $search = array(
+            '__SALUTATION__',
+            '__FIRSTNAME__',
+            '__LASTNAME__',
+            '__GROUPNAME__',
+            '__ENDDATE__',
+          );
+          $replace = array(
+            $salutation,
+            $firstname,
+            $lastname,
+            $groupname,
+            substr($row['field_expiration_date_value'], 0, 10)
+          );
+          $pet->mail_body = str_replace($search, $replace, $clean_pet_body);
+          $pet->subject = str_replace($search, $replace, $pet->subject);
+          _sesi_notifyexpiration_pet_send_mail($pet, $recipients, $froms);
+
+          // Set watchdog
+          //watchdog('sesi_notifyexpiration', 'Mail sent for membership: ' . $row['id'] . ' -> ' . $firstname . ' ' . $lastname);
+
+          // Mail has been sent, set boolean
+          set_membership_mail_sent($row['id']); // set the boolean to TRUE for the membership
+        }
+        else {
+          watchdog('sesi_notifyexpiration', 'Invalid PET template.', WATCHDOG_ERROR);
+        }
+      }
+      if (membershipexpires($row['field_expiration_date_value'], 0)) { // remove membership if expired
+        delete_membership($row['id']);
+      }
+    }
+  }
+}
+
+function set_membership_mail_sent($membership) {
+  /*
+   * Set the "mail sent" flag for the membership
+   */
+  $query = db_update('field_data_field_mail_sent')
+    ->fields(array('field_mail_sent_value' => 1))
+    ->condition('entity_id', $membership, '=')
+    ->execute();
+}
+
+function delete_membership($membership) {
+  /* 
+   * Delete membership 
+   * Rows have to be deleted form the following tables:
+   * og_membership
+   * field_data_field_expiration_date
+   * field_data_field_mail_sent
+   */
+
+  //drupal_set_message('Delete membership: ' . $membership);
+
+  $query = db_delete('field_data_field_mail_sent')
+    ->condition('entity_id', $membership, '=')
+    ->execute();
+
+  $query = db_delete('field_data_field_expiration_date')
+    ->condition('entity_id', $membership, '=')
+    ->execute();
+
+  $query = db_delete('og_membership')
+    ->condition('id', $membership, '=')
+    ->execute();
+}
+
+function membershipexpires($dateparam, $daysremaining) {
+  $expirationdate = strtotime($dateparam);
+  $timeremaining = $expirationdate - time();
+
+  if ($timeremaining <= $daysremaining * 24 * 60 * 60) {
+    // drupal_set_message(date('Y-m-d',$expirationdate) . ' is binnen nu en ' . $daysremaining . ' dagen');
+    return TRUE;
+  }
+  else {
+    // drupal_set_message(date('Y-m-d',$expirationdate) . ' is NIET binnen nu en ' . $daysremaining . ' dagen');
+    return FALSE;
+  }
+}
+
+function get_groupname($gid) {
+  $query = db_select('node', 'n')
+    ->fields('n', array('title'))
+    ->condition('nid', $gid, '=');
+  $result = $query->execute();
+  $recordcount = $query->countQuery()->execute()->fetchField();
+  //dsm($recordcount);
+  if ($recordcount > 0) {
+    $record = $result->fetchAssoc();
+    return $record['title'];
+  }
+  else {
+    return '-';
+  }
+}
+
+function get_usermail($uid) {
+  $query = db_select('users', 'u')
+    ->fields('u', array('mail'))
+    ->condition('uid', $uid, '=');
+  $result = $query->execute();
+  $recordcount = $query->countQuery()->execute()->fetchField();
+  if ($recordcount > 0) {
+    $record = $result->fetchAssoc();
+    return $record['mail'];
+  }
+  else {
+    return '-';
+  }
+}
+
+function get_profileid($uid) {
+  $query = db_select('profile', 'p')
+    ->fields('p', array('pid'))
+    ->condition('uid', $uid, '=');
+  $result = $query->execute();
+  $recordcount = $query->countQuery()->execute()->fetchField();
+  if ($recordcount > 0) {
+    $record = $result->fetchAssoc();
+    return $record['pid'];
+  }
+  else {
+    return 0;
+  }
+}
+
+function getfirstname($uid) {
+  $query = db_select('field_data_field_profile_first_name', 'f')
+    ->fields('f', array('field_profile_first_name_value'))
+    ->condition('entity_id', $uid, '=');
+  $result = $query->execute();
+  $recordcount = $query->countQuery()->execute()->fetchField();
+  if ($recordcount > 0) {
+    $record = $result->fetchAssoc();
+    return $record['field_profile_first_name_value'];
+  }
+  else {
+    return '';
+  }
+}
+
+function getlastname($uid) {
+  $query = db_select('field_data_field_profile_last_name', 'f')
+    ->fields('f', array('field_profile_last_name_value'))
+    ->condition('entity_id', $uid, '=');
+  $result = $query->execute();
+  $recordcount = $query->countQuery()->execute()->fetchField();
+  if ($recordcount > 0) {
+    $record = $result->fetchAssoc();
+    return $record['field_profile_last_name_value'];
+  }
+  else {
+    return '';
+  }
+}
+
+function getsalutation($uid) {
+  $query = db_select('field_data_field_profile_salutation', 'f')
+    ->fields('f', array('field_profile_salutation_value'))
+    ->condition('entity_id', $uid, '=');
+  $result = $query->execute();
+  $recordcount = $query->countQuery()->execute()->fetchField();
+  if ($recordcount > 0) {
+    $record = $result->fetchAssoc();
+    return $record['field_profile_salutation_value'];
+  }
+  else {
+    return '';
+  }
+}
+
+function mailsent($membership) {
+  $query = db_select('field_data_field_mail_sent', 'f')
+    ->fields('f', array('field_mail_sent_value'))
+    ->condition('entity_id', $membership, '=');
+  $result = $query->execute();
+  $recordcount = $query->countQuery()->execute()->fetchField();
+  if ($recordcount > 0) {
+    $record = $result->fetchAssoc();
+    if ($record['field_mail_sent_value'] == '1') {
+      return TRUE;
+    }
+    else {
+      return FALSE;
+    }
+  }
+  else {
+    return FALSE;
+  }
+}
+
+/**
+ * Send tokenized email to a list of recipients.
+ *
+ * Given a list of recipients, and an optional node id, perform token
+ * substitution and send an email to each. The node substitutions, if any,
+ * are the same in each email sent.  The user tokens, if any are custom based
+ * on the account (if any) associated with each email.
+ *
+ * @param $name
+ *   The unique name of the PET template.
+ * @param $recipients
+ *   An array of at least one recipient in one of two formats:
+ *      1. a simple email address, in which case the uid is looked up
+ *      2. an array('mail' => <email address>, 'uid' => <uid>) in which case
+ *         the uid is already available (more efficient)
+ * @param $options
+ *   An array of options as follows:
+ *      nid - An optional node id for token substitutions.
+ *      subject - An optional subject which if provided will override the
+ *        subject in the PET.
+ *      body - An optional body which if provided which will override the body
+ *        in the PET.
+ *      body_plain - An optional plain text body which if provided which will
+ *        override the plain text body in the PET.
+ *      from - An optional from email which if provided which will override the
+ *        from in the PET (which in turn overrides the site default).
+ *      reply_to - Optional
+ *      cc - Optional cc emails which if provided which will override the cc's
+ *        in the PET.
+ *      bcc - Optional bcc emails which if provided which will override the
+ *        bcc's in the PET.
+ */
+function _sesi_notifyexpiration_pet_send_mail($pet, $recipients, $options) {
+
+  if (!$pet) {
+    //  watchdog('pet', 'Unable to load PET %name.', array('%name' => $name), WATCHDOG_ERROR);
+    return;
+  }
+
+  if (!is_array($recipients) || count($recipients) < 1) {
+//    watchdog('pet', 'At least one recipient must be provided for PET %name.', array('%name' => $name), WATCHDOG_NOTICE);
+    return;
+  }
+
+  // Override subject and body if necessary
+  $pet->subject = isset($options['subject']) ? $options['subject'] : $pet->subject;
+  $pet->mail_body = isset($options['body']) ? $options['body'] : $pet->mail_body;
+  $pet->mail_body_plain = isset($options['body_plain']) ? $options['body_plain'] : $pet->mail_body_plain;
+
+  // Resolve from address
+  if (pet_isset_or($options['from'])) {
+    $from = $options['from'];
+  }
+  elseif ($pet->from_override) {
+    $from = $pet->from_override;
+  }
+  else {
+    $from = variable_get('site_mail', ini_get('sendmail_from'));
+  }
+
+  // Store data in params in case a module wants to act on them somehow
+  $params = array(
+    'pet_from' => $from,
+    'pet_recipients' => $recipients,
+    'pet_nid' => pet_isset_or($options['nid']),
+    'pet_cc' => pet_parse_mails(pet_isset_or($options['cc'])),
+    'pet_bcc' => pet_parse_mails(pet_isset_or($options['bcc'])),
+    'pet_reply_to' => pet_isset_or($options['reply_to']),
+    'pet_options' => $options,
+  );
+
+  // array to hold status of messages send
+  $message_status = array();
+  foreach ($recipients as $recipient) {
+    if (is_array($recipient)) {
+      $params['pet_to'] = $recipient['mail'];
+      $params['pet_uid'] = $recipient['uid'];
+    }
+    else {
+      // Strip leading uid for backward compatibility
+      $mail = preg_replace('/^[0-9]*\|/', '', $recipient);
+      $params['pet_to'] = $mail;
+      $params['pet_uid'] = pet_lookup_uid($mail);
+    }
+    $message_status[$params['pet_to']] = pet_send_one_mail($pet, $params);
+  }
+  // return message status
+  return $message_status;
+}
+
+
+/*
+ * Details about the data structure / needed fields:
+ * =================================================
+ * Table: users
+ * Fields: uid, mail
+ *
+ * Table: node
+ * Fields: nid, title (=name group)
+ *
+ * Table: og_membership
+ * Fields: id, gid (node ->id, node id of group), etid (user -> uid)
+ *
+ * Table: field_data_field_expiration_date
+ * Fields: entity_id (-> og_membership.id), field_expiration_date_value
+ *
+ * Table:  field_data_field_profile_first_name
+ * Fields: entity_id (-> users.uid), field_profile_first_name_value
+ *
+ * Table:  field_data_field_profile_last_name
+ * Fields: entity_id (-> users.uid), field_profile_last_name_value
+ *
+ * Table:  field_data_field_profile_salutation
+ * Fields: entity_id (-> users.uid), field_profile_salutation_value
+ *
+ *
+ * ================================================================================
+ * Data structure for this functionality
+ * ================================================================================
+ * Description & dump of table with expiration date in it:
+ * ================================================================================
+ *
+ * Table: field_data_field_expiration_date;
+ * Contains the expiration date of the form2: field_expiration_date_value
+ *
+ * Do a select on the field_data_field_expiration_date
+ *
+ * mysql> desc field_data_field_expiration_date;
+  +-----------------------------+------------------+------+-----+---------+-------+
+  | Field                       | Type             | Null | Key | Default | Extra |
+  +-----------------------------+------------------+------+-----+---------+-------+
+  | entity_type                 | varchar(128)     | NO   | PRI |         |       |
+  | bundle                      | varchar(128)     | NO   | MUL |         |       |
+  | deleted                     | tinyint(4)       | NO   | PRI | 0       |       |
+  | entity_id                   | int(10) unsigned | NO   | PRI | NULL    |       |
+  | revision_id                 | int(10) unsigned | YES  | MUL | NULL    |       |
+  | language                    | varchar(32)      | NO   | PRI |         |       |
+  | delta                       | int(10) unsigned | NO   | PRI | NULL    |       |
+  | field_expiration_date_value | datetime         | YES  |     | NULL    |       |
+  +-----------------------------+------------------+------+-----+---------+-------+
+  8 rows in set (0.00 sec)
+ * 
+ * The field_data_field_expiration_date contains the field_expiration_date_value field that shows when a membership expires 
+ * the og_membership.id = field_data_field_mail_sent.entity_id
+ * 
+* mysql> select * from field_data_field_expiration_date;
+  +---------------+----------------------------+---------+-----------+-------------+----------+-------+-----------------------------+
+  | entity_type   | bundle                     | deleted | entity_id | revision_id | language | delta | field_expiration_date_value |
+  +---------------+----------------------------+---------+-----------+-------------+----------+-------+-----------------------------+
+  | node          | dataset                    |       0 |        51 |          72 | und      |     0 | 2014-11-14 00:00:00         |
+  | node          | dataset                    |       0 |        54 |          67 | und      |     0 | 2014-11-08 00:00:00         |
+  | node          | dataset                    |       0 |        55 |          74 | und      |     0 | 2014-10-15 00:00:00         |
+  | node          | dataset                    |       0 |        56 |          66 | und      |     0 | 2014-11-07 00:00:00         |
+  | node          | dataset                    |       0 |        57 |          73 | und      |     0 | 2014-12-25 00:00:00         |
+  | node          | dataset                    |       0 |        58 |          63 | und      |     0 | 2014-12-17 00:00:00         |
+  | node          | dataset                    |       0 |        59 |          62 | und      |     0 | 2014-11-14 00:00:00         |
+  | og_membership | og_membership_type_default |       0 |      3007 |        3007 | und      |     0 | 2099-11-24 00:00:00         |
+  | og_membership | og_membership_type_default |       0 |      3008 |        3008 | und      |     0 | 2099-11-24 00:00:00         |
+  | og_membership | og_membership_type_default |       0 |      3009 |        3009 | und      |     0 | 2098-11-24 00:00:00         |
+  | og_membership | og_membership_type_default |       0 |      3010 |        3010 | und      |     0 | 2097-11-24 00:00:00         |
+  +---------------+----------------------------+---------+-----------+-------------+----------+-------+-----------------------------+
+  11 rows in set (0.00 sec)
+ * 
+ * The field_data_field_mail_sent contains the field_mail_sent_value field that shows if a mail has been sent for the membership with 
+ * the og_membership.id = field_data_field_mail_sent.entity_id
+ * 
+ mysql> select * from field_data_field_mail_sent;
++---------------+----------------------------+---------+-----------+-------------+----------+-------+-----------------------+
+| entity_type   | bundle                     | deleted | entity_id | revision_id | language | delta | field_mail_sent_value |
++---------------+----------------------------+---------+-----------+-------------+----------+-------+-----------------------+
+| og_membership | og_membership_type_default |       0 |      2939 |        2939 | und      |     0 |                     1 |
+| og_membership | og_membership_type_default |       0 |      2988 |        2988 | und      |     0 |                     1 |
+| og_membership | og_membership_type_default |       0 |      3007 |        3007 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3012 |        3012 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3013 |        3013 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3014 |        3014 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3015 |        3015 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3018 |        3018 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3020 |        3020 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3021 |        3021 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3022 |        3022 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3026 |        3026 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3027 |        3027 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3028 |        3028 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3030 |        3030 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3032 |        3032 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3033 |        3033 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3036 |        3036 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3037 |        3037 | und      |     0 |                     0 |
+| og_membership | og_membership_type_default |       0 |      3038 |        3038 | und      |     0 |                     1 |
++---------------+----------------------------+---------+-----------+-------------+----------+-------+-----------------------+
+20 rows in set (0.00 sec)
+
+ * *
+ * ==================================================================================
+ * Description & dump of table with motivation date in it:
+ * ================================================================================
+ *
+ * Table: field_data_field_form2_motivation;
+ * Contains the motivation of the form2
+ *
+  mysql> desc field_data_field_form2_motivation;
+ +-------------------------------+------------------+------+-----+---------+-------+
+ | Field                         | Type             | Null | Key | Default | Extra |
+ +-------------------------------+------------------+------+-----+---------+-------+
+ | entity_type                   | varchar(128)     | NO   | PRI |         |       |
+ | bundle                        | varchar(128)     | NO   | MUL |         |       |
+ | deleted                       | tinyint(4)       | NO   | PRI | 0       |       |
+ | entity_id                     | int(10) unsigned | NO   | PRI | NULL    |       |
+ | revision_id                   | int(10) unsigned | YES  | MUL | NULL    |       |
+ | language                      | varchar(32)      | NO   | PRI |         |       |
+ | delta                         | int(10) unsigned | NO   | PRI | NULL    |       |
+ | field_form2_motivation_value  | longtext         | YES  |     | NULL    |       |
+ | field_form2_motivation_format | varchar(255)     | YES  | MUL | NULL    |       |
+ +-------------------------------+------------------+------+-----+---------+-------+
+ 9 rows in set (0.00 sec)
+ *
+ * Do a select on the field_data_field_form2_motivation
+ *
+ * mysql> select * from field_data_field_form2_motivation;
+  +---------------+----------------------------+---------+-----------+-------------+----------+-------+------------------------------+-------------------------------+
+  | entity_type   | bundle                     | deleted | entity_id | revision_id | language | delta | field_form2_motivation_value | field_form2_motivation_format |
+  +---------------+----------------------------+---------+-----------+-------------+----------+-------+------------------------------+-------------------------------+
+  | og_membership | og_membership_type_default |       0 |      3007 |        3007 | und      |     0 | SJENGOETNUTH                 | NULL                          |
+  | og_membership | og_membership_type_default |       0 |      3008 |        3008 | und      |     0 | SJENGOETNUTH                 | NULL                          |
+  | og_membership | og_membership_type_default |       0 |      3009 |        3009 | und      |     0 | SJENGOETNUTH                 | NULL                          |
+  | og_membership | og_membership_type_default |       0 |      3010 |        3010 | und      |     0 | SJENGOETNUTH                 | NULL                          |
+  +---------------+----------------------------+---------+-----------+-------------+----------+-------+------------------------------+-------------------------------+
+  4 rows in set (0.00 sec)
+ *
+ * ==================================================================================
+ * Connection to users / OG
+ * ================================================================================
+ * The field_data_field_expiration_date table has an entity_id (e.g. 3007)
+ * This entity_id is the id of the og_membership
+ * This id of the og_membership is the uid of the user table
+ * So you can join the field_data_field_expiration_date and the user table to find out which user has an expiring membership
+ * and you can join field_data_field_expiration_date, og_membership, node to find out the name of the OG
+ *
+ * These are the memberships of the Organic group node
+ * mysql> select * from og_membership where gid = 62;
+  +------+----------------------------+------+-------------+-----+------------+-------+------------+--------------+----------+
+  | id   | type                       | etid | entity_type | gid | group_type | state | created    | field_name   | language |
+  +------+----------------------------+------+-------------+-----+------------+-------+------------+--------------+----------+
+  |   18 | og_membership_type_default |    1 | user        |  62 | node       | 1     | 1416233911 | og_user_node | en       |
+  | 2929 | og_membership_type_default |  914 | user        |  62 | node       | 1     | 1416477536 | og_group_ref | en       |
+  | 2939 | og_membership_type_default |  919 | user        |  62 | node       | 1     | 1416479437 | og_user_node | en       |
+  | 2958 | og_membership_type_default |  924 | user        |  62 | node       | 1     | 1416480326 | og_group_ref | en       |
+  | 2973 | og_membership_type_default |  927 | user        |  62 | node       | 1     | 1416480491 | og_group_ref | en       |
+  | 2979 | og_membership_type_default |  928 | user        |  62 | node       | 1     | 1416480565 | og_group_ref | en       |
+  | 2984 | og_membership_type_default |  929 | user        |  62 | node       | 1     | 1416480750 | og_group_ref | en       |
+  | 3007 | og_membership_type_default |  933 | user        |  62 | node       | 1     | 1416839834 | og_user_node | en       |
+  | 3008 | og_membership_type_default |  915 | user        |  62 | node       | 1     | 1416840241 | og_user_node | en       |
+  | 3009 | og_membership_type_default |  930 | user        |  62 | node       | 1     | 1416840273 | og_user_node | en       |
+  | 3010 | og_membership_type_default |  925 | user        |  62 | node       | 1     | 1416840289 | og_user_node | en       |
+  +------+----------------------------+------+-------------+-----+------------+-------+------------+--------------+----------+
+  11 rows in set (0.00 sec)
+
+  * This is the Organic group node
+  mysql> select * from node where nid = 62;
+  +-----+------+-----------+----------+--------------+-----+--------+------------+------------+---------+---------+--------+------+-----------+--------------------------------------+
+  | nid | vid  | type      | language | title        | uid | status | created    | changed    | comment | promote | sticky | tnid | translate | uuid                                 |
+  +-----+------+-----------+----------+--------------+-----+--------+------------+------------+---------+---------+--------+------+-----------+--------------------------------------+
+  |  62 |   77 | community | und      | COM-MU-NI-TY |   1 |      1 | 1416233910 | 1416233910 |       1 |       1 |      0 |    0 |         0 | 7a452566-f891-4d90-a1d2-1278ec7c746f |
+  +-----+------+-----------+----------+--------------+-----+--------+------------+------------+---------+---------+--------+------+-----------+--------------------------------------+
+  1 row in set (0.00 sec)
+ */
