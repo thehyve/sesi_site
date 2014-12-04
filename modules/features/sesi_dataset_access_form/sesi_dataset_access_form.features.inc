@@ -14,15 +14,6 @@ function sesi_dataset_access_form_ctools_plugin_api($module = NULL, $api = NULL)
 }
 
 /**
- * Implements hook_views_default_views_alter().
- */
-function sesi_dataset_access_form_views_default_views_alter(&$data) {
-  if (isset($data['datasets'])) {
-    $data['datasets']->display['default']->display_options['access']['perm'] = 'update group'; /* WAS: '' */
-  }
-}
-
-/**
  * Implements hook_node_info().
  */
 function sesi_dataset_access_form_node_info() {
