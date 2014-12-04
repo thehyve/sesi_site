@@ -1,6 +1,5 @@
 <?php
 
-// If set to true, do not change the edit form but use the original mica form.
 define("ORIGINAL_FORM", false);
 
 ctools_include('ajax');
@@ -28,6 +27,17 @@ function query_interface_menu() {
         'page callback' => 'query_interface_add_query_term_modal_page', 
         'page arguments' => array(1, 3, 5, 7, 9),
         'type' => MENU_CALLBACK
+    );
+    
+    // This URL is used to edit a term from the query screen
+    $items['sesi/%ctools_js/node/%node/queries/%mica_query/term/%mica_query_term/edit'] = array(
+        'title' => 'Edit',
+        'access callback' => '_mica_datasets_query_term_access',
+        'access arguments' => array(3, 5, 7, 'update'),
+        'page callback' => 'query_interface_query_term_edit_modal_page',
+        'page arguments' => array(1, 3, 5, 7, 9),
+        'type' => MENU_CALLBACK,
+        'file' => 'query_interface.handling_terms.inc',
     );
     
     // This URL is used to retrieve the taxonomy tree for a given dataset

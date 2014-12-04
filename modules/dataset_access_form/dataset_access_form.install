@@ -1,0 +1,28 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the Dataset Access Form module.
+ */
+
+/**
+ * Makes sure that the methods of the dataset_access_form module are
+ * executed after the mica_data_access module.
+ * 
+ * Implements hook_install().
+ */
+
+function dataset_access_form_install() {
+  // Get the weight of the module we want to compare against
+  $weight = db_select('system', 's')
+              ->fields('s', array('weight'))
+              ->condition('name', 'mica_data_access', '=')
+              ->execute()
+              ->fetchField();
+  
+  // Set our module to a weight 1 heavier, so ours moves lower in execution order
+  db_update('system')
+    ->fields(array('weight' => $weight + 1))
+    ->condition('name', 'dataset_access_form', '=')
+    ->execute();     
+}

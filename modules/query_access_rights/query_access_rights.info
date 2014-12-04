@@ -1,0 +1,7 @@
+name = Query Access Rights
+description = Modify default access rights for queries to give administrators full access
+core = 7.x
+package = Sesi
+dependencies[] = mica_query
+dependencies[] = dataset_access_form
+dependencies[] = og

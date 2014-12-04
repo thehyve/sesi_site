@@ -1,0 +1,7 @@
+name = Add to Group
+description = SESIDEV-81 - Adds a new user to an organic group called "GLOBAL"
+core = 7.x
+version = "7.0"
+package = sesi
+project = sesi_addtogroup
+dependencies[] = og

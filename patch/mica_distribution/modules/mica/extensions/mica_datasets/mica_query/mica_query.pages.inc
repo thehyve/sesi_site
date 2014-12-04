@@ -61,12 +61,17 @@ function mica_query_queries_page($dataset_node) {
     'actions' => t('Operations'),
   );
 
+  $is_admin = false;
+  if (function_exists('query_access_rights_user_is_admin')) {
+    $is_admin = query_access_rights_user_is_admin($dataset_node);
+  }
+
   $options = array();
 
   $queries = MicaDatasetQueryManager::getAllQueries($dataset_node->nid);
   if ($queries) {
     foreach ($queries as $query) {
-      if ($query->published || $query->user_id == $user->uid) {
+      if ($query->published || $query->user_id == $user->uid || $is_admin) {
         $name = _mica_query_link($dataset_node, $query);
 
         if ($user->uid != 0 && MicaDatasetQueryManager::isCached($query)) {
@@ -122,6 +127,9 @@ function mica_query_edit_page($dataset_node, $query) {
       '!action' => $query ? t('Edit') : t('Add'),
     )
   ));
+  
+  query_interface_cleanupTerms($query);
+  
   return drupal_get_form('mica_query_edit_form', $dataset_node, $query);
 }
 
@@ -318,7 +326,8 @@ function mica_query_edit_form($form, &$form_state) {
       '#value' => t('Run'),
     );
   }
-
+  
+  
   return $form;
 }
 
@@ -394,7 +403,7 @@ function _mica_query_edit_form_remove_term(&$form_state, &$data) {
 }
 
 function mica_query_edit_form_validate($form, &$form_state) {
-  if ($form_state['triggering_element']['#parents'][0] != 'add-variable') {
+  if (!in_array( $form_state['triggering_element']['#parents'][0], array('add-variable', 'tmp-store' ) ) ) {
     if (isset($form_state['values']['list']) == FALSE) {
       form_set_error('variables', t('At least one variable selection is required.'));
     }
@@ -456,8 +465,13 @@ function mica_query_edit_form_submit($form, &$form_state) {
           // update query
           $query->name = check_plain($form_state['values']['name']);
           $query->description = $form_state['values']['description'];
-          $query->cross_variable_id = $form_state['values']['cross-variable'] == '-1' ? NULL : $form_state['values']['cross-variable'];
 
+          if( array_key_exists( 'cross-variable', $form_state['values'] ) && $form_state['values']['cross-variable'] != 1 ) {
+            $query->cross_variable_id = $form_state['values']['cross-variable'];
+          } else {
+            $query->cross_variable_id = null;
+          }
+          
           if (isset($form_state['values']['publish'])) {
             $query->published = $form_state['values']['publish'];
           }
@@ -511,6 +525,16 @@ function mica_query_edit_form_submit($form, &$form_state) {
         $form_state['redirect'] = _mica_query_url($dataset_node, $query);
         $form_state['complete'] = TRUE;
         break;
+      case 'tmp-store':
+          // This state is matched if the form is submitted from code, not
+          // pressing a button. That happens if a modal dialog is submitted.
+          
+          // update query parameter, but without the terms
+          query_interface_store_query_parameters( $query, $form_state );
+          
+          $form_state['redirect'] = _mica_query_url($dataset_node, $query, 'edit');
+          $form_state['complete'] = TRUE;
+          break;          
     }
   }
 }
@@ -670,6 +694,8 @@ function mica_query_delete_form_submit($form, &$form_state) {
 
 function mica_query_run_page($form, &$form_state, $dataset_node, $query, $cross_variable_nid = NULL) {
 
+  query_interface_cleanupTerms($query);
+    
   drupal_set_title(t('!title -- !query', array('!title' => $dataset_node->title, '!query' => $query->name)));
 
   ctools_add_css('mica_datasets', 'mica_datasets');

@@ -91,7 +91,7 @@ function dataset_inheritance_node_insert($node) {
         return;
     }
 
-    $num_variables = _dataset_inheritance_clone_variables_from_parent($wrapper, $parent_nid);
+    $num_variables = _dataset_inheritance_clone_variables_from_parent($wrapper, $parent_nid, $wrapper->field_inherit_permissions->value());
     if ( $num_variables > 0 ) {
         drupal_set_message(t("Added @entries variables.", array('@entries' => $num_variables)), 'status');
     }
@@ -141,7 +141,7 @@ function dataset_inheritance_form_alter(&$form, $form_state, $form_id) {
         $newbutton = array(
             '#type' => 'submit',
             '#value' => 'Update inherited fields',
-            '#weight' => $form['field_dataset_parent']['#weight'] + 1,
+            '#weight' => $form['field_inherit_permissions']['#weight'] + 1,
             '#submit' => array( 'node_form_submit', 'dataset_inheritance_update_inherited_fields' )
         );
 
@@ -177,18 +177,28 @@ function dataset_inheritance_update_inherited_fields($form, &$form_state) {
     // last save)
     $parent_nid = _dataset_inheritance_get_parent_from_dataset( $dataset_wrapper );
     
+    
     if( $parent_nid ) {
         // Update inherited fields
         $num_fields = _dataset_inheritance_update_inheritance( $dataset_wrapper, $parent_nid );
-
         drupal_set_message(t('Inherited fields are updated.', array()));
     } else {
         // If the dataset doesn't have a parent, delete the inherited variables
         _dataset_inheritance_delete_inherited_variables($dataset_wrapper);
-        
         drupal_set_message(t('Inherited fields have been removed.', array()));
     }
     
+    //update form with current fields
+    $query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', 'node')
+            ->entityCondition('bundle', 'variable')
+            ->fieldCondition('field_dataset', 'nid', $dataset->nid, '=');
+    $result = $query->execute();
+    if (array_key_exists( 'node', $result ) && is_array( $result[ 'node' ] )) {
+        $newform = array_keys($result['node']);
+        $dataset_wrapper->field_dataset_variables->set( $newform );
+        node_save($dataset);  
+    }
     // Redirect the user
     $form_state['redirect'] = "/node/" . $dataset->nid . "/edit";
 }
@@ -250,7 +260,7 @@ function _dataset_inheritance_update_inheritance($child_dataset, $parent_dataset
     
     // Only clone variables from the parent, if one is given
     if( $parent_dataset_id ) 
-        _dataset_inheritance_clone_variables_from_parent($child_dataset, $parent_dataset_id);
+        _dataset_inheritance_clone_variables_from_parent($child_dataset, $parent_dataset_id, $child_dataset->field_inherit_permissions->value());
 }
 
 /**
@@ -289,9 +299,10 @@ function _dataset_inheritance_delete_inherited_variables($child_dataset) {
  * 
  * @param EntityMetadataWrapper $child_dataset
  * @param int $parent_dataset_id 
+ * @param boolean $inherit_permissions
  * @return Number of variables cloned
  */
-function _dataset_inheritance_clone_variables_from_parent($child_dataset, $parent_dataset_id) {
+function _dataset_inheritance_clone_variables_from_parent($child_dataset, $parent_dataset_id, $inherit_permissions) {
     //get all variables corresponding to parent_nid
     $query = new EntityFieldQuery();
     $query->entityCondition('entity_type', 'node')
@@ -311,6 +322,8 @@ function _dataset_inheritance_clone_variables_from_parent($child_dataset, $paren
         $child_variables = $child_dataset->field_dataset_variables->value();
         if( is_array( $child_variables ) ) {
             foreach( $child_variables as $child_variable ) {
+                if(is_null($child_variable))
+                    continue;
                 $existing_variable_titles[] = $child_variable->title;
             }
         }
@@ -328,6 +341,12 @@ function _dataset_inheritance_clone_variables_from_parent($child_dataset, $paren
             // Remove ids to clone the field
             unset($variable_node->nid);
             unset($variable_node->vid);
+            
+            // Remove group reference if the permissions are not to be inherited
+            // By default, the group reference is copied
+            if( !$inherit_permissions ) {
+                $variable_wrapper->og_group_ref->set( array() );
+            }
             
             // Store the new variable with the new child dataset
             $variable_wrapper->field_dataset->set( $child_dataset->getIdentifier() );

@@ -71,6 +71,25 @@ class QuerySubscription extends Entity {
     return array_pop($q);
   }
 
+  public function threshold() {
+    return $this->threshold * 100;
+  }
+
+  public function interval() {
+    switch($this->poll_interval) {
+      case self::ALWAYS:
+        return t('always');
+      case self::DAILY:
+        return t('daily');
+      case self::WEEKLY:
+        return t('weekly');
+      case self::MONTHLY:
+        return t('monthly');
+      default:
+        throw new Exception("Unknown poll_interval value: {$this->poll_interval}, must be in range 1-3. Subscription id {$this->id}.");
+    }
+  }
+
   public function updated() {
     $d = new DateTime();
     $d->setTimestamp($this->updated);
@@ -89,7 +108,7 @@ class QuerySubscription extends Entity {
       case self::MONTHLY:
         return $this-> updated < time() - 60*60*24*30;
       default:
-        throw new Exception("Unknown poll_interval value: {$this->poll_interval}, must be in range 1-3");
+        throw new Exception("Unknown poll_interval value: {$this->poll_interval}, must be in range 1-3. Subscription id {$this->id}.");
     }
   }
 
@@ -193,18 +212,23 @@ class QuerySubscription extends Entity {
     $ret = array();
     $ret['connectors'] = self::id_map(mica_connector_query_multiple($query->dataset_id));
     $ret['terms'] = mica_query_term_query($query);
-    $ret['dataset'] = self::metaload($query->dataset_id);
+    $ret['dataset'] = node_load($query->dataset_id);
+    try {
+      $ret['dataset_expiration_date'] = new DateTime($ret['dataset']->field_expiration_date['und'][0]['value']);
+    } catch(Exception $e) {
+      $ret['dataset_expiration_date'] = null;
+    }
 
     $ret['studies'] = array();
     foreach($ret['connectors'] as $connid => $conn) {
-      $ret['studies'][$connid] = self::metaload($conn->study_id);
+      $ret['studies'][$connid] = node_load($conn->study_id);
     }
 
     $ret['term_variables'] = array();
     foreach ($ret['terms'] as $tid => $term) {
-      $ret['term_variables'][$tid] = self::metaload($term->variable_id);
+      $ret['term_variables'][$tid] = node_load($term->variable_id);
     }
-    $ret['cross_variable'] = self::metaload($query->cross_variable_id);
+    $ret['cross_variable'] = node_load($query->cross_variable_id);
 
 //    $categories = array('_all' => 'total', 'total' => 'total', '_matched' => 'matched');
     $ret['categories'] = array();
@@ -247,11 +271,6 @@ class QuerySubscription extends Entity {
       $ret[$item->id] = $item;
     }
     return $ret;
-  }
-
-  private static function metaload($id) {
-    //return entity_metadata_wrapper('node', node_load($id));
-    return node_load($id);
   }
 
 }

@@ -5,9 +5,8 @@ module_load_include('inc', 'query_subscription', 'query_subscription.entity');
 
 // implements hook_entity_info
 function query_subscription_entity_info() {
-  $info = array();
-  $info['query_subscription'] = array(
-    'label' => t('Query notification state'),
+  return array('query_subscription' => array(
+    'label' => t('Query subscription'),
     'metadata controller class' => false,
     'entity class' => 'QuerySubscription',
     'controller class' => 'EntityAPIController',
@@ -15,12 +14,41 @@ function query_subscription_entity_info() {
     'module' => 'query_subscription',
     'entity keys' => array(
       'id' => 'id',
-      'name' => 'id',
     ),
-  );
-  return $info;
+  ));
 }
 
+// implements hook_entity_property_info
+function query_subscription_entity_property_info() {
+  return array('query_subscription' => array('properties' => array(
+    'id' => array(
+      'label' => t('ID'),
+      'type' => 'integer',
+      'description' => t('Query Subscription identifier'),
+      'schema field' => 'id',
+    ),
+    'query' => array(
+      'type' => 'mica_query',
+      'label' => t("Query"),
+      'description' => t("Query"),
+      'schema field' => 'query_id',
+    ),
+    'interval' => array(
+      'type' => 'integer',
+      'label' => t("Poll Interval"),
+      'description' => t("Defines how often change notifications are sent"),
+      'schema field' => 'poll_interval',
+    ),
+    'threshold' => array(
+      'type' => 'decimal',
+      'label' => t("Change threshold"),
+      'description' => t("Send a notification if results have changed with at least this fraction"),
+      'schema field' => 'threshold',
+    ),
+  )));
+}
+
+// implements hook_entity_info_alter
 function query_subscription_entity_info_alter(&$info) {
   // Fix broken query url
   $info['mica_query']['uri callback'] = 'query_subscription_query_url';
@@ -31,6 +59,29 @@ function query_subscription_query_url($query) {
   return array('path' => "node/{$query->dataset_id}/queries/{$query->id}",
     'options' => array());
 }
+
+// implements hook_entity_property_info_alter
+function query_subscription_entity_property_info_alter(&$info) {
+  # The mica_query module does not define its properties as usable for Views, so edit them a bit.
+  $properties = &$info['mica_query']['properties'];
+  $properties['id']['schema field'] = 'id';
+  $properties['name']['schema field'] = 'name';
+  $properties['description']['schema field'] = 'description';
+  $properties['published']['schema field'] = 'published';
+  $properties['dataset'] = array(
+    'type' => 'node',
+    'label' => t('Dataset'),
+    'description' => t("The Dataset to which this query belongs"),
+    'schema field' => 'dataset_id',
+  );
+  $properties['user'] = array(
+    'type' => 'user',
+    'label' => t("User"),
+    'description' => t("The user who created this query"),
+    'schema field' => 'user_id',
+  );
+}
+
 
 // implements hook_cron
 function query_subscription_cron() {
@@ -76,6 +127,15 @@ function query_subscription_entity_delete($entity, $type) {
     $subscription->delete();
   }
 }
+
+// implements hook_node_delete
+// this isn't done yet in mica_query (unfortunately)
+function query_subscription_node_delete($node) {
+  if($node->type !== 'dataset') return;
+
+  $ids = db_query("SELECT id FROM {mica_query} WHERE dataset_id = :dsid", array(':dsid' => $node->nid))->fetchCol();
+  entity_delete_multiple('mica_query', $ids);
+ }
 
 // Implements hook_form_FORM_ID_alter
 function query_subscription_form_mica_query_edit_form_alter(&$form, &$form_state, $form_id) {
@@ -144,6 +204,13 @@ function query_subscription_form_mica_query_edit_form_alter(&$form, &$form_state
 
   $form['#submit'][] = 'query_subscription_save_submit_handler';
 
+  // Add submit handler to all delete buttons
+  if( array_key_exists( "remove-term", $form ) ) {
+      foreach( $form[ "remove-term" ] as $idx => $buttons ) {
+          $form[ "remove-term" ][ $idx ][ "delete" ][ "#submit" ][] = 'query_subscription_save_submit_handler';
+      }
+  }
+  
   // Only needed if the query_interface form changes are disabled, as that removes the 'run' button.
   // Disable 'run' option without save if notification is selected
   if(isset($form['actions']['run'])) {
@@ -161,7 +228,7 @@ function query_subscription_validate_percentage($field) {
 }
 
 function query_subscription_save_submit_handler($form, &$form_state) {
-  if($form_state['clicked_button']['#id'] != 'edit-save') return;
+  if( in_array( $form_state['clicked_button']['#id'], array( 'edit-run' ) ) ) return;
 
   if(isset($form_state['build_info']['args'][1])) {
     $query = $form_state['build_info']['args'][1];
@@ -273,6 +340,14 @@ function query_subscription_poll($arg) {
         $subscription = QuerySubscription::get($id);
         if (is_null($subscription)) continue;
 
+        if (query_access_rights_is_expired($subscription->query()->dataset_id)) {
+          $changes[] = array(
+            'subscription' => $subscription,
+            'expired' => true,
+          );
+          continue;
+        }
+
         // significantDifferences updates the old values
         $old_values = $subscription->old_results();
 
@@ -280,8 +355,9 @@ function query_subscription_poll($arg) {
 
         if (!empty($differences)) {
           $changes[] = array(
-            'differences' => $differences,
             'subscription' => $subscription,
+            'expired' => false,
+            'differences' => $differences,
             'old_values' => $old_values,
             'new_values' => $subscription->results(),
           );
@@ -291,7 +367,7 @@ function query_subscription_poll($arg) {
         if(stripos($msg, 'Curl Error') == 0 && stristr($msg, 'timed out')) {
           // Curl timeout, probably an Opal server for this query is offline, ignore
           watchdog('query_subscription',
-            'Timeout while connecting to Opal. Subscription id @id, uid @uid, exception: @ex',
+            'Timeout while connecting to Opal, server may be offline. Subscription id @id, uid @uid, exception: @ex',
             array('@uid' => $uid, '@ids' => implode(', ', $ids), '@ex' => $msg), WATCHDOG_NOTICE);
           continue;
         }
@@ -305,6 +381,12 @@ function query_subscription_poll($arg) {
     if (!empty($changes)) {
       drupal_mail('query_subscription', 'notification', $user->mail, $user->language,
         array('user' => $user, 'changes' => $changes));
+    }
+
+    foreach($changes as $change) {
+      if ($change['expired']) {
+        entity_delete('query_subscription', $change['subscription']->id);
+      }
     }
 
   // poor mans finally
