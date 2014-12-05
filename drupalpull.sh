@@ -151,6 +151,11 @@ ensure_feat sesi_twitter
 ensure_feat sesi_printer_friendly
 ensure_feat sesi_expiration_date
 
+
+# UPDATE JQUERY VERSION
+drush cc all
+drush cron
+drush -y eval "variable_set('jquery_update_jquery_version', strval(1.8));"
  
 # Remove an old content type and some fields.
 #drush --yes php-eval "node_type_delete('page');"
