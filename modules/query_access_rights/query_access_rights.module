@@ -1,0 +1,59 @@
+<?php
+
+function query_access_rights_user_is_admin($dataset_node, $user_ = null) {
+  global $user;
+
+  if (is_null($user_)) {
+    $user_ = &$user;
+  }
+
+  if (in_array('administrator', $user_->roles)) {
+    return true;
+  }
+
+  $ds_groups = _dataset_access_form_get_intersect_groups($user_, $dataset_node->nid);
+  foreach($ds_groups as $gid) {
+    $roles = og_get_user_roles('node', $gid, $user_->uid);
+    if(in_array(OG_ADMINISTRATOR_ROLE, $roles)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function query_access_rights_is_expired($dataset) {
+  if (is_int($dataset)) {
+    $dataset = node_load($dataset);
+  }
+
+  try {
+    $wrapper = entity_metadata_wrapper( 'node', $dataset );
+    $date = $wrapper->field_expiration_data->value();
+    if( !$date ) 
+        return false;
+    
+    $expdate = new DateTime($date);
+  } catch (Exception $e) {
+    // If there is no valid field_expiration_date set
+    return false;
+  }
+  $expired = new DateTime() > $expdate;
+  return $expired;
+}
+
+function query_access_rights_user_in_group($dataset_node, $user_ = null) {
+  global $user;
+
+  if (is_null($user_)) {
+    $user_ = &$user;
+  }
+
+  $groups = _dataset_access_form_get_intersect_groups($user_, $dataset_node->nid);
+  return (!empty($groups));
+}
+
+function query_access_rights_user_has_access_rights($dataset_node) {
+  return query_access_rights_user_in_group($dataset_node) ||
+      query_access_rights_user_is_admin($dataset_node);
+}
