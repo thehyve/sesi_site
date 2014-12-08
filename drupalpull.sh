@@ -76,8 +76,8 @@ isdisabled date_popup && drush --yes en date_popup
 # Activate organic groups
 if isdisabled og; then
     drush --yes dl og
-    drush --yes en og og_ui og_context og_access og_register
 fi
+drush --yes en og og_ui og_context og_access 
 
 # Install and enable og_email
 ensure_mod og_email
@@ -208,6 +208,9 @@ drush cache-clear all
  
 # Display list of features to check status manually.
 #drush features
+
+#rebuild permissions
+drush php-eval 'node_access_rebuild();'
 
 drush cc all
 drush cron
