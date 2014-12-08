@@ -177,6 +177,10 @@ ensure_feat sesi_twitter
 ensure_feat sesi_printer_friendly
 ensure_feat sesi_expiration_date
 
+
+# UPDATE JQUERY VERSION
+drush -y eval "variable_set('jquery_update_jquery_version', strval(1.8));"
+
 # Expandable text
 ensure_mod collapse_text
 ensure_feat sesi_collapse_text
@@ -200,3 +204,8 @@ ensure_mod better_statistics
  
 # Display list of features to check status manually.
 #drush features
+
+drush cc all
+drush cron
+
+
