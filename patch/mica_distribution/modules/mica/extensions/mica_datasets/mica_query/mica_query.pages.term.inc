@@ -110,7 +110,11 @@ function mica_datasets_query_term_edit_form_submit($form, &$form_state) {
     }
     
     $origin = $form_state['input']['origin'];
-    $form_state['submit_parent_form'] = "#mica-query-edit-form";
+    if( $origin == "edit" ) {
+        $form_state['submit_parent_form'] = "#mica-query-edit-form";
+    } else {
+        $form_state['redirect'] = _mica_query_url($dataset_node, $query);    
+    }
   }
 }
 
