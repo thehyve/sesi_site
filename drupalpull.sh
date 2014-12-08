@@ -18,6 +18,9 @@ if ! type "drush" > /dev/null; then
   ln -s /usr/local/share/drush/drush /usr/bin/drush
 fi
 
+drush vset maintenance_mode 1
+
+
 # PATCH ORIGINAL MICA CODE
 yes | cp -Rfv "$DRUPAL_ROOT/sites/all/patch/mica_distribution" "$DRUPAL_ROOT/profiles/"
 
@@ -176,6 +179,7 @@ ensure_feat sesi_easy_social
 ensure_feat sesi_twitter
 ensure_feat sesi_printer_friendly
 ensure_feat sesi_expiration_date
+ensure_feat sesi_membership_mail
 
 # Expandable text
 ensure_mod collapse_text
@@ -196,7 +200,8 @@ ensure_mod better_statistics
 
 # Revert all features and clear cache.
 ### drush --yes features-revert-all
-#drush cache-clear all
+drush cache-clear all
  
 # Display list of features to check status manually.
 #drush features
+drush vset maintenance_mode 0
