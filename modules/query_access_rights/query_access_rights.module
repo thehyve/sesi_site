@@ -28,7 +28,12 @@ function query_access_rights_is_expired($dataset) {
   }
 
   try {
-    $expdate = new DateTime($dataset->field_expiration_date['und'][0]['value']);
+    $wrapper = entity_metadata_wrapper( 'node', $dataset );
+    $date = $wrapper->field_expiration_data->value();
+    if( !$date ) 
+        return false;
+    
+    $expdate = new DateTime($date);
   } catch (Exception $e) {
     // If there is no valid field_expiration_date set
     return false;

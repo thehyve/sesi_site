@@ -44,7 +44,7 @@
             );          
     
             // delete the unecessary original request data access link
-            if ($data['actions']['output']['add-data-access-request']) {
+            if (array_key_exists( 'add-data-access-request', $data['actions']['output'] )) {
                 unset($data['actions']['output']['add-data-access-request']);
             }
             
