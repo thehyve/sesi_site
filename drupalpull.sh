@@ -45,7 +45,6 @@ function ensure_feat() {
     if isdisabled $1; then
         drush --yes pm-enable $1 ; 
     fi
-    drush --yes features-revert $1 ;
 }
 # ---------------------------------------------------------
 
@@ -202,8 +201,6 @@ ensure_mod better_statistics
 #drush sapi-i ok_sitewide_index 10000 25
 #drush sapi-s
 
-# Revert all features and clear cache.
-### drush --yes features-revert-all
 drush cache-clear all
  
 # Display list of features to check status manually.
