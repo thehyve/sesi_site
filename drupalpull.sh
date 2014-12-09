@@ -18,6 +18,9 @@ if ! type "drush" > /dev/null; then
   ln -s /usr/local/share/drush/drush /usr/bin/drush
 fi
 
+drush vset maintenance_mode 1
+
+
 # PATCH ORIGINAL MICA CODE
 yes | cp -Rfv "$DRUPAL_ROOT/sites/all/patch/mica_distribution" "$DRUPAL_ROOT/profiles/"
 
@@ -42,7 +45,6 @@ function ensure_feat() {
     if isdisabled $1; then
         drush --yes pm-enable $1 ; 
     fi
-    drush --yes features-revert $1 ;
 }
 # ---------------------------------------------------------
 
@@ -73,8 +75,8 @@ isdisabled date_popup && drush --yes en date_popup
 # Activate organic groups
 if isdisabled og; then
     drush --yes dl og
-    drush --yes en og og_ui og_context og_access og_register
 fi
+drush --yes en og og_ui og_context og_access 
 
 # Install and enable og_email
 ensure_mod og_email
@@ -176,6 +178,11 @@ ensure_feat sesi_easy_social
 ensure_feat sesi_twitter
 ensure_feat sesi_printer_friendly
 ensure_feat sesi_expiration_date
+ensure_feat sesi_membership_mail
+
+
+# UPDATE JQUERY VERSION
+drush -y eval "variable_set('jquery_update_jquery_version', strval(1.8));"
 
 # Expandable text
 ensure_mod collapse_text
@@ -194,9 +201,14 @@ ensure_mod better_statistics
 #drush sapi-i ok_sitewide_index 10000 25
 #drush sapi-s
 
-# Revert all features and clear cache.
-### drush --yes features-revert-all
-#drush cache-clear all
+drush cache-clear all
  
 # Display list of features to check status manually.
 #drush features
+
+#rebuild permissions
+drush php-eval 'node_access_rebuild();'
+
+drush cc all
+drush cron
+drush vset maintenance_mode 0
