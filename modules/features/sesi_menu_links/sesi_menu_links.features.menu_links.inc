@@ -71,6 +71,21 @@ function sesi_menu_links_menu_default_menu_links() {
     'weight' => 0,
     'parent_path' => 'events',
   );
+  // Exported menu link: main-menu:communities
+  $menu_links['main-menu:communities'] = array(
+    'menu_name' => 'main-menu',
+    'link_path' => 'communities',
+    'router_path' => 'communities',
+    'link_title' => 'Communities',
+    'options' => array(),
+    'module' => 'system',
+    'hidden' => 0,
+    'external' => 0,
+    'has_children' => 0,
+    'expanded' => 0,
+    'weight' => -50,
+    'parent_path' => 'node/2',
+  );
   // Exported menu link: main-menu:data-access/admin
   $menu_links['main-menu:data-access/admin'] = array(
     'menu_name' => 'main-menu',
@@ -162,7 +177,7 @@ function sesi_menu_links_menu_default_menu_links() {
     'external' => 0,
     'has_children' => 0,
     'expanded' => 1,
-    'weight' => -48,
+    'weight' => -47,
     'parent_path' => 'node/2',
   );
   // Exported menu link: main-menu:events
@@ -335,7 +350,7 @@ function sesi_menu_links_menu_default_menu_links() {
     'external' => 0,
     'has_children' => 1,
     'expanded' => 1,
-    'weight' => -50,
+    'weight' => -49,
     'parent_path' => 'node/2',
   );
   // Exported menu link: main-menu:studies-search
@@ -365,7 +380,7 @@ function sesi_menu_links_menu_default_menu_links() {
     'external' => 0,
     'has_children' => 0,
     'expanded' => 0,
-    'weight' => -47,
+    'weight' => -46,
     'parent_path' => 'node/2',
   );
   // Exported menu link: user-menu:user
@@ -403,6 +418,7 @@ function sesi_menu_links_menu_default_menu_links() {
   t('About');
   t('Blogs');
   t('Calendar');
+  t('Communities');
   t('Consortium Policies and Guidelines');
   t('DACO Approved Projects');
   t('Data Access');

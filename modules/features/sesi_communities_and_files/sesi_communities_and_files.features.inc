@@ -14,6 +14,13 @@ function sesi_communities_and_files_ctools_plugin_api($module = NULL, $api = NUL
 }
 
 /**
+ * Implements hook_views_api().
+ */
+function sesi_communities_and_files_views_api($module = NULL, $api = NULL) {
+  return array("api" => "3.0");
+}
+
+/**
  * Implements hook_strongarm_alter().
  */
 function sesi_communities_and_files_strongarm_alter(&$data) {
