@@ -201,6 +201,8 @@ ensure_mod better_statistics
 #drush sapi-i ok_sitewide_index 10000 25
 #drush sapi-s
 
+drush --yes features-revert-all
+
 drush cache-clear all
  
 # Display list of features to check status manually.
