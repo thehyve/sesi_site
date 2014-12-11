@@ -202,7 +202,7 @@ ensure_mod better_statistics
 #drush sapi-s
 
 drush --yes features-revert-all
-
+drush scr $DRUPAL_ROOT/sites/all/drupalpull.php 
 drush cache-clear all
  
 # Display list of features to check status manually.
