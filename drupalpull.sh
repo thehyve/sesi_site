@@ -150,6 +150,7 @@ ensure_feat sesi_easy_social
 ensure_feat sesi_twitter
 ensure_feat sesi_printer_friendly
 ensure_feat sesi_expiration_date
+ensure_feat sesi_notify_expirations
 
 
 # UPDATE JQUERY VERSION

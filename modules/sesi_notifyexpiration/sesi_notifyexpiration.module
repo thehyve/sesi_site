@@ -35,74 +35,81 @@ function sesi_notifyexpiration_cron() {
 
   // Note dsm() and dpm() do not work with cron; use drupal_set_message() in stead
   // drupal_set_message('sesi_notifyexpiration run by cron');
-  watchdog('sesi_notifyexpiration', 'Triggered by cron');
+  // watchdog('sesi_notifyexpiration', 'Triggered by cron');
 
   $pet = pet_load('subscription_expiration_mail'); // load template just once
-  $clean_pet_body = $pet->mail_body;
+  if ($pet !== (bool)0) {
 
-  $query = db_select('og_membership', 'o')
-    ->fields('o', array('id', 'gid', 'entity_type', 'etid'))
-    ->fields('f', array('entity_id', 'field_expiration_date_value'));
-  $query->join('field_data_field_expiration_date', 'f', 'o.id = f.entity_id');
-  $result = $query->execute();
+    $clean_pet_body = $pet->mail_body;
 
-  if ($result->rowCount() > 0) {
-    while ($row = $result->fetchAssoc()) {
-      $groupname = get_groupname($row['gid']);
-      $mailaddress = get_usermail(intval($row['etid']));
-      $profileid = get_profileid(intval($row['etid']));
-      $firstname = getfirstname($profileid);
-      $lastname = getlastname($profileid);
-      $salutation = getsalutation($profileid);
+    $query = db_select('og_membership', 'o')
+      ->fields('o', array('id', 'gid', 'entity_type', 'etid'))
+      ->fields('f', array('entity_id', 'field_expiration_date_value'));
+    $query->join('field_data_field_expiration_date', 'f', 'o.id = f.entity_id');
+    $result = $query->execute();
 
-      if ((mailsent($row['id']) == FALSE) && (membershipexpires($row['field_expiration_date_value'], 7))) { // Only send mail if this has not yet been done AND membership expires within 7 days
-        // These subscriptions will be mailed
-        // drupal_set_message($groupname . ' -> mail: ' . $mailaddress . ' group nid: ' . $row['gid'] . ' ' . ' User id: ' . $row['etid'] . ' - Profile: ' . $profileid . ' - Sal: ' . $salutation . ' - Firstname: ' . $firstname . ' - Lastname: ' . $lastname . ' ' . 'Grp type: ' . $row['entity_type'] . ' ' . ' ' . $row['field_expiration_date_value'] . ' Membership id: ' . $row['id'] . ' Mail sent: ' . (mailsent($row['id']) ? 'Yes' : 'No'));
+    if ($result->rowCount() > 0) {
+      while ($row = $result->fetchAssoc()) {
+        $groupname = get_groupname($row['gid']);
+        $mailaddress = get_usermail(intval($row['etid']));
+        $profileid = get_profileid(intval($row['etid']));
+        $firstname = getfirstname($profileid);
+        $lastname = getlastname($profileid);
+        $salutation = getsalutation($profileid);
 
-        // send mail if expiration date has been reached (PET functionality)
-        $recipients = array();
-        $recipients[] = $mailaddress;
-        $froms = array();
+        if ((mailsent($row['id']) == FALSE) && (membershipexpires($row['field_expiration_date_value'], 7))) { // Only send mail if this has not yet been done AND membership expires within 7 days
+          // These subscriptions will be mailed
+          // drupal_set_message($groupname . ' -> mail: ' . $mailaddress . ' group nid: ' . $row['gid'] . ' ' . ' User id: ' . $row['etid'] . ' - Profile: ' . $profileid . ' - Sal: ' . $salutation . ' - Firstname: ' . $firstname . ' - Lastname: ' . $lastname . ' ' . 'Grp type: ' . $row['entity_type'] . ' ' . ' ' . $row['field_expiration_date_value'] . ' Membership id: ' . $row['id'] . ' Mail sent: ' . (mailsent($row['id']) ? 'Yes' : 'No'));
 
-        // check pet validity
-        if (pet_is_valid($pet)) {
+          // send mail if expiration date has been reached (PET functionality)
+          $recipients = array();
+          $recipients[] = $mailaddress;
+          $froms = array();
 
-          if (isset($replace)) {
-            unset($replace);
+          // check pet validity
+          if (pet_is_valid($pet)) {
+
+            if (isset($replace)) {
+              unset($replace);
+            }
+
+            $search = array(
+              '__SALUTATION__',
+              '__FIRSTNAME__',
+              '__LASTNAME__',
+              '__GROUPNAME__',
+              '__ENDDATE__',
+            );
+            $replace = array(
+              $salutation,
+              $firstname,
+              $lastname,
+              $groupname,
+              substr($row['field_expiration_date_value'], 0, 10)
+            );
+            $pet->mail_body = str_replace($search, $replace, $clean_pet_body);
+            $pet->subject = str_replace($search, $replace, $pet->subject);
+            _sesi_notifyexpiration_pet_send_mail($pet, $recipients, $froms);
+
+            // Set watchdog
+            //watchdog('sesi_notifyexpiration', 'Mail sent for membership: ' . $row['id'] . ' -> ' . $firstname . ' ' . $lastname);
+
+            // Mail has been sent, set boolean
+            set_membership_mail_sent($row['id']); // set the boolean to TRUE for the membership
           }
-
-          $search = array(
-            '__SALUTATION__',
-            '__FIRSTNAME__',
-            '__LASTNAME__',
-            '__GROUPNAME__',
-            '__ENDDATE__',
-          );
-          $replace = array(
-            $salutation,
-            $firstname,
-            $lastname,
-            $groupname,
-            substr($row['field_expiration_date_value'], 0, 10)
-          );
-          $pet->mail_body = str_replace($search, $replace, $clean_pet_body);
-          $pet->subject = str_replace($search, $replace, $pet->subject);
-          _sesi_notifyexpiration_pet_send_mail($pet, $recipients, $froms);
-
-          // Set watchdog
-          //watchdog('sesi_notifyexpiration', 'Mail sent for membership: ' . $row['id'] . ' -> ' . $firstname . ' ' . $lastname);
-
-          // Mail has been sent, set boolean
-          set_membership_mail_sent($row['id']); // set the boolean to TRUE for the membership
+          else {
+            watchdog('sesi_notifyexpiration', 'Invalid PET template.', WATCHDOG_ERROR);
+          }
         }
-        else {
-          watchdog('sesi_notifyexpiration', 'Invalid PET template.', WATCHDOG_ERROR);
+        if (membershipexpires($row['field_expiration_date_value'], 0)) { // remove membership if expired
+          delete_membership($row['id']);
         }
-      }
-      if (membershipexpires($row['field_expiration_date_value'], 0)) { // remove membership if expired
-        delete_membership($row['id']);
       }
     }
+  }
+  else {
+    watchdog('sesi_notifyexpiration', 'Missing PET template');
+    drupal_set_message(t('Missing PET template'), 'error');
   }
 }
 
