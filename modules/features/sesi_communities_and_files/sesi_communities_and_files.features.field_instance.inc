@@ -232,6 +232,86 @@ function sesi_communities_and_files_field_default_field_instances() {
     ),
   );
 
+  // Exported field_instance: 'node-community-field_datasets'
+  $field_instances['node-community-field_datasets'] = array(
+    'bundle' => 'community',
+    'default_value' => NULL,
+    'deleted' => 0,
+    'description' => '',
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'module' => 'entityreference',
+        'settings' => array(
+          'link' => FALSE,
+        ),
+        'type' => 'entityreference_label',
+        'weight' => 5,
+      ),
+      'teaser' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => 0,
+      ),
+    ),
+    'entity_type' => 'node',
+    'field_name' => 'field_datasets',
+    'label' => 'Datasets',
+    'required' => FALSE,
+    'settings' => array(
+      'user_register_form' => FALSE,
+    ),
+    'widget' => array(
+      'module' => 'options',
+      'settings' => array(),
+      'type' => 'options_buttons',
+      'weight' => 34,
+    ),
+  );
+
+  // Exported field_instance: 'node-community-field_project_visibility'
+  $field_instances['node-community-field_project_visibility'] = array(
+    'bundle' => 'community',
+    'default_value' => array(
+      0 => array(
+        'value' => 1,
+      ),
+    ),
+    'deleted' => 0,
+    'description' => 'Set to "Invisible" if you want to hide completely this community from the dataset view and community view.',
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'module' => 'list',
+        'settings' => array(),
+        'type' => 'list_default',
+        'weight' => 5,
+      ),
+      'teaser' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => 0,
+      ),
+    ),
+    'display_label' => '',
+    'entity_type' => 'node',
+    'field_name' => 'field_project_visibility',
+    'label' => 'Project visibility',
+    'required' => 1,
+    'settings' => array(
+      'user_register_form' => FALSE,
+    ),
+    'widget' => array(
+      'active' => 1,
+      'module' => 'options',
+      'settings' => array(),
+      'type' => 'options_buttons',
+      'weight' => 34,
+    ),
+  );
+
   // Exported field_instance: 'node-community-group_access'
   $field_instances['node-community-group_access'] = array(
     'bundle' => 'community',
@@ -435,7 +515,50 @@ function sesi_communities_and_files_field_default_field_instances() {
         'summary_rows' => 5,
       ),
       'type' => 'text_textarea_with_summary',
-      'weight' => 31,
+      'weight' => 2,
+    ),
+  );
+
+  // Exported field_instance: 'node-community_document-field_cd_documents'
+  $field_instances['node-community_document-field_cd_documents'] = array(
+    'bundle' => 'community_document',
+    'deleted' => 0,
+    'description' => '',
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'module' => 'file',
+        'settings' => array(),
+        'type' => 'file_default',
+        'weight' => 4,
+      ),
+      'teaser' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => 0,
+      ),
+    ),
+    'display_label' => 'Documents',
+    'entity_type' => 'node',
+    'field_name' => 'field_cd_documents',
+    'label' => 'Documents',
+    'required' => 1,
+    'settings' => array(
+      'description_field' => 1,
+      'file_directory' => '',
+      'file_extensions' => 'txt pdf doc docx xls xlsx png jpg',
+      'max_filesize' => '10 MB',
+      'user_register_form' => FALSE,
+    ),
+    'widget' => array(
+      'active' => 1,
+      'module' => 'file',
+      'settings' => array(
+        'progress_indicator' => 'throbber',
+      ),
+      'type' => 'file_generic',
+      'weight' => 3,
     ),
   );
 
@@ -487,7 +610,7 @@ function sesi_communities_and_files_field_default_field_instances() {
         'content_taxonomy_opt_groups' => FALSE,
       ),
       'type' => 'options_select',
-      'weight' => 33,
+      'weight' => 5,
     ),
     'widget_type' => 'options_select',
   );
@@ -547,7 +670,7 @@ function sesi_communities_and_files_field_default_field_instances() {
       'module' => 'og',
       'settings' => array(),
       'type' => 'og_complex',
-      'weight' => 32,
+      'weight' => 4,
     ),
   );
 
@@ -897,7 +1020,9 @@ function sesi_communities_and_files_field_default_field_instances() {
   // Included for use with string extractors like potx.
   t('Body');
   t('Comment');
+  t('Datasets');
   t('Determine if this is an OG group.');
+  t('Documents');
   t('Group');
   t('Group content visibility');
   t('Group roles and permissions');
@@ -905,6 +1030,8 @@ function sesi_communities_and_files_field_default_field_instances() {
   t('Groups audience');
   t('Motivation');
   t('Please provide your motivation why you want to join this community.');
+  t('Project visibility');
+  t('Set to "Invisible" if you want to hide completely this community from the dataset view and community view.');
 
   return $field_instances;
 }

@@ -5,3 +5,17 @@
  */
 
 include_once 'sesi_communities_and_files.features.inc';
+
+function sesi_communities_and_files_post_features_revert( $id ) {
+    // Only run this method once
+    if( $id == "features_overrides" ) {
+        $node_options = variable_get( "node_options_community" );
+        $promote_key = array_search('promote', $node_options);
+        if ($promote_key !== false) {
+          unset($node_options[$promote_key]);
+          variable_set('node_options_community', $node_options);
+        }
+        
+        echo "Set default value for community 'promote to front page' to false\n";
+    }
+}

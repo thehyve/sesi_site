@@ -61,12 +61,17 @@ function mica_query_queries_page($dataset_node) {
     'actions' => t('Operations'),
   );
 
+  $is_admin = false;
+  if (function_exists('query_access_rights_user_is_admin')) {
+    $is_admin = query_access_rights_user_is_admin($dataset_node);
+  }
+
   $options = array();
 
   $queries = MicaDatasetQueryManager::getAllQueries($dataset_node->nid);
   if ($queries) {
     foreach ($queries as $query) {
-      if ($query->published || $query->user_id == $user->uid) {
+      if ($query->published || $query->user_id == $user->uid || $is_admin) {
         $name = _mica_query_link($dataset_node, $query);
 
         if ($user->uid != 0 && MicaDatasetQueryManager::isCached($query)) {
@@ -460,8 +465,13 @@ function mica_query_edit_form_submit($form, &$form_state) {
           // update query
           $query->name = check_plain($form_state['values']['name']);
           $query->description = $form_state['values']['description'];
-          $query->cross_variable_id = $form_state['values']['cross-variable'] == '-1' ? NULL : $form_state['values']['cross-variable'];
 
+          if( array_key_exists( 'cross-variable', $form_state['values'] ) && $form_state['values']['cross-variable'] != 1 ) {
+            $query->cross_variable_id = $form_state['values']['cross-variable'];
+          } else {
+            $query->cross_variable_id = null;
+          }
+          
           if (isset($form_state['values']['publish'])) {
             $query->published = $form_state['values']['publish'];
           }

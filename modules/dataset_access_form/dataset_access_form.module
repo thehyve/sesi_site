@@ -1,0 +1,311 @@
+<?php
+
+/**
+ * Add link to access Request for Data Access Form, a customized content type
+ * for user to request data access to dataset owner(s).
+ * 
+ * @param $data
+ *   An associative array containing:
+ *   - actions: An associative array containing:
+ *     - count: The amount of actions determined by the menu system, which can
+ *       be ignored.
+ *     - output: A list of of actions, each one being an associative array
+ *       as described above.
+ *   - tabs: An indexed array (list) of tab levels (up to 2 levels), each
+ *     containing an associative array:
+ *     - count: The amount of tabs determined by the menu system. This value
+ *       does not need to be altered if there is more than one tab.
+ *     - output: A list of of tabs, each one being an associative array as
+ *       described above.
+ * @param $router_item
+ *   The menu system router item of the page.
+ * @param $root_path
+ *   The path to the root item for this set of tabs.
+ */
+ function dataset_access_form_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+    $links = array();
+    
+    if (node_access('create', 'data_access_request') && $root_path === 'node/%/queries/%') {
+        
+            $href = 'node/add/data-access-request-form';
+            $links['add-data-access-request-form'] = array( 
+              '#theme' => 'menu_local_action',
+              '#link' => array(
+                'title' => t('Request for Data Access Form'),
+                'href' => $href,
+              ),          
+            );       
+        
+            $dataset_node = $router_item['page_arguments'][1];
+            $links['add-data-access-request-form']['#link']['localized_options'] = array(
+              'query' => array (
+                  'field_dataset_access' => $dataset_node->nid,
+               )
+            );          
+    
+            // delete the unecessary original request data access link
+            if (array_key_exists( 'add-data-access-request', $data['actions']['output'] )) {
+                unset($data['actions']['output']['add-data-access-request']);
+            }
+            
+    }
+    
+    $data['actions']['output'] = array_merge($data['actions']['output'], $links);
+}   
+
+
+/**
+ * Get group ids of dataset and user belong to
+ * 
+ * @param &$user user
+ *  User object
+ * @param $dataset_id 
+ *  Dataset ID
+ */
+function _dataset_access_form_get_intersect_groups(&$user, $dataset_id) {
+    
+    $query = db_select("og_membership", "ogm");
+    $db_or = db_or();
+    $db_or->condition("ogm.etid", $dataset_id, "=");
+    $db_or->condition("ogm.etid", $user->uid, "=");
+    $query->condition($db_or);
+    $query->fields("ogm", array("gid"));
+    
+    $result = $query->execute();
+    $fetch_arr = array_values($result->fetchAll(PDO::FETCH_COLUMN, 0));
+    
+    $belong_to_groups = array();
+    foreach(array_count_values($fetch_arr) as $val => $c)
+        if($c > 1) $belong_to_groups[] = strval($val);    
+    
+    watchdog('dataset_access_form', 'Just fetch data from DB.', WATCHDOG_INFO);       
+    
+    return $belong_to_groups;
+}
+
+/**
+ * Get admin emails from a group
+ * 
+ * @param $gids 
+ *  String array of Group IDs 
+ */
+function _dataset_access_form_get_group_admin_mails($gids) {
+    
+    /**
+     * select 
+     *  mail 
+     * from 
+     *  og_users_roles ogur 
+     *  inner join og_role ogr 
+     *      on (ogur.rid = ogr.rid) 
+     *  inner join users usr 
+     *      on (ogur.uid = usr.uid)
+     * where group_bundle = 'community' and ogur.gid = $gid;
+     */
+    $admin_mails = array();
+    $role_admin = array('administrator member', 'moderator');
+    
+    $query = db_select('og_users_roles', 'ogur');
+    $query->innerJoin('og_role', 'ogr', 'ogur.rid = ogr.rid');
+    $query->innerJoin('users', 'usr', 'ogur.uid = usr.uid');
+
+    $result = $query
+            ->fields('usr', array ('mail'))
+            ->condition('ogr.group_bundle', 'community')
+            ->condition('ogr.name', $role_admin, 'IN')
+            ->condition('ogur.gid', $gids, 'IN')
+            ->execute();
+    
+    $fetch_arr = array_values($result->fetchAll(PDO::FETCH_COLUMN, 0));
+    
+    return $fetch_arr;
+}
+
+/**
+ * Implement hook_node_insert where it get user input from the request form and 
+ * send them to group admin(s) by email.
+ * 
+ * @param $node
+ *  New node being inserted which in this case the Create Request Data Access
+ *  Form node.
+ */
+function dataset_access_form_node_insert($node) {
+    
+    global $user;
+
+    // I'm only interested in data_access_request_form
+    if ($node->type != 'data_access_request_form') {
+        return;
+    }
+
+    $pet = pet_load('pet_data_access_request');
+    $dataset_id = $node->field_dataset_id['und']['0']['value']; 
+    
+    // Get Group Admin emails which the dataset is being queried and user 
+    // belong to.
+    $gids = _dataset_access_form_get_intersect_groups($user, $dataset_id);
+    if ($gids) {
+        $admin_mails = _dataset_access_form_get_group_admin_mails($gids);  
+    }
+
+    $recipients = $admin_mails; 
+    $froms = array();
+    
+    $query_uri = $node->field_query_path['und']['0']['value'];
+    $txt_message = $node->body['und']['0']['value'];
+    
+    // check pet validity
+    if (pet_is_valid($pet)) {
+        
+        $search = array(
+            '__QUERY_URI__',
+            '__DATASET__',
+            '__MESSAGE__',
+        );
+        $replace = array(
+            $query_uri,
+            $dataset_id,
+            $txt_message,            
+        );
+        $pet->subject = $node->title_field['und']['0']['value'];
+        $pet->mail_body = str_replace($search, $replace, $pet->mail_body);
+        _dataset_access_form_pet_send_mail($pet, $recipients, $froms);            
+    } else {
+         watchdog('dataset_access_form', 'Invalid PET template.', WATCHDOG_ERROR);
+    }    
+}
+
+/**
+ * Set following values to hidden fields in Dataset Access Form:
+ * - query path
+ * - user id
+ * - dataset id
+ * 
+ * @param $form
+ *   Nested array of form elements that comprise the form.
+ * @param $form_state
+ *   A keyed array containing the current state of the form. The arguments
+ *   that drupal_get_form() was originally called with are available in the
+ *   array $form_state['build_info']['args'].
+ * @param $form_id
+ *   String representing the name of the form itself. Typically this is the
+ *   name of the function that generated the form.
+ */
+function dataset_access_form_form_alter(&$form, $form_state, $form_id) {
+    global $user;
+    
+    if($form_id != 'data_access_request_form_node_form' ) {
+        return;
+    } 
+    
+    $referrer = '#';
+    
+    if (isset($_SESSION['referrer'])) { 
+        // Get existing referrer 
+        $referrer = $_SESSION['referrer']; 
+        
+    } elseif (isset($_SERVER['HTTP_REFERER'])) { 
+        // Use given referrer 
+        $referrer = $_SERVER['HTTP_REFERER']; 
+        
+    } else { 
+        // No referrer 
+    } 
+    
+    if (array_key_exists('field_dataset_access', $_GET)) {
+      $form['title_field']['und'][0]['value']['#default_value'] = 'New Dataset Access Request for Dataset ID:' . $_GET['field_dataset_access'] . ' From: ' . $user->name;  
+      $form['field_dataset_id']['und'][0]['value']['#default_value'] = $_GET['field_dataset_access'];  
+      $form['field_query_path']['und'][0]['value']['#default_value'] = $referrer; 
+    }    
+    
+ }
+
+ /**
+ * Send tokenized email to a list of recipients.
+ *
+ * Given a list of recipients, and an optional node id, perform token 
+ * substitution and send an email to each. The node substitutions, if any,
+ * are the same in each email sent.  The user tokens, if any are custom based
+ * on the account (if any) associated with each email.  
+ *
+ * @param $name
+ *   The unique name of the PET template.
+ * @param $recipients
+ *   An array of at least one recipient in one of two formats:
+ *      1. a simple email address, in which case the uid is looked up
+ *      2. an array('mail' => <email address>, 'uid' => <uid>) in which case 
+ *         the uid is already available (more efficient)
+ * @param $options
+ *   An array of options as follows:
+ *      nid - An optional node id for token substitutions.
+ *      subject - An optional subject which if provided will override the 
+ *        subject in the PET.
+ *      body - An optional body which if provided which will override the body
+ *        in the PET.
+ *      body_plain - An optional plain text body which if provided which will 
+ *        override the plain text body in the PET.
+ *      from - An optional from email which if provided which will override the
+ *        from in the PET (which in turn overrides the site default).
+ *      reply_to - Optional
+ *      cc - Optional cc emails which if provided which will override the cc's
+ *        in the PET.
+ *      bcc - Optional bcc emails which if provided which will override the
+ *        bcc's in the PET.
+ */
+function _dataset_access_form_pet_send_mail($pet, $recipients, $options) {
+  
+  if (!$pet) {
+    watchdog('pet', 'Unable to load PET %name.', array('%name' => $name), WATCHDOG_ERROR);
+    return;
+  }
+  
+  if (!is_array($recipients) || count($recipients) < 1) {
+    watchdog('pet', 'At least one recipient must be provided for PET %name.', array('%name' => $name), WATCHDOG_NOTICE);
+    return;
+  }
+
+  // Override subject and body if necessary
+  $pet->subject = isset($options['subject']) ? $options['subject'] : $pet->subject;
+  $pet->mail_body = isset($options['body']) ? $options['body'] : $pet->mail_body;
+  $pet->mail_body_plain = isset($options['body_plain']) ? $options['body_plain'] : $pet->mail_body_plain;
+
+  // Resolve from address
+  if (pet_isset_or($options['from'])) {
+    $from = $options['from'];
+  }
+  elseif ($pet->from_override) {
+    $from = $pet->from_override;
+  }
+  else {
+    $from = variable_get('site_mail', ini_get('sendmail_from'));
+  }
+
+  // Store data in params in case a module wants to act on them somehow
+  $params = array(
+    'pet_from' => $from,
+    'pet_recipients' => $recipients,
+    'pet_nid' => pet_isset_or($options['nid']),
+    'pet_cc' => pet_parse_mails(pet_isset_or($options['cc'])),
+    'pet_bcc' => pet_parse_mails(pet_isset_or($options['bcc'])),
+    'pet_reply_to' => pet_isset_or($options['reply_to']),
+    'pet_options' => $options,
+  );
+  
+  // array to hold status of messages send
+  $message_status = array();
+  foreach ($recipients as $recipient) {
+    if (is_array($recipient)) {
+      $params['pet_to'] = $recipient['mail'];
+      $params['pet_uid'] = $recipient['uid'];
+    }
+    else {
+      // Strip leading uid for backward compatability
+      $mail = preg_replace('/^[0-9]*\|/', '', $recipient);
+      $params['pet_to'] = $mail;
+      $params['pet_uid'] = pet_lookup_uid($mail);
+    }
+    $message_status[$params['pet_to']] = pet_send_one_mail($pet, $params);
+  }
+  // return message status
+  return $message_status;
+}

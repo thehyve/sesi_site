@@ -18,6 +18,9 @@ if ! type "drush" > /dev/null; then
   ln -s /usr/local/share/drush/drush /usr/bin/drush
 fi
 
+drush vset maintenance_mode 1
+
+
 # PATCH ORIGINAL MICA CODE
 yes | cp -Rfv "$DRUPAL_ROOT/sites/all/patch/mica_distribution" "$DRUPAL_ROOT/profiles/"
 
@@ -41,7 +44,6 @@ function ensure_feat() {
     echo "ensure_feat $1";
     if isdisabled $1; then
         drush --yes pm-enable $1 ; 
-        drush --yes features-revert $1 ;
     fi
 }
 # ---------------------------------------------------------
@@ -64,18 +66,28 @@ fi
 # Enable Rules
 isdisabled rules_admin && drush --yes en rules rules_admin
 
+# Install and enable entityreference
+ensure_mod entityreference
+
 # Enable Date Popup
 isdisabled date_popup && drush --yes en date_popup
 
 # Activate organic groups
 if isdisabled og; then
     drush --yes dl og
-    drush --yes en og og_ui og_context og_access og_register
 fi
+drush --yes en og og_ui og_context og_access 
 
 # Install and enable og_email
 ensure_mod og_email
 
+# Install and enable og_email_blast to send emails to a complete group
+# Please note that using the ensure_mod function doesn't work here
+# as we need a specific version
+if isdisabled og_email_blast; then
+    drush --yes dl og_email_blast-7.x-2.x-dev
+    drush --yes en og_email_blast
+fi
 # Install and enable uuid_features module
 ensure_mod uuid_features
 
@@ -91,6 +103,7 @@ ensure_mod easy_social
 
 # Install and enable oauth
 # This module is required by twitter module
+
 if isdisabled oauth_common; then
     drush --yes dl oauth
     drush --yes en oauth_common
@@ -106,6 +119,12 @@ if isdisabled mailmime; then
     drush --yes en htmlmail mailmime
 fi
 
+# Install and enable og_email
+ensure_mod og_email
+
+# Install and enable pet
+ensure_mod pet
+
 # Enable project features.
 if isdisabled sesi_eid_login; then
     ensure_feat sesi_eid_login
@@ -114,7 +133,9 @@ fi
 
 ensure_feat sesi_user_registration
 ensure_feat sesi_dataset_inheritance 
+ensure_feat sesi_inherit_variable_permissions
 ensure_feat sesi_dataset_versioning
+ensure_feat sesi_dataset_access_form
 ensure_feat sesi_vocabulary
 
 ensure_mod sesi_addtogroup
@@ -125,9 +146,10 @@ drush --yes dl autologout
 drush --yes en autologout
 
 #query
-isdisabled query_interface && drush --yes en query_interface
-isdisabled query_subscription && drush --yes en query_subscription
+ensure_mod query_interface
+ensure_mod query_subscription
 ensure_feat sesi_my_queries_screen
+ensure_mod query_access_rights
 
 #ontologies and vocabularies
 ensure_feat sesi_variable_ontologies
@@ -136,6 +158,12 @@ isdisabled query_vocabularies && drush --yes en query_vocabularies
 #autologout
 ensure_mod autologout
 ensure_feat sesi_autologout
+
+#addtogroup
+ensure_mod sesi_addtogroup
+
+# Backup first
+#drush archive-dump /tmp/micasitebk
 
 # Enable Contact Form
 ensure_mod contact
@@ -151,12 +179,19 @@ ensure_feat sesi_twitter
 ensure_feat sesi_printer_friendly
 ensure_feat sesi_expiration_date
 ensure_feat sesi_notify_expirations
+ensure_feat sesi_membership_mail
 
 
 # UPDATE JQUERY VERSION
-drush cc all
-drush cron
 drush -y eval "variable_set('jquery_update_jquery_version', strval(1.8));"
+
+# Expandable text
+ensure_mod collapse_text
+ensure_feat sesi_collapse_text
+ensure_mod text_hierarchical
+
+# Statistics
+ensure_mod better_statistics
  
 # Remove an old content type and some fields.
 #drush --yes php-eval "node_type_delete('page');"
@@ -167,9 +202,16 @@ drush -y eval "variable_set('jquery_update_jquery_version', strval(1.8));"
 #drush sapi-i ok_sitewide_index 10000 25
 #drush sapi-s
 
-# Revert all features and clear cache.
-### drush --yes features-revert-all
-#drush cache-clear all
+drush --yes features-revert-all
+
+drush cache-clear all
  
 # Display list of features to check status manually.
 #drush features
+
+#rebuild permissions
+drush php-eval 'node_access_rebuild();'
+
+drush cc all
+drush cron
+drush vset maintenance_mode 0
