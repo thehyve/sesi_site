@@ -210,6 +210,9 @@ drush cache-clear all
 # Display list of features to check status manually.
 #drush features
 
+# File system permissions
+chmod 775 $DRUPAL_ROOT/sites/default/files/private
+
 #rebuild permissions
 drush php-eval 'node_access_rebuild();'
 
