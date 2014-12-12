@@ -38,7 +38,7 @@ function sesi_notifyexpiration_cron() {
   // watchdog('sesi_notifyexpiration', 'Triggered by cron');
 
   $pet = pet_load('subscription_expiration_mail'); // load template just once
-  if ($pet !== (bool)0) {
+  if ($pet !== (bool) 0) {
 
     $clean_pet_body = $pet->mail_body;
 
@@ -55,6 +55,7 @@ function sesi_notifyexpiration_cron() {
         $profileid = get_profileid(intval($row['etid']));
         $firstname = getfirstname($profileid);
         $lastname = getlastname($profileid);
+        $group_adm_mail = get_grp_adm_mail($row['gid']);
         $salutation = getsalutation($profileid);
 
         if ((mailsent($row['id']) == FALSE) && (membershipexpires($row['field_expiration_date_value'], 7))) { // Only send mail if this has not yet been done AND membership expires within 7 days
@@ -78,6 +79,7 @@ function sesi_notifyexpiration_cron() {
               '__FIRSTNAME__',
               '__LASTNAME__',
               '__GROUPNAME__',
+              '__GROUP_ADM_MAIL__',
               '__ENDDATE__',
             );
             $replace = array(
@@ -85,6 +87,7 @@ function sesi_notifyexpiration_cron() {
               $firstname,
               $lastname,
               $groupname,
+              $group_adm_mail,
               substr($row['field_expiration_date_value'], 0, 10)
             );
             $pet->mail_body = str_replace($search, $replace, $clean_pet_body);
@@ -252,6 +255,23 @@ function getsalutation($uid) {
   }
 }
 
+function get_grp_adm_mail($gid) {
+  $query_n = db_select('node', 'n')
+    ->fields('n', array('uid'))
+    ->condition('nid', $gid, '=');
+  $result_n = $query_n->execute();
+  $recordcount = $query_n->countQuery()->execute()->fetchField();
+  $uid = $result_n->fetchAssoc();
+
+  $query_u = db_select('users', 'u')
+    ->fields('u', array('mail'))
+    ->condition('uid', $uid, '=');
+  $result_u = $query_u->execute();
+  $recordcount = $query_u->countQuery()->execute()->fetchField();
+  $mail = $result_u->fetchAssoc();
+  return $mail['mail'];
+}
+
 function mailsent($membership) {
   $query = db_select('field_data_field_mail_sent', 'f')
     ->fields('f', array('field_mail_sent_value'))
@@ -261,8 +281,8 @@ function mailsent($membership) {
   if ($recordcount > 0) {
     $record = $result->fetchAssoc();
     if ($record['field_mail_sent_value'] == '1') {
-      return TRUE;
-    }
+      return TRUE; 
+    }  
     else {
       return FALSE;
     }
@@ -270,7 +290,7 @@ function mailsent($membership) {
   else {
     return FALSE;
   }
-}
+} 
 
 /**
  * Send tokenized email to a list of recipients.
