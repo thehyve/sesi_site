@@ -1,0 +1,26 @@
+<?php
+/**
+ * Registers urls specific for new query interface 
+ * Implements hook_menu().
+ */
+function sesi_hook_menu() {
+    $items = array();
+     
+    $items['sesi/process'] = array(
+        'title' => "Execute sesi hook",
+        'access callback' => TRUE,
+        'page callback' => 'sesi_hook_execute_hook_sesi', 
+        'type' => MENU_CALLBACK
+    );
+    
+    return $items;
+}
+
+function sesi_hook_execute_hook_sesi() {
+    echo "Start invoking hook_sesi<br />\n";
+    echo "------------------------------<br />\n";
+    module_invoke_all('sesi');
+    echo "------------------------------<br />\n";
+    echo "Finished invoking hook_sesi<br />\n";
+    exit;
+}
