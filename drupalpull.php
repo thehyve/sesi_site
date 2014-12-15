@@ -33,3 +33,6 @@ drush_rules_enable('rules_og_email_member_active');
 drush_rules_enable('rules_og_email_member_pending');
 drush_rules_enable('rules_user_membership_approved');
 
+// CLEAN SEARCH INDEX
+drush_search_api_clear();
+

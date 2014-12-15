@@ -180,6 +180,7 @@ ensure_feat sesi_printer_friendly
 ensure_feat sesi_expiration_date
 ensure_feat sesi_notify_expirations
 ensure_feat sesi_membership_mail
+ensure_feat sesi_search_index_immediately
 
 
 # UPDATE JQUERY VERSION
@@ -208,6 +209,9 @@ drush cache-clear all
  
 # Display list of features to check status manually.
 #drush features
+
+# File system permissions
+chmod 775 $DRUPAL_ROOT/sites/default/files/private
 
 #rebuild permissions
 drush php-eval 'node_access_rebuild();'
