@@ -1,0 +1,62 @@
+<?php
+
+/**
+ * @file
+ * Module file for userflow_module.
+ */
+
+function userflow_menu() {
+
+  $items['userflow/%'] = array(
+    'page callback' => 'userflow_controller',
+    'page arguments' => array(1),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+function userflow_controller($ds) {
+  
+  if (!is_numeric($ds)) {
+    drupal_access_denied();
+    return;
+  }
+    
+  // if is anonymous user goto registration page
+  if( !user_is_logged_in()) {
+      drupal_goto('user/register');
+      return;
+  }
+  
+  // if already has access to that dataset..
+  $node = node_load($ds);
+  if(node_access('view',$node)) {
+      drupal_goto('node/'.$ds);           
+      return;
+  }
+  
+  // get number of communities associated to the given dataset
+  $groups = og_get_entity_groups('node',$ds);
+  if( count($groups)==0) {
+      drupal_access_denied();
+      return;
+  }
+
+  // get id of communities and total number
+  $nodes = $groups['node'];
+  $nnodes = count($nodes);
+  
+  // if is exactly 1, forwards to membership form for that community
+  if($nnodes==1) {
+      $keys = array_keys($nodes);
+      drupal_goto('group/node/'.$nodes[$keys[0]].'/subscribe/og_user_node');
+      return;
+  }
+  
+  // else, redirects to communities_by_ds to let the user choose which community
+   drupal_goto('community_by_dataset/'.$ds); 
+  
+}
+
