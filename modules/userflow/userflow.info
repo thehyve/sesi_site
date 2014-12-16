@@ -1,0 +1,5 @@
+name = User flow
+description = Defines where the user will be redirected depending of the Dataset requested
+package = Sesi
+core = 7.x
+#files[] = 
