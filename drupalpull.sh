@@ -178,7 +178,9 @@ ensure_feat sesi_easy_social
 ensure_feat sesi_twitter
 ensure_feat sesi_printer_friendly
 ensure_feat sesi_expiration_date
+ensure_feat sesi_notify_expirations
 ensure_feat sesi_membership_mail
+ensure_feat sesi_search_index_immediately
 ensure_feat sesi_dataset_redirect
 
 
@@ -202,10 +204,15 @@ ensure_mod better_statistics
 #drush sapi-i ok_sitewide_index 10000 25
 #drush sapi-s
 
+drush --yes features-revert-all
+drush scr $DRUPAL_ROOT/sites/all/drupalpull.php 
 drush cache-clear all
  
 # Display list of features to check status manually.
 #drush features
+
+# File system permissions
+chmod 775 $DRUPAL_ROOT/sites/default/files/private
 
 #rebuild permissions
 drush php-eval 'node_access_rebuild();'
