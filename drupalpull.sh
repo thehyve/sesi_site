@@ -181,6 +181,7 @@ ensure_feat sesi_expiration_date
 ensure_feat sesi_notify_expirations
 ensure_feat sesi_membership_mail
 ensure_feat sesi_search_index_immediately
+ensure_feat sesi_dataset_redirect
 
 
 # UPDATE JQUERY VERSION
