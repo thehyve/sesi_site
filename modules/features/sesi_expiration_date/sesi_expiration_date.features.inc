@@ -20,6 +20,12 @@ function sesi_expiration_date_default_search_api_index_alter(&$data) {
  */
 function sesi_expiration_date_views_default_views_alter(&$data) {
   if (isset($data['datasets'])) {
+    $data['datasets']->display['default']->display_options['filter_groups'] = array(
+      'groups' => array(
+        1 => 'AND',
+        2 => 'OR',
+      ),
+    ); /* WAS: '' */
     $data['datasets']->display['default']->display_options['filters']['field_expiration_date'] = array(
       'id' => 'field_expiration_date',
       'table' => 'search_api_index_dataset_index',

@@ -17,6 +17,12 @@ function sesi_expiration_date_features_override_default_overrides() {
   );
 
   // Exported overrides for: views_view
+  $overrides["views_view.datasets.display|default|display_options|filter_groups"] = array(
+    'groups' => array(
+      1 => 'AND',
+      2 => 'OR',
+    ),
+  );
   $overrides["views_view.datasets.display|default|display_options|filters|field_expiration_date"] = array(
     'id' => 'field_expiration_date',
     'table' => 'search_api_index_dataset_index',
