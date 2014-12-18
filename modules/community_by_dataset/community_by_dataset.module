@@ -1,0 +1,51 @@
+<?php
+
+/**
+ * Get dataset id from query string
+ */
+function _community_by_dataset_get_dataset_id() {
+    
+    $query_str  = $_SERVER["QUERY_STRING"];
+    $query_str_tokens = explode("/", $query_str); // tokenize query string
+    
+    // dataset id is located in the last token
+    $ds_id = $query_str_tokens[count($query_str_tokens)-1];
+    
+    if (!is_numeric($ds_id)) $ds_id = null;
+    
+    return $ds_id;
+}
+
+/**
+ * Get list of community based on given dataset id, but will return all 
+ * communities when dataset id is not in the query string
+ * 
+ * @param &$view view
+ *  View
+ * @param $query
+ *  Query
+ */
+function community_by_dataset_views_query_alter(&$view, &$query) {
+
+    if ($view->name != 'community_by_dataset') {
+        return;
+    }    
+
+    $ds_id = _community_by_dataset_get_dataset_id();
+    
+    if ($ds_id) {        
+        // create join with og_membership table to check the related datasets
+        $join = new views_join();
+        $join->table = 'og_membership';
+        $join->field = 'gid';
+        $join->left_table = 'node';
+        $join->left_field = 'nid';
+        $join->type = 'inner';
+        
+        // alter query to select list communities that related to the given 
+        // dataset id
+        $query->add_relationship('og_membership', $join, 'node');
+        $query->add_where(1,'og_membership.etid', $ds_id, '=');
+    
+    }
+}
