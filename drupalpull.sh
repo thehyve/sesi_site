@@ -125,6 +125,9 @@ ensure_mod og_email
 # Install and enable pet
 ensure_mod pet
 
+# Install and enable dataset
+ensure_mod community_by_dataset
+
 # Enable project features.
 if isdisabled sesi_eid_login; then
     ensure_feat sesi_eid_login
@@ -194,7 +197,6 @@ ensure_mod text_hierarchical
 
 # Statistics
 ensure_mod better_statistics
-
 ensure_mod userflow
  
 # Remove an old content type and some fields.
