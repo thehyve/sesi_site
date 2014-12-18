@@ -8,6 +8,9 @@
  * Implements hook_views_default_views_alter().
  */
 function sesi_dataset_redirect_views_default_views_alter(&$data) {
+  if (isset($data['community_by_dataset'])) {
+    $data['community_by_dataset']->display['page']->display_options['path'] = 'community_by_dataset'; /* WAS: 'communities' */
+  }
   if (isset($data['datasets'])) {
     $data['datasets']->display['page']->display_options['defaults']['fields'] = FALSE; /* WAS: '' */
     $data['datasets']->display['page']->display_options['fields'] = array(
