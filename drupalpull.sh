@@ -125,7 +125,7 @@ ensure_mod og_email
 # Install and enable pet
 ensure_mod pet
 
-# Install and enable pet
+# Install and enable dataset
 ensure_mod community_by_dataset
 
 # Enable project features.
@@ -197,6 +197,7 @@ ensure_mod text_hierarchical
 
 # Statistics
 ensure_mod better_statistics
+ensure_mod userflow
  
 # Remove an old content type and some fields.
 #drush --yes php-eval "node_type_delete('page');"
