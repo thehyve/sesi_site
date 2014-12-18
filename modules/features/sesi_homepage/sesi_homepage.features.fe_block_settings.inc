@@ -23,11 +23,23 @@ function sesi_homepage_default_fe_block_settings() {
       'authenticated user' => 2,
     ),
     'themes' => array(
+      'bartik' => array(
+        'region' => '',
+        'status' => 0,
+        'theme' => 'bartik',
+        'weight' => 0,
+      ),
       'mica_subtheme' => array(
         'region' => 'content',
         'status' => 1,
         'theme' => 'mica_subtheme',
         'weight' => -51,
+      ),
+      'seven' => array(
+        'region' => '',
+        'status' => 0,
+        'theme' => 'seven',
+        'weight' => 0,
       ),
     ),
     'title' => '',
@@ -45,11 +57,23 @@ function sesi_homepage_default_fe_block_settings() {
       'anonymous user' => 1,
     ),
     'themes' => array(
+      'bartik' => array(
+        'region' => '',
+        'status' => 0,
+        'theme' => 'bartik',
+        'weight' => 0,
+      ),
       'mica_subtheme' => array(
         'region' => 'content',
         'status' => 1,
         'theme' => 'mica_subtheme',
         'weight' => -50,
+      ),
+      'seven' => array(
+        'region' => '',
+        'status' => 0,
+        'theme' => 'seven',
+        'weight' => 0,
       ),
     ),
     'title' => '',
@@ -65,11 +89,23 @@ function sesi_homepage_default_fe_block_settings() {
     'pages' => '',
     'roles' => array(),
     'themes' => array(
+      'bartik' => array(
+        'region' => 'content',
+        'status' => 1,
+        'theme' => 'bartik',
+        'weight' => 0,
+      ),
       'mica_subtheme' => array(
         'region' => 'content',
         'status' => 1,
         'theme' => 'mica_subtheme',
         'weight' => -52,
+      ),
+      'seven' => array(
+        'region' => 'content',
+        'status' => 1,
+        'theme' => 'seven',
+        'weight' => 0,
       ),
     ),
     'title' => '',
@@ -87,11 +123,23 @@ function sesi_homepage_default_fe_block_settings() {
       'authenticated user' => 2,
     ),
     'themes' => array(
+      'bartik' => array(
+        'region' => '',
+        'status' => 0,
+        'theme' => 'bartik',
+        'weight' => 0,
+      ),
       'mica_subtheme' => array(
         'region' => '',
         'status' => 0,
         'theme' => 'mica_subtheme',
         'weight' => -39,
+      ),
+      'seven' => array(
+        'region' => '',
+        'status' => 0,
+        'theme' => 'seven',
+        'weight' => 0,
       ),
     ),
     'title' => '',
@@ -107,11 +155,23 @@ function sesi_homepage_default_fe_block_settings() {
     'pages' => '<front>',
     'roles' => array(),
     'themes' => array(
+      'bartik' => array(
+        'region' => '',
+        'status' => 0,
+        'theme' => 'bartik',
+        'weight' => 0,
+      ),
       'mica_subtheme' => array(
         'region' => '',
         'status' => 0,
         'theme' => 'mica_subtheme',
         'weight' => -38,
+      ),
+      'seven' => array(
+        'region' => '',
+        'status' => 0,
+        'theme' => 'seven',
+        'weight' => 0,
       ),
     ),
     'title' => '',

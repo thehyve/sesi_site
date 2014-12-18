@@ -24,15 +24,6 @@ function sesi_homepage_views_api($module = NULL, $api = NULL) {
 }
 
 /**
- * Implements hook_strongarm_alter().
- */
-function sesi_homepage_strongarm_alter(&$data) {
-  if (isset($data['uuid_features_entity_node'])) {
-    $data['uuid_features_entity_node']->value['page'] = 'page'; /* WAS: 0 */
-  }
-}
-
-/**
  * Implements hook_node_info().
  */
 function sesi_homepage_node_info() {
