@@ -1,0 +1,10 @@
+name = Sesi OG email
+description = SESIDEV-128 - OG email
+core = 7.x
+package = Sesi
+version = 7.x-1.0
+project = sesi_og_email
+features[features_api][] = api:2
+features[features_override_items][] = variable.og_email_admin_pending_body
+features[features_overrides][] = variable.og_email_admin_pending_body.value|value
+features_exclude[dependencies][sesi_communities_and_files] = sesi_communities_and_files
