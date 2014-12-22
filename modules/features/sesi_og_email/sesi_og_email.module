@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Sesi OG email feature.
+ */
+
+include_once 'sesi_og_email.features.inc';
