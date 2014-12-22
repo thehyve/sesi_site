@@ -180,6 +180,7 @@ ensure_feat sesi_printer_friendly
 ensure_feat sesi_expiration_date
 ensure_feat sesi_notify_expirations
 ensure_feat sesi_membership_mail
+ensure_feat sesi_og_email
 
 
 # UPDATE JQUERY VERSION
