@@ -1,0 +1,12 @@
+name = Sesi Dataset Redirect
+description = Dataset URL Redirect
+core = 7.x
+package = Sesi
+version = 7.x-1.1
+project = sesi_dataset_redirect
+features[features_api][] = api:2
+features[features_override_items][] = views_view.community_by_dataset
+features[features_overrides][] = views_view.community_by_dataset.display|page|display_options|path
+features[features_overrides][] = views_view.datasets.display|page|display_options|defaults|fields
+features[features_overrides][] = views_view.datasets.display|page|display_options|fields
+features_exclude[dependencies][sesi_communities_and_files] = sesi_communities_and_files

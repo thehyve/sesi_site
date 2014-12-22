@@ -6,6 +6,7 @@ version = 7.x-1.0
 project = sesi_expiration_date
 features[features_api][] = api:2
 features[features_overrides][] = search_api_index.dataset_index.options|fields|field_expiration_date
+features[features_overrides][] = views_view.datasets.display|default|display_options|filter_groups
 features[features_overrides][] = views_view.datasets.display|default|display_options|filters|field_expiration_date
 features[features_overrides][] = views_view.datasets.display|default|display_options|filters|field_expiration_date_1
 features[features_overrides][] = views_view.harmonization_datasets.display|default|display_options|filters|field_expiration_date

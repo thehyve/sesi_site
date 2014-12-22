@@ -5,6 +5,7 @@ package = Sesi
 version = 7.x-1.5
 project = sesi_communities_and_files
 dependencies[] = og_ui
+dependencies[] = sesi_hook
 features[ctools][] = strongarm:strongarm:1
 features[ctools][] = views:views_default:3.0
 features[features_api][] = api:2

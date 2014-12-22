@@ -125,6 +125,9 @@ ensure_mod og_email
 # Install and enable pet
 ensure_mod pet
 
+# Install and enable dataset
+ensure_mod community_by_dataset
+
 # Enable project features.
 if isdisabled sesi_eid_login; then
     ensure_feat sesi_eid_login
@@ -181,6 +184,8 @@ ensure_feat sesi_expiration_date
 ensure_feat sesi_notify_expirations
 ensure_feat sesi_membership_mail
 ensure_feat sesi_og_email
+ensure_feat sesi_search_index_immediately
+ensure_feat sesi_dataset_redirect
 
 
 # UPDATE JQUERY VERSION
@@ -193,6 +198,7 @@ ensure_mod text_hierarchical
 
 # Statistics
 ensure_mod better_statistics
+ensure_mod userflow
  
 # Remove an old content type and some fields.
 #drush --yes php-eval "node_type_delete('page');"
@@ -209,6 +215,9 @@ drush cache-clear all
  
 # Display list of features to check status manually.
 #drush features
+
+# File system permissions
+chmod 775 $DRUPAL_ROOT/sites/default/files/private
 
 #rebuild permissions
 drush php-eval 'node_access_rebuild();'

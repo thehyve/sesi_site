@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Sesi Search Index Immediately feature.
+ */
+
+include_once 'sesi_search_index_immediately.features.inc';
