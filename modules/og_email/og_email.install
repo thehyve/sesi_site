@@ -1,0 +1,12 @@
+<?php
+
+/**
+ * Implements hook_enable()
+ */
+function og_email_enable() {
+  // Add the correct settings to Mail System
+  $mailsystem = mailsystem_get();
+  if (empty($mailsystem['variable_email'])) {
+    mailsystem_set(array('variable_email' => 'HTMLMailSystem'));
+  }
+}

@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the SESI Default comm feature.
+ */
+
+include_once 'sesi_default_comm.features.inc';

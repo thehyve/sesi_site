@@ -1,0 +1,55 @@
+<?php
+
+/**
+ * @file
+ * Defines additional menu item and order html email functonality.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function og_email_menu() {
+  $items = array();
+
+  $items['admin/config/group/email'] = array(
+    'title' => 'Emails',
+    'description' => 'OG emails',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('variable_group_form', 'og_email'),
+    'access arguments' => array('administer group'),
+    'type' => MENU_NORMAL_ITEM,
+    'weight' => 99,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter()
+ */
+function og_email_form_variable_group_form_alter(&$form, &$form_state) {
+  if ($form_state['build_info']['args'][0] == 'og_email') {
+    $form['tokens'] = array(
+      '#markup' => theme('token_tree', array('token_types' => array('node', 'og-membership'), '#global_types' => TRUE)),
+      '#weight' => 99999
+    );
+  }
+}
+
+/**
+ * Implements hook_default_rules_configuration_alter().
+ */
+function og_email_default_rules_configuration_alter(&$configs) {
+  // Remove the OG rules that notifies when new membership become active.
+  if (isset($configs['rules_og_member_active'])) {
+    unset($configs['rules_og_member_active']);
+  }
+  // Remove the rule that notifies about new pening members.
+  if (isset($configs['rules_og_member_pending'])) {
+    unset($configs['rules_og_member_pending']);
+  }
+  // Remove the OG email rule that notifies users when new content is created.
+  if (isset($configs['rules_og_new_content'])) {
+    unset($configs['rules_og_new_content']);
+  }
+}

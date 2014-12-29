@@ -1,0 +1,14 @@
+name = OG Email
+description = Defines Emails - Plain Text or HTML and Multi-language
+package = Organic groups
+dependencies[] = og
+dependencies[] = variable_email
+dependencies[] = htmlmail
+core = 7.x
+
+; Information added by drupal.org packaging script on 2013-10-01
+version = "7.x-2.x-dev"
+core = "7.x"
+project = "og_email"
+datestamp = "1380595400"
+
