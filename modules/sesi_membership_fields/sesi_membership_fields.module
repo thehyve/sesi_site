@@ -1,0 +1,79 @@
+<?php
+
+/**
+ * Hide OG membership fields from non OG admins
+ */
+
+/**
+ * Implements hook_form_alter().
+ * $form: Nested array of form elements that comprise the form.
+ * $form_state: A keyed array containing the current state of the form. The arguments that drupal_get_form() was originally called with are available in the array $form_state['build_info']['args'].
+ * $form_id: String representing the name of the form itself. Typically this is the name of the function that generated the form.
+ */
+function sesi_membership_fields_form_alter(&$form, $form_state, $form_id) {
+  global $user;
+
+  if ($form_id == 'og_ui_confirm_subscribe') { //General page to subscribe to a group
+    //dsm("FI: " . $form_id);
+       
+    if (_check_user_is_adminmember_of_group($user->uid, $form['gid']['#value']) || _check_user_is_admin_of_group($user->uid, $form['gid']['#value']) ) {
+      $form['field_expiration_date']['#access'] = TRUE;
+      $form['field_mail_sent']['#access'] = FALSE;
+    }
+    else {
+      $form['field_expiration_date']['#access'] = FALSE;
+      $form['field_mail_sent']['#access'] = FALSE;
+    }
+  }
+  if ($form_id == 'og_ui_edit_membership') { // Edit membership page
+    $form['membership_fields']['field_mail_sent']['#access'] = FALSE;
+  }
+  if ($form_id == 'og_ui_add_users') { // Add users page
+    /*  http://dropbucket.org/node/501#comment-680
+     * Code to check if you are admin of a group:
+    if (_check_user_is_adminmember_of_group($user->uid, $form['gid']['#value']) || _check_user_is_admin_of_group($user->uid, $form['gid']['#value']) ) {
+      drupal_set_message($message = "You (" . $user->uid . ") are the OG group manager", $type = 'status', $repeat = TRUE);
+    }
+    else {
+      drupal_set_message($message = "You (" . $user->uid . ") are NOT the OG group manager", $type = 'status', $repeat = TRUE);
+    }
+     */
+    //$form['membership_fields']['field_mail_sent']['#access'] = FALSE;  // Have to show field_mail_sent, otherwise error message when saving
+  }
+}
+
+/*
+ * administrator member rid=3
+ */
+function _check_user_is_adminmember_of_group($uid, $gid) {
+  $query = db_select('og_users_roles', 'og');
+  $query->condition('gid', $gid, '=');
+  $query->condition('uid', $uid, '=');
+  $query->distinct();
+  $query->fields('og', array('rid'));
+  $result = $query->execute();
+  $role_id = $result->fetchAssoc();
+  if ($role_id['rid'] >= 3) {
+    return TRUE;
+  }
+  else {
+    return FALSE;
+  }
+}
+/*
+ * Community is simple a node in Drupal, therefore group manager is actually the creator of the node
+*/
+function _check_user_is_admin_of_group($uid, $gid) {
+  $query = db_select('node', 'n');
+  $query->condition('nid', $gid, '=');
+  $query->distinct();
+  $query->fields('n', array('uid'));
+  $result = $query->execute();
+  $node_uid = $result->fetchAssoc();
+  if ($node_uid['uid'] == $uid) {
+    return TRUE;
+  }
+  else {
+    return FALSE;
+  }
+}

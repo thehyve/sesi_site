@@ -1,0 +1,7 @@
+name = Hide membership fields
+description = SESIDEV-157 - Hide OG membership fields for non OG-Admins
+core = 7.x
+version = "7.0"
+package = Sesi
+project = sesi_membership_fields
+dependencies[] = og
