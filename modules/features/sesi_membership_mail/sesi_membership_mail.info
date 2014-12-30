@@ -1,9 +1,10 @@
 name = Sesi membership mail
-description = SESIDEV-117 - Mail when your membership is approved
+description = This feature configures setting when og membership is approved
 core = 7.x
-package = Features
+package = Sesi
 version = 7.x-1.0
 project = sesi_membership_mail
+dependencies[] = entity
 features[features_api][] = api:2
 features[rules_config][] = rules_user_membership_approved
 features_exclude[dependencies][og] = og

@@ -12,6 +12,70 @@ function sesi_menu_links_default_fe_block_settings() {
 
   $export['version'] = '2.0';
 
+  $export['mica_bootstrap_config-bootstrap-login'] = array(
+    'cache' => 1,
+    'custom' => 0,
+    'delta' => 'bootstrap-login',
+    'module' => 'mica_bootstrap_config',
+    'node_types' => array(),
+    'pages' => '',
+    'roles' => array(),
+    'themes' => array(
+      'bartik' => array(
+        'region' => '',
+        'status' => 0,
+        'theme' => 'bartik',
+        'weight' => 0,
+      ),
+      'mica_subtheme' => array(
+        'region' => '',
+        'status' => 0,
+        'theme' => 'mica_subtheme',
+        'weight' => 10,
+      ),
+      'seven' => array(
+        'region' => '',
+        'status' => 0,
+        'theme' => 'seven',
+        'weight' => 0,
+      ),
+    ),
+    'title' => '',
+    'visibility' => 0,
+  );
+
+  $export['system-main-menu'] = array(
+    'cache' => -1,
+    'custom' => 0,
+    'delta' => 'main-menu',
+    'module' => 'system',
+    'node_types' => array(),
+    'pages' => '',
+    'roles' => array(),
+    'themes' => array(
+      'bartik' => array(
+        'region' => '',
+        'status' => 0,
+        'theme' => 'bartik',
+        'weight' => 0,
+      ),
+      'mica_subtheme' => array(
+        'region' => 'navigation',
+        'status' => 1,
+        'theme' => 'mica_subtheme',
+        'weight' => 0,
+      ),
+      'seven' => array(
+        'region' => '',
+        'status' => 0,
+        'theme' => 'seven',
+        'weight' => 0,
+      ),
+    ),
+    'title' => '',
+    'visibility' => 0,
+  );
+
   $export['system-user-menu'] = array(
     'cache' => -1,
     'custom' => 0,
@@ -31,11 +95,23 @@ function sesi_menu_links_default_fe_block_settings() {
       'study reviewer' => 6,
     ),
     'themes' => array(
+      'bartik' => array(
+        'region' => '',
+        'status' => 0,
+        'theme' => 'bartik',
+        'weight' => 0,
+      ),
       'mica_subtheme' => array(
         'region' => 'navigation',
         'status' => 1,
         'theme' => 'mica_subtheme',
         'weight' => 5,
+      ),
+      'seven' => array(
+        'region' => '',
+        'status' => 0,
+        'theme' => 'seven',
+        'weight' => 0,
       ),
     ),
     'title' => '<none>',

@@ -1,5 +1,5 @@
 name = Sesi OG email
-description = SESIDEV-128 - OG email
+description = This feature configures all settings for OG emails
 core = 7.x
 package = Sesi
 version = 7.x-1.0

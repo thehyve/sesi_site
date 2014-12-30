@@ -12,7 +12,7 @@ function sesi_menu_links_features_override_default_overrides() {
   $overrides = array();
 
   // Exported overrides for: menu_links
-  $overrides["menu_links.main-menu:datasets.link_title"] = 'Catalogues';
+  $overrides["menu_links.main-menu:sitemap.weight"] = -49;
 
  return $overrides;
 }
