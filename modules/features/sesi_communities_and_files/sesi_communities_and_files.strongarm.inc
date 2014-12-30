@@ -118,25 +118,6 @@ function sesi_communities_and_files_strongarm() {
   $strongarm = new stdClass();
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
-  $strongarm->name = 'og_email_admin_pending_body';
-  $strongarm->value = array(
-    'value' => '<p>Dear [group:author:name]</p>
-    
-    <p>[account:name] requests membership for group \'[group:title]\' in [group:url].</p>
-    
-    <p>Please check:
-    People in group page:<br>
-    [site:url]?q=group/node/[group:nid]/admin/people</p>
-    <p>Edit membership in group page: <br>
-    [site:url]?q=group/node/[group:nid]/admin/people/edit-membership/[og-membership:id]&destination=group/node/[group:nid]/admin/people</p>
-    ',
-    'format' => 'filtered_html',
-  );
-  $export['og_email_admin_pending_body'] = $strongarm;
-
-  $strongarm = new stdClass();
-  $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
-  $strongarm->api_version = 1;
   $strongarm->name = 'og_email_admin_pending_subject';
   $strongarm->value = '[account:name] membership request [group:title]';
   $export['og_email_admin_pending_subject'] = $strongarm;
