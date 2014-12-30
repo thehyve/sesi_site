@@ -21,8 +21,7 @@ function sesi_membership_mail_default_rules_configuration() {
             "subject" : "Membership approved",
             "message" : "Dear [account:name],\\r\\n\\r\\nYour membership of the group has been approved.\\r\\n\\r\\nthe [site:name] team"
           }
-        },
-        { "drupal_message" : { "message" : "1. [account:name]\\r\\n2. [account:og-user-node]\\r\\n3. [account:og_user_node]" } }
+        }
       ]
     }
   }');
