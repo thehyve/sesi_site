@@ -42,6 +42,9 @@ function sesi_membership_fields_form_alter(&$form, $form_state, $form_id) {
   }
 }
 
+/*
+ * administrator member rid=3
+ */
 function _check_user_is_adminmember_of_group($uid, $gid) {
   $query = db_select('og_users_roles', 'og');
   $query->condition('gid', $gid, '=');
@@ -57,7 +60,9 @@ function _check_user_is_adminmember_of_group($uid, $gid) {
     return FALSE;
   }
 }
-
+/*
+ * Community is simple a node in Drupal, therefore group manager is actually the creator of the node
+*/
 function _check_user_is_admin_of_group($uid, $gid) {
   $query = db_select('node', 'n');
   $query->condition('nid', $gid, '=');
