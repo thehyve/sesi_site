@@ -71,11 +71,11 @@ function sesi_menu_links_menu_default_menu_links() {
     'weight' => 0,
     'parent_path' => 'events',
   );
-  // Exported menu link: main-menu:communities
-  $menu_links['main-menu:communities'] = array(
+  // Exported menu link: main-menu:community_by_dataset
+  $menu_links['main-menu:community_by_dataset'] = array(
     'menu_name' => 'main-menu',
-    'link_path' => 'communities',
-    'router_path' => 'communities',
+    'link_path' => 'community_by_dataset',
+    'router_path' => 'community_by_dataset',
     'link_title' => 'Communities',
     'options' => array(),
     'module' => 'system',
@@ -83,7 +83,7 @@ function sesi_menu_links_menu_default_menu_links() {
     'external' => 0,
     'has_children' => 0,
     'expanded' => 0,
-    'weight' => -50,
+    'weight' => -46,
     'parent_path' => 'node/2',
   );
   // Exported menu link: main-menu:data-access/admin
@@ -177,7 +177,7 @@ function sesi_menu_links_menu_default_menu_links() {
     'external' => 0,
     'has_children' => 0,
     'expanded' => 1,
-    'weight' => -47,
+    'weight' => -49,
     'parent_path' => 'node/2',
   );
   // Exported menu link: main-menu:events
@@ -239,6 +239,25 @@ function sesi_menu_links_menu_default_menu_links() {
     'expanded' => 1,
     'weight' => -45,
   );
+  // Exported menu link: main-menu:node/244
+  $menu_links['main-menu:node/244'] = array(
+    'menu_name' => 'main-menu',
+    'link_path' => 'node/244',
+    'router_path' => 'node/%',
+    'link_title' => 'Workshop',
+    'options' => array(
+      'attributes' => array(
+        'title' => 'Being integrated in the International Biomedical Research and Biobanking World',
+      ),
+    ),
+    'module' => 'menu',
+    'hidden' => 0,
+    'external' => 0,
+    'has_children' => 0,
+    'expanded' => 0,
+    'weight' => 0,
+    'parent_path' => 'events',
+  );
   // Exported menu link: main-menu:node/3
   $menu_links['main-menu:node/3'] = array(
     'menu_name' => 'main-menu',
@@ -267,9 +286,10 @@ function sesi_menu_links_menu_default_menu_links() {
     'module' => 'menu',
     'hidden' => 0,
     'external' => 0,
-    'has_children' => 1,
+    'has_children' => 0,
     'expanded' => 1,
-    'weight' => -40,
+    'weight' => -50,
+    'parent_path' => 'node/4',
   );
   // Exported menu link: main-menu:node/5
   $menu_links['main-menu:node/5'] = array(
@@ -350,7 +370,7 @@ function sesi_menu_links_menu_default_menu_links() {
     'external' => 0,
     'has_children' => 1,
     'expanded' => 1,
-    'weight' => -49,
+    'weight' => -50,
     'parent_path' => 'node/2',
   );
   // Exported menu link: main-menu:studies-search
@@ -380,7 +400,7 @@ function sesi_menu_links_menu_default_menu_links() {
     'external' => 0,
     'has_children' => 0,
     'expanded' => 0,
-    'weight' => -46,
+    'weight' => -48,
     'parent_path' => 'node/2',
   );
   // Exported menu link: user-menu:user
@@ -441,6 +461,7 @@ function sesi_menu_links_menu_default_menu_links() {
   t('Studies');
   t('User account');
   t('Variables Search');
+  t('Workshop');
 
 
   return $menu_links;
