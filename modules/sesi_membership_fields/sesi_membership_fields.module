@@ -38,7 +38,7 @@ function sesi_membership_fields_form_alter(&$form, $form_state, $form_id) {
       drupal_set_message($message = "You (" . $user->uid . ") are NOT the OG group manager", $type = 'status', $repeat = TRUE);
     }
      */
-    //$form['membership_fields']['field_mail_sent']['#access'] = FALSE;  // Have to show field_mail_sent, otherwise error message when saving
+    $form['membership_fields']['field_mail_sent']['#access'] = FALSE;
   }
 }
 

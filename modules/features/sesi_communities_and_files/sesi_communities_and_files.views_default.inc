@@ -98,7 +98,7 @@ function sesi_communities_and_files_views_default_views() {
   $handler->display->display_options['filters']['field_project_visibility_value']['value'] = array(
     1 => '1',
   );
-  $handler->display->display_options['path'] = 'communities';
+  $handler->display->display_options['path'] = 'community_by_dataset';
   $handler->display->display_options['menu']['type'] = 'normal';
   $handler->display->display_options['menu']['title'] = 'Communities';
   $handler->display->display_options['menu']['name'] = 'main-menu';

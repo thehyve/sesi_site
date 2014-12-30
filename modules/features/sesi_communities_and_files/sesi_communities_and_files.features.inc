@@ -21,6 +21,15 @@ function sesi_communities_and_files_views_api($module = NULL, $api = NULL) {
 }
 
 /**
+ * Implements hook_field_default_field_instances_alter().
+ */
+function sesi_communities_and_files_field_default_field_instances_alter(&$data) {
+  if (isset($data['og_membership-og_membership_type_default-field_mail_sent'])) {
+    $data['og_membership-og_membership_type_default-field_mail_sent']['required'] = 0; /* WAS: 1 */
+  }
+}
+
+/**
  * Implements hook_strongarm_alter().
  */
 function sesi_communities_and_files_strongarm_alter(&$data) {
