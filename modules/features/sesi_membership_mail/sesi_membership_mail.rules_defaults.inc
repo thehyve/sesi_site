@@ -12,8 +12,9 @@ function sesi_membership_mail_default_rules_configuration() {
   $items['rules_user_membership_approved'] = entity_import('rules_config', '{ "rules_user_membership_approved" : {
       "LABEL" : "User membership approved",
       "PLUGIN" : "reaction rule",
+      "OWNER" : "rules",
       "REQUIRES" : [ "rules", "og" ],
-      "ON" : [ "og_user_approved" ],
+      "ON" : { "og_user_approved" : [] },
       "DO" : [
         { "mail" : {
             "to" : [ "account:mail" ],
