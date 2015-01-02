@@ -36,3 +36,15 @@ drush_rules_enable('rules_user_membership_approved');
 // CLEAN SEARCH INDEX
 drush_search_api_clear();
 
+// SET HOMEPAGE to latest page called Mica
+$query = new EntityFieldQuery();
+$entities = $query->entityCondition('entity_type', 'node')
+  ->propertyCondition('title', 'Mica')
+  ->propertyCondition('status', 1)
+  ->execute();
+
+print "set new homepage";
+if (!empty($entities['node'])) {
+  $nid = array_pop(array_keys($entities['node']));
+  variable_set("site_frontpage", "node/".$nid);
+}
