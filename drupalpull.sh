@@ -200,6 +200,9 @@ ensure_mod text_hierarchical
 # Statistics
 ensure_mod better_statistics
 ensure_mod userflow
+
+# project datasets
+ensure_mod project_dataset
  
 # Remove an old content type and some fields.
 #drush --yes php-eval "node_type_delete('page');"

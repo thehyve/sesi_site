@@ -1,0 +1,5 @@
+name = Project Dataset
+description = Helps to protect project dataset by filtering the views automatically
+package = Sesi
+core = 7.x
+#files[] = 
