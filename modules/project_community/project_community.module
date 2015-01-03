@@ -1,0 +1,49 @@
+<?php
+
+function project_community_views_post_execute(&$view) {
+    
+    if ($view->name != 'community_by_dataset') {
+        return;
+    }
+    watchdog(WATCHDOG_DEBUG, 'Running post execute project_community_views_post_execute '. $view->name);
+    
+    global $user;
+ 
+    $results = array();
+    foreach ($view->result as $key => $value) {   
+        
+        // Check to see if $user has the administrator role.
+        if (in_array('administrator', array_values($user->roles))) {
+            array_push($results, $value);
+            continue;
+        }
+        
+        // get id of community, if user has access, add item and continue
+        $nid = $value->nid;
+        $node = node_load($nid);
+        if (og_is_member('node', $nid)) {
+            array_push($results, $value);
+            continue;
+        }
+        
+        // is not member, only show community if field_project_visibity is not hidden
+        //TODO
+        $entity = entity_load('node', array($nid));
+        $g = $entity[$nid];
+        if(property_exists($g, 'field_project_visibility') && 
+                $g->field_project_visibility[LANGUAGE_NONE][0]['value'] == '0') {
+            continue;
+        }    
+        
+        array_push($results, $value);
+        
+    }
+    
+    //rewrite the final results page
+    $view->query->pager->total_items = count($results);
+    $view->query->pager->update_page_info();
+    $view->result = $results;
+    
+}
+
+

@@ -1,0 +1,5 @@
+name = Project Community
+description = Helps to protect project communities by filtering the views automatically
+package = Sesi
+core = 7.x
+#files[] = 
