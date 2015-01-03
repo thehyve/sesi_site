@@ -203,6 +203,9 @@ ensure_mod userflow
 
 # project datasets
 ensure_mod project_dataset
+
+# project community
+ensure_mod project_community
  
 # Remove an old content type and some fields.
 #drush --yes php-eval "node_type_delete('page');"
