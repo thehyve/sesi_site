@@ -91,13 +91,6 @@ function sesi_communities_and_files_views_default_views() {
   $handler->display->display_options['filters']['type']['value'] = array(
     'community' => 'community',
   );
-  /* Filter criterion: Content: Project visibility (field_project_visibility) */
-  $handler->display->display_options['filters']['field_project_visibility_value']['id'] = 'field_project_visibility_value';
-  $handler->display->display_options['filters']['field_project_visibility_value']['table'] = 'field_data_field_project_visibility';
-  $handler->display->display_options['filters']['field_project_visibility_value']['field'] = 'field_project_visibility_value';
-  $handler->display->display_options['filters']['field_project_visibility_value']['value'] = array(
-    1 => '1',
-  );
   $handler->display->display_options['path'] = 'community_by_dataset';
   $handler->display->display_options['menu']['type'] = 'normal';
   $handler->display->display_options['menu']['title'] = 'Communities';
@@ -123,29 +116,6 @@ function sesi_communities_and_files_views_default_views() {
   $handler->display->display_options['fields']['body']['type'] = 'text_summary_or_trimmed';
   $handler->display->display_options['fields']['body']['settings'] = array(
     'trim_length' => '600',
-  );
-  $handler->display->display_options['defaults']['filter_groups'] = FALSE;
-  $handler->display->display_options['defaults']['filters'] = FALSE;
-  /* Filter criterion: Content: Published */
-  $handler->display->display_options['filters']['status']['id'] = 'status';
-  $handler->display->display_options['filters']['status']['table'] = 'node';
-  $handler->display->display_options['filters']['status']['field'] = 'status';
-  $handler->display->display_options['filters']['status']['value'] = 1;
-  $handler->display->display_options['filters']['status']['group'] = 1;
-  $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
-  /* Filter criterion: Content: Type */
-  $handler->display->display_options['filters']['type']['id'] = 'type';
-  $handler->display->display_options['filters']['type']['table'] = 'node';
-  $handler->display->display_options['filters']['type']['field'] = 'type';
-  $handler->display->display_options['filters']['type']['value'] = array(
-    'community' => 'community',
-  );
-  /* Filter criterion: Content: Project visibility (field_project_visibility) */
-  $handler->display->display_options['filters']['field_project_visibility_value']['id'] = 'field_project_visibility_value';
-  $handler->display->display_options['filters']['field_project_visibility_value']['table'] = 'field_data_field_project_visibility';
-  $handler->display->display_options['filters']['field_project_visibility_value']['field'] = 'field_project_visibility_value';
-  $handler->display->display_options['filters']['field_project_visibility_value']['value'] = array(
-    1 => '1',
   );
   $export['community_by_dataset'] = $view;
 
