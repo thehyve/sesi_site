@@ -83,7 +83,7 @@ function _query_interface_initialize_tree() {
  * @param type $taxonomy
  * @param type $tree 
  */
-function _query_interface_add_taxonomy_node_to_tree( $taxonomyNode, &$tree ) {
+function _query_interface_add_taxonomy_node_to_tree( $taxonomyNode, &$tree, $includeDescendants = true ) {
     // Make sure that all parants of the node are added to the 
     // tree already.
     $parents = taxonomy_get_parents( $taxonomyNode->tid );
@@ -92,7 +92,7 @@ function _query_interface_add_taxonomy_node_to_tree( $taxonomyNode, &$tree ) {
     if( count( $parents ) > 0 ) {
         foreach( $parents as $parent ) {
             if( !array_key_exists( $parent->tid, $tree ) ) {
-                _query_interface_add_taxonomy_node_to_tree($parent, $tree);
+                _query_interface_add_taxonomy_node_to_tree($parent, $tree, false);
             }
         }
     } else {
@@ -103,7 +103,7 @@ function _query_interface_add_taxonomy_node_to_tree( $taxonomyNode, &$tree ) {
     if( !array_key_exists( $taxonomyNode->tid, $tree ) ) {
         $tree[ $taxonomyNode->tid ] = $taxonomyNode;
     }
-    
+
     // Add the node as child for each parent
     if( count( $parents ) > 0 ) {
         foreach( $parents as $parent ) {
@@ -113,6 +113,10 @@ function _query_interface_add_taxonomy_node_to_tree( $taxonomyNode, &$tree ) {
         _query_interface_add_node_as_child( $taxonomyNode, QUERY_INTERFACE_TAXONOMY_ROOT_NODE, $tree );
     }
  
+    // Add all descendants of the selectednode
+    if( $includeDescendants )
+        _query_interface_add_descendants_to_tree( $taxonomyNode, $tree );
+    
     return $tree;
 }
 
@@ -216,5 +220,28 @@ function _query_interface_get_domain_fields() {
     }
 
     return $groups["group_dimensions"]->children;
+}
+
+/**
+ * Adds all descendants of the given node to the tree
+ * @param type $taxonomyNode
+ * @param type $tree
+ * @return type 
+ */
+function _query_interface_add_descendants_to_tree( $taxonomyNode, &$tree ) {
+    $nodeTree = taxonomy_get_tree( $taxonomyNode->vid, $taxonomyNode->tid );
+    
+    foreach( $nodeTree as $descendantNode ) {
+        if( !array_key_exists( $descendantNode->tid, $tree ) ) {
+            $tree[ $descendantNode->tid ] = $descendantNode;
+            
+            foreach( $descendantNode->parents as $parentId ) {
+                _query_interface_add_node_as_child( $descendantNode, $parentId, $tree );
+            }
+        }
+    }
+    
+    
+    return $tree;
 }
 
