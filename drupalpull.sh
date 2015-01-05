@@ -156,6 +156,7 @@ ensure_feat sesi_my_queries_screen
 ensure_mod query_access_rights
 
 #ontologies and vocabularies
+ensure_mod query_ontologies
 ensure_feat sesi_variable_ontologies
 isdisabled query_vocabularies && drush --yes en query_vocabularies
 
