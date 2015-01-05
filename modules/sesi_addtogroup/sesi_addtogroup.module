@@ -46,3 +46,22 @@ function _get_group_nid($groupname, $grouptype) {
       return 0;
   }  
 }
+
+/**
+ * Prevent users from unsubscribing from the GLOBAL group
+ */
+
+/**
+ * Implements hook_page_alter()
+ * $page: page array
+ */
+function sesi_addtogroup_page_alter(&$page) {
+  $path = current_path();
+  $alias = drupal_get_path_alias($path);
+  if ($alias == 'content/global') {
+    $ak = array_keys($page['content']['system_main']['nodes']);
+    $nid = $ak[0];
+    $page ['content']['system_main']['nodes'][$nid]['group_group'][0]['#title'] = '';
+    $page ['content']['system_main']['nodes'][$nid]['group_group'][0]['#href'] = '';
+  }
+}
