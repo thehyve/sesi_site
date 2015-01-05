@@ -7,6 +7,9 @@ function query_subscription_mail($key, &$message, $params) {
   $user = $params['user'];
   $changes = $params['changes'];
 
+  watchdog('query_subscription', "Sending notification mail to @email (uid @uid)",
+    array('@email' => $user->mail, '@uid' => $user->uid), WATCHDOG_INFO);
+
   // translate to appropriate user's language and html escape function
   $ht = function($txt) use ($user) {
     // php 5.3, so there is no ENT_SUBSTITUTE, ENT_HTML401
