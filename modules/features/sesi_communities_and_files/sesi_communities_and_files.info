@@ -10,7 +10,6 @@ features[ctools][] = strongarm:strongarm:1
 features[ctools][] = views:views_default:3.0
 features[features_api][] = api:2
 features[features_override_items][] = field_instance.og_membership-og_membership_type_default-field_mail_sent
-features[features_override_items][] = rules_config.rules_og_email_member_pending
 features[features_override_items][] = variable.content_access_dataset
 features[features_override_items][] = variable.content_access_variable
 features[features_overrides][] = field_instance.og_membership-og_membership_type_default-field_mail_sent.required
