@@ -5,6 +5,7 @@ package = Sesi
 version = 7.x-1.1
 project = sesi_dataset_access_form
 dependencies[] = dataset_access_form
+dependencies[] = entityreference
 dependencies[] = pet
 dependencies[] = text
 features[ctools][] = strongarm:strongarm:1
