@@ -22,7 +22,9 @@ function sesi_communities_and_files_user_default_permissions() {
   // Exported permission: 'create community content'.
   $permissions['create community content'] = array(
     'name' => 'create community content',
-    'roles' => array(),
+    'roles' => array(
+      'authenticated user' => 'authenticated user',
+    ),
     'module' => 'node',
   );
 
@@ -87,7 +89,9 @@ function sesi_communities_and_files_user_default_permissions() {
   // Exported permission: 'edit own community content'.
   $permissions['edit own community content'] = array(
     'name' => 'edit own community content',
-    'roles' => array(),
+    'roles' => array(
+      'authenticated user' => 'authenticated user',
+    ),
     'module' => 'node',
   );
 
