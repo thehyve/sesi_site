@@ -21,11 +21,11 @@ function sesi_addtogroup_user_insert(&$edit, $account, $category) {
     // check if $group_nid is valid
     if ($group_nid > 0) {
 
-    // subscribe user to group by og_group()
-    $og_membership = og_group('node', $group_nid, array('entity' => intval($account->uid)));
+      // subscribe user to group by og_group()
+      $og_membership = og_group('node', $group_nid, array('entity' => intval($account->uid)));
 
-    // give message
-    // drupal_set_message(t('User ' . $account->name . ' added to group ' . $groupname));
+      // give message
+      // drupal_set_message(t('User ' . $account->name . ' added to group ' . $groupname));
     }
   }
 }
@@ -33,18 +33,19 @@ function sesi_addtogroup_user_insert(&$edit, $account, $category) {
 function _get_group_nid($groupname, $grouptype) {
   // grab the GLOBAL OG
   $query = db_select('node', 'n');
-  $query->fields('n', array('nid')) //SELECT fields from node
-    ->condition('title', $groupname, '=')
-    ->condition('type',  $grouptype, '=');
+  $query->fields('n', array('nid'))//SELECT fields from node
+  ->condition('title', $groupname, '=')
+    ->condition('type', $grouptype, '=');
   $result = $query->execute();
   $recordcount = $query->countQuery()->execute()->fetchField();
   //dsm($recordcount);
   if ($recordcount > 0) {
-      $record = $result->fetchAssoc();
-      return $record['nid'];
-  } else {
-      return 0;
-  }  
+    $record = $result->fetchAssoc();
+    return $record['nid'];
+  }
+  else {
+    return 0;
+  }
 }
 
 /**
@@ -54,13 +55,21 @@ function _get_group_nid($groupname, $grouptype) {
 /**
  * Implements hook_page_alter()
  * $page: page array
+ * Note: adapted for use of panels
  */
 function sesi_addtogroup_page_alter(&$page) {
+  // get nid
+  if (arg(0) == 'node' && is_numeric(arg(1))) {
+    $nid = arg(1);
+    if ($nid) {
+      //drupal_set_message('Node id ' . $nid);
+    } else {
+        $nid = 50; // fixed value as default
+    }
+  }
   $path = current_path();
   $alias = drupal_get_path_alias($path);
   if ($alias == 'content/global') {
-    $ak = array_keys($page['content']['system_main']['nodes']);
-    $nid = $ak[0];
     $page ['content']['system_main']['nodes'][$nid]['group_group'][0]['#title'] = '';
     $page ['content']['system_main']['nodes'][$nid]['group_group'][0]['#href'] = '';
   }
