@@ -134,7 +134,7 @@ class ServicesOpalFormatter implements ServicesFormatterInterface {
     $attributes = $variable_element->appendChild($this->doc->createElement('attributes'));
     $this->addAttribute($attributes, 'uuid', 'text', '', $wrapper->uuid->value(), self::MAELSTROM_NS);
 
-    $script = "$(&apos;{$wrapper->title->value()}&apos;)";
+    $script = "$('{$wrapper->title->value()}')";
     $this->addAttribute($attributes, 'script', 'text', '', $script);
 
     //add vocabulary_url for each language
