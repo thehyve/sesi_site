@@ -122,6 +122,10 @@ fi
 # Install and enable og_email
 ensure_mod og_email
 
+# Install and enable entityreference_prepopulate
+ensure_mod enable entityreference_prepopulate
+ensure_mod enable entityreference_prepopulate_token
+
 # Install and enable pet
 ensure_mod pet
 
@@ -187,6 +191,7 @@ ensure_feat sesi_membership_mail
 ensure_feat sesi_og_email
 ensure_feat sesi_search_index_immediately
 ensure_feat sesi_dataset_redirect
+ensure_feat sesi_community_hub
 
 
 # UPDATE JQUERY VERSION

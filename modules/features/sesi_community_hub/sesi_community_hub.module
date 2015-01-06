@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Sesi Community hub feature.
+ */
+
+include_once 'sesi_community_hub.features.inc';
