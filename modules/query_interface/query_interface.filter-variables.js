@@ -25,7 +25,6 @@ if( typeof Sesi.QueryInterface == 'undefined' )
         var val = $.trim(fullTextInput.val()).replace(/ +/g, ' ').toLowerCase();
 
         var $rows = $( Sesi.QueryInterface.selectors.variables ).find('tbody tr');
-        var classPattern = /variable_[0-9]+/;
 
         // Retrieve the selected term s
         var treeApi = taxonomyTree.aciTree('api');
@@ -33,10 +32,8 @@ if( typeof Sesi.QueryInterface == 'undefined' )
         var selectedTerms = treeApi.checkboxes( allItems, true );
         
         // If no selection has been made, return immediately for performance reasons
-        if( val == "" && allItems.length == selectedTerms.length ) {
-            $rows.show();
-            return;
-        }
+        var fullTextSearchUsed = ( val != "" );
+        var treeSearchUsed = ( allItems.length != selectedTerms.length );
 
         // Retrieve IDs for those selected terms
         var selectedTermIds = $.map( selectedTerms, function(el,idx) { 
@@ -47,26 +44,52 @@ if( typeof Sesi.QueryInterface == 'undefined' )
         // We should show (combinations of) rows if both of these conditions holds
         //  - the text in the fulltext search box is present
         //  - on of the selected taxonomy terms is present
-        var classesToShowBasedOnFullText = $rows.map(function() {
+        if( fullTextSearchUsed && treeSearchUsed ) {
+            var classesToShowBasedOnFullText = getClassesToShowBasedOnFullTextSearch( $rows, val );
+            var classesToShowBasedOnTaxonomy = getClassesToShowBasedOnTaxonomy( $rows, selectedTermIds );
+
+            // Create a unique list, without null values
+            var classesToShow = uniqueAndNotNull( 
+                classesToShowBasedOnFullText.get().filter(function(n) {
+                    return classesToShowBasedOnTaxonomy.get().indexOf(n) != -1
+                })
+            );
+        } else if( fullTextSearchUsed ) {
+            var classesToShow = uniqueAndNotNull( getClassesToShowBasedOnFullTextSearch( $rows, val ) );
+        } else if( treeSearchUsed ) {
+            var classesToShow = uniqueAndNotNull( getClassesToShowBasedOnTaxonomy( $rows, selectedTermIds ) );
+        } else {
+            $rows.show();
+            return;
+        }
+
+        // Show all rows matching these classes
+        if( classesToShow.length > 0 ) {
+            var selector = "." + classesToShow.join( ", ." );
+            $rows.hide().filter(selector).show()
+        } else {
+            $rows.hide();
+        }
+    }
+    
+    function getClassesToShowBasedOnFullTextSearch( rows, term ) {
+        return rows.map(function() {
             // First check whether this row contains the text
             var text = $(this).text().replace(/\s+/g, ' ').toLowerCase();
 
             // If not, return
-            if( text.indexOf(val) == -1 )
+            if( text.indexOf(term) == -1 )
                 return null;
 
             // Now we know that both conditions hold. We will now
             // return the class that matches the pattern
-            var classList = $(this).attr('class').split(/\s+/);
-            for(var i = 0; i < classList.length; i++) {
-                if( classPattern.test(classList[i]) )
-                    return classList[i];
-            }
-
-            return null;
+            return getVariableClass( $(this) );
         });
 
-        var classesToShowBasedOnTaxonomy = $rows.map(function() {
+    }
+
+    function getClassesToShowBasedOnTaxonomy( rows, selectedTermIds ) {
+        return rows.map(function() {
             // Now check for the matching taxonomy terms 
             var taxonomyHiddenFields = $(this).find( "input.hidden-taxonomy-id" );
             var matchingTaxonomies = taxonomyHiddenFields.filter(function() {
@@ -79,30 +102,26 @@ if( typeof Sesi.QueryInterface == 'undefined' )
 
             // Now we know that both conditions hold. We will now
             // return the class that matches the pattern
-            var classList = $(this).attr('class').split(/\s+/);
-            for(var i = 0; i < classList.length; i++) {
-                if( classPattern.test(classList[i]) )
-                    return classList[i];
-            }
-
-            return null;
+            return getVariableClass( $(this) );
         });
+    }
 
+    function getVariableClass( row ) {
+        var classPattern = /variable_[0-9]+/;
 
-        // Create a unique list, without null values
-        var classesToShow = $.unique( 
-            classesToShowBasedOnFullText.get().filter(function(n) {
-                return classesToShowBasedOnTaxonomy.get().indexOf(n) != -1
-            })
-        );
-
-        // Show all rows matching these classes
-        if( classesToShow.length > 0 ) {
-            var selector = "." + classesToShow.join( ", ." );
-            $rows.hide().filter(selector).show()
-        } else {
-            $rows.hide();
+        var classList = $(row).attr('class').split(/\s+/);
+        for(var i = 0; i < classList.length; i++) {
+            if( classPattern.test(classList[i]) )
+                return classList[i];
         }
+
+        return null;
+    }
+
+    function uniqueAndNotNull(array) {
+        return $.grep(array, function(el, index) {
+            return el && index === $.inArray(el, array);
+        });
     }
 
     function changeLookAndFeelFullTextSearch() {
