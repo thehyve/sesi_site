@@ -60,8 +60,14 @@ if( typeof Sesi.QueryOntologies.TaxonomyTree == 'undefined' )
                             
                             // If any elements should be preselected,
                             // do so
-                            if( selectedIds ) {
-                                selectedIds = selectedIds.split(',');
+                            if( selectedIds != "" ) {
+                                // SelectedIds can be a number (if only 1 is selected),
+                                // or a string with multiple ids separated with a comma.
+                                if( typeof( selectedIds ) == "number" ) {
+                                    selectedIds = [ String(selectedIds) ];
+                                } else {
+                                    selectedIds = selectedIds.split(",");
+                                }
 
                                 // Retrieve all elements from the tree, and search
                                 // for all selected items
