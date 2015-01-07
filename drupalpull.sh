@@ -193,6 +193,10 @@ ensure_feat sesi_search_index_immediately
 ensure_feat sesi_dataset_redirect
 ensure_feat sesi_community_hub
 
+#Moderation
+ensure_mod og_moderation
+ensure_feat sesi_moderation
+
 
 # UPDATE JQUERY VERSION
 drush -y eval "variable_set('jquery_update_jquery_version', strval(1.8));"

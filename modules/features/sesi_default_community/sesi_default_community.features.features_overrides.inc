@@ -12,7 +12,7 @@ function sesi_default_community_features_override_default_overrides() {
   $overrides = array();
 
   // Exported overrides for: field_base
-  $overrides["field_base.og_group_ref.field_permissions|type"] = 2;
+  $overrides["field_base.og_group_ref.field_permissions|type"] = 0;
 
  return $overrides;
 }

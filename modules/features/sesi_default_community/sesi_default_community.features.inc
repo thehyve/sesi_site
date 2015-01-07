@@ -18,7 +18,7 @@ function sesi_default_community_ctools_plugin_api($module = NULL, $api = NULL) {
  */		
 function sesi_default_community_field_default_field_bases_alter(&$data) {		
   if (isset($data['og_group_ref'])) {		
-    $data['og_group_ref']['field_permissions']['type'] = 2; /* WAS: 0 */		
+    $data['og_group_ref']['field_permissions']['type'] = 0; /* WAS: 0 */		
   }		
 }		
 
