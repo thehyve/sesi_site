@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Sesi moderation feature.
+ */
+
+include_once 'sesi_moderation.features.inc';
