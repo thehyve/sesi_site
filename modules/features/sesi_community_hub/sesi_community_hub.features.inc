@@ -24,11 +24,16 @@ function sesi_community_hub_views_api($module = NULL, $api = NULL) {
  * Implements hook_field_default_field_instances_alter().
  */
 function sesi_community_hub_field_default_field_instances_alter(&$data) {
+  if (isset($data['node-article-og_group_ref'])) {
+    $data['node-article-og_group_ref']['settings']['behaviors']['prepopulate'] = array(
+      'status' => 0,
+    ); /* WAS: '' */
+  }
   if (isset($data['node-community_document-og_group_ref'])) {
     $data['node-community_document-og_group_ref']['settings']['behaviors']['prepopulate'] = array(
       'action' => 'none',
       'action_on_edit' => 0,
-      'fallback' => 'redirect',
+      'fallback' => 'none',
       'providers' => array(
         'og_context' => 0,
         'token_patterns' => 0,
@@ -43,7 +48,7 @@ function sesi_community_hub_field_default_field_instances_alter(&$data) {
     $data['node-dataset-og_group_ref']['settings']['behaviors']['prepopulate'] = array(
       'action' => 'none',
       'action_on_edit' => 0,
-      'fallback' => 'redirect',
+      'fallback' => 'none',
       'providers' => array(
         'og_context' => 0,
         'token_patterns' => 0,

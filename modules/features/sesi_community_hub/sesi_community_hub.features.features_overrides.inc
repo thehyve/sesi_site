@@ -12,10 +12,13 @@ function sesi_community_hub_features_override_default_overrides() {
   $overrides = array();
 
   // Exported overrides for: field_instance
+  $overrides["field_instance.node-article-og_group_ref.settings|behaviors|prepopulate"] = array(
+    'status' => 0,
+  );
   $overrides["field_instance.node-community_document-og_group_ref.settings|behaviors|prepopulate"] = array(
     'action' => 'none',
     'action_on_edit' => 0,
-    'fallback' => 'redirect',
+    'fallback' => 'none',
     'providers' => array(
       'og_context' => 0,
       'token_patterns' => 0,
@@ -28,7 +31,7 @@ function sesi_community_hub_features_override_default_overrides() {
   $overrides["field_instance.node-dataset-og_group_ref.settings|behaviors|prepopulate"] = array(
     'action' => 'none',
     'action_on_edit' => 0,
-    'fallback' => 'redirect',
+    'fallback' => 'none',
     'providers' => array(
       'og_context' => 0,
       'token_patterns' => 0,
