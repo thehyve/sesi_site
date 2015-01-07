@@ -33,7 +33,6 @@ if( typeof Sesi.QueryOntologies.TaxonomyTree == 'undefined' )
                             if (ancestors.length) {
                                 // If any of the parents match, this item matches as well
                                 for( var i = 0; i < ancestors.length; i++ ) {
-                                    console.log( "Ancestor:", ancestors[i], ancestors.get(i) );
                                     var label = this.getLabel(ancestors.eq(i));
                                     if (regexp.test(String(label))) {
                                         return true;
@@ -47,6 +46,36 @@ if( typeof Sesi.QueryOntologies.TaxonomyTree == 'undefined' )
                             // empty search, all matches
                             return true;
                         }
+                    }
+                });
+
+                tree.on( "acitree", function(event, api, item, eventName, options) {
+                    switch(eventName) {
+                        case "loaded": 
+                            // Unfortunately, tristate elements can not be set in the 
+                            // JSON to generate the tree. For that reason, we reselect
+                            // the nodes here, to make sure that the tristate elements
+                            // are properly shown
+                            var selectedIds = tree.data( "selected-ids" );
+                            
+                            // If any elements should be preselected,
+                            // do so
+                            if( selectedIds ) {
+                                selectedIds = selectedIds.split(',');
+
+                                // Retrieve all elements from the tree, and search
+                                // for all selected items
+                                var treeApi = tree.aciTree('api');
+                                var allItems = treeApi.children( null, true );
+
+                                $.each( allItems, function() {
+                                    var item = $(this);
+                                    var itemData = treeApi.itemData(item);
+                                    if( $.inArray( itemData.id, selectedIds ) > -1) {
+                                        treeApi.check( item );
+                                    }
+                                });
+                            }
                     }
                 });
                 
