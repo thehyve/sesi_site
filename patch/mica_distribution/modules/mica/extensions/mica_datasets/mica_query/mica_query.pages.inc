@@ -731,6 +731,9 @@ function mica_query_run_page($form, &$form_state, $dataset_node, $query, $cross_
     $cross_variable = node_load($cross_variable_nid);
   }
 
+  // Log query execution
+  watchdog('query_execution', 'Run query @queryname', array('@queryname' =>  $query->name), WATCHDOG_INFO);
+  
   $result_table = _mica_query_result_table($dataset_node, $query, $cross_variable);
 
 
