@@ -78,7 +78,7 @@ function _dataset_access_form_get_intersect_groups(&$user, $dataset_id) {
     foreach(array_count_values($fetch_arr) as $val => $c)
         if($c > 1) $belong_to_groups[] = strval($val);    
     
-    watchdog('dataset_access_form', 'Just fetch data from DB.', WATCHDOG_INFO);       
+    watchdog('dataset_access_form', 'Just fetch data from DB.', array(), WATCHDOG_INFO);
     
     return $belong_to_groups;
 }
