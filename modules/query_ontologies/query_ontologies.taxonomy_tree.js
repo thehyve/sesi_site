@@ -27,6 +27,19 @@ if( typeof Sesi.QueryOntologies.TaxonomyTree == 'undefined' )
                     // our custom filter/search
                     filterHook: function(item, search, regexp) {
                         if (search.length) {
+                            // try to get the ancestors to match them as well
+                            var ancestors = this.path(item);
+
+                            if (ancestors.length) {
+                                // If any of the parents match, this item matches as well
+                                for( var i = 0; i < ancestors.length; i++ ) {
+                                    var label = this.getLabel(ancestors.eq(i));
+                                    if (regexp.test(String(label))) {
+                                        return true;
+                                    }
+                                }
+                            }
+
                             // match the item
                             return regexp.test(String(this.getLabel(item)));
                         } else {
@@ -35,13 +48,49 @@ if( typeof Sesi.QueryOntologies.TaxonomyTree == 'undefined' )
                         }
                     }
                 });
+
+                tree.on( "acitree", function(event, api, item, eventName, options) {
+                    switch(eventName) {
+                        case "loaded": 
+                            // Unfortunately, tristate elements can not be set in the 
+                            // JSON to generate the tree. For that reason, we reselect
+                            // the nodes here, to make sure that the tristate elements
+                            // are properly shown
+                            var selectedIds = tree.data( "selected-ids" );
+                            
+                            // If any elements should be preselected,
+                            // do so
+                            if( selectedIds != "" ) {
+                                // SelectedIds can be a number (if only 1 is selected),
+                                // or a string with multiple ids separated with a comma.
+                                if( typeof( selectedIds ) == "number" ) {
+                                    selectedIds = [ String(selectedIds) ];
+                                } else {
+                                    selectedIds = selectedIds.split(",");
+                                }
+
+                                // Retrieve all elements from the tree, and search
+                                // for all selected items
+                                var treeApi = tree.aciTree('api');
+                                var allItems = treeApi.children( null, true );
+
+                                $.each( allItems, function() {
+                                    var item = $(this);
+                                    var itemData = treeApi.itemData(item);
+                                    if( $.inArray( itemData.id, selectedIds ) > -1) {
+                                        treeApi.check( item );
+                                    }
+                                });
+                            }
+                    }
+                });
                 
                 // Make sure that all selections are taken into account when 
                 // the form is submitted
                 form.on( "submit", function(e) {
                     // Retrieve the selected term s
                     var treeApi = tree.aciTree('api');
-                    var allItems = treeApi.children( null, true );
+                    var allItems = treeApi.children( null, true, true );
                     var selectedTerms = treeApi.checkboxes( allItems, true );
 
                     // Add an hidden input for all selected items

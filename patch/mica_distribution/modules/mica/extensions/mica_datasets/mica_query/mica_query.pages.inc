@@ -67,8 +67,15 @@ function mica_query_queries_page($dataset_node) {
   }
 
   $options = array();
-
-  $queries = MicaDatasetQueryManager::getAllQueries($dataset_node->nid);
+  
+  // For normal users, we only show the public (persisted) queries
+  if( $is_admin ) {
+      $queries = MicaDatasetQueryManager::getAllQueries($dataset_node->nid);
+  } else {
+      $queries = MicaDatasetQueryManager::getPersistedQueries($dataset_node->nid, null, true);
+      usort($queries, array("MicaDatasetQuery", "compare"));
+  }
+  
   if ($queries) {
     foreach ($queries as $query) {
       if ($query->published || $query->user_id == $user->uid || $is_admin) {

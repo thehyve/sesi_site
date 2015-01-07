@@ -134,14 +134,11 @@ class OntologyTerm extends AbstractTerm {
 
     // TODO: check selected values already at the start
     $uri = "sesi/variable/" . $this->getVariable()->nid . "/variabletaxonomy";
-    $selectedIds = $this->getSelectedTermIds();
-    if( count( $selectedIds ) > 0 )
-        $uri .= "/" . implode(',', $selectedIds );
-    
     $taxonomyUrl = url($uri);
+    $selectedIds = $this->getSelectedTermIds();
     $default_value = ''; // implode(" ", $this->match());
     
-    $treeMarkup = "<div id='taxonomy_query_tree' style='min-height: 120px; max-height: 400px; overflow: auto; ' class='aciTree' data-url='" . htmlspecialchars( $taxonomyUrl ). "'></div>";
+    $treeMarkup = "<div id='taxonomy_query_tree' style='min-height: 120px; max-height: 400px; overflow: auto; ' class='aciTree' data-selected-ids='" . implode( ',', $selectedIds ) . "' data-url='" . htmlspecialchars( $taxonomyUrl ). "'></div>";
     $initScript = '<script type="text/javascript">jQuery(function () { 
         Sesi.QueryOntologies.TaxonomyTree.init(); 
     });</script>';
