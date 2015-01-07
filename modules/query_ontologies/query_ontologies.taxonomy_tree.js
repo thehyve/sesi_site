@@ -90,7 +90,7 @@ if( typeof Sesi.QueryOntologies.TaxonomyTree == 'undefined' )
                 form.on( "submit", function(e) {
                     // Retrieve the selected term s
                     var treeApi = tree.aciTree('api');
-                    var allItems = treeApi.children( null, true );
+                    var allItems = treeApi.children( null, true, true );
                     var selectedTerms = treeApi.checkboxes( allItems, true );
 
                     // Add an hidden input for all selected items
