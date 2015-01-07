@@ -27,6 +27,20 @@ if( typeof Sesi.QueryOntologies.TaxonomyTree == 'undefined' )
                     // our custom filter/search
                     filterHook: function(item, search, regexp) {
                         if (search.length) {
+                            // try to get the ancestors to match them as well
+                            var ancestors = this.path(item);
+
+                            if (ancestors.length) {
+                                // If any of the parents match, this item matches as well
+                                for( var i = 0; i < ancestors.length; i++ ) {
+                                    console.log( "Ancestor:", ancestors[i], ancestors.get(i) );
+                                    var label = this.getLabel(ancestors.eq(i));
+                                    if (regexp.test(String(label))) {
+                                        return true;
+                                    }
+                                }
+                            }
+
                             // match the item
                             return regexp.test(String(this.getLabel(item)));
                         } else {
