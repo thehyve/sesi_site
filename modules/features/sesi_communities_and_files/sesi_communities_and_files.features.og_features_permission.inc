@@ -31,6 +31,36 @@ function sesi_communities_and_files_og_features_default_permissions() {
     ),
   );
 
+  // Exported og permission: 'node:community:create study content'
+  $permissions['node:community:create study content'] = array(
+    'roles' => array(),
+  );
+
+  // Exported og permission: 'node:community:create study_variable_attributes content'
+  $permissions['node:community:create study_variable_attributes content'] = array(
+    'roles' => array(),
+  );
+
+  // Exported og permission: 'node:community:delete any study content'
+  $permissions['node:community:delete any study content'] = array(
+    'roles' => array(),
+  );
+
+  // Exported og permission: 'node:community:delete any study_variable_attributes content'
+  $permissions['node:community:delete any study_variable_attributes content'] = array(
+    'roles' => array(),
+  );
+
+  // Exported og permission: 'node:community:delete own study content'
+  $permissions['node:community:delete own study content'] = array(
+    'roles' => array(),
+  );
+
+  // Exported og permission: 'node:community:delete own study_variable_attributes content'
+  $permissions['node:community:delete own study_variable_attributes content'] = array(
+    'roles' => array(),
+  );
+
   // Exported og permission: 'node:community:manage members'
   $permissions['node:community:manage members'] = array(
     'roles' => array(
@@ -71,11 +101,81 @@ function sesi_communities_and_files_og_features_default_permissions() {
     ),
   );
 
+  // Exported og permission: 'node:community:update any study content'
+  $permissions['node:community:update any study content'] = array(
+    'roles' => array(),
+  );
+
+  // Exported og permission: 'node:community:update any study_variable_attributes content'
+  $permissions['node:community:update any study_variable_attributes content'] = array(
+    'roles' => array(),
+  );
+
   // Exported og permission: 'node:community:update group'
   $permissions['node:community:update group'] = array(
     'roles' => array(
       'administrator member' => 'administrator member',
     ),
+  );
+
+  // Exported og permission: 'node:community:update own study content'
+  $permissions['node:community:update own study content'] = array(
+    'roles' => array(),
+  );
+
+  // Exported og permission: 'node:community:update own study_variable_attributes content'
+  $permissions['node:community:update own study_variable_attributes content'] = array(
+    'roles' => array(),
+  );
+
+  // Exported og permission: 'node:default_community:create study content'
+  $permissions['node:default_community:create study content'] = array(
+    'roles' => array(),
+  );
+
+  // Exported og permission: 'node:default_community:create study_variable_attributes content'
+  $permissions['node:default_community:create study_variable_attributes content'] = array(
+    'roles' => array(),
+  );
+
+  // Exported og permission: 'node:default_community:delete any study content'
+  $permissions['node:default_community:delete any study content'] = array(
+    'roles' => array(),
+  );
+
+  // Exported og permission: 'node:default_community:delete any study_variable_attributes content'
+  $permissions['node:default_community:delete any study_variable_attributes content'] = array(
+    'roles' => array(),
+  );
+
+  // Exported og permission: 'node:default_community:delete own study content'
+  $permissions['node:default_community:delete own study content'] = array(
+    'roles' => array(),
+  );
+
+  // Exported og permission: 'node:default_community:delete own study_variable_attributes content'
+  $permissions['node:default_community:delete own study_variable_attributes content'] = array(
+    'roles' => array(),
+  );
+
+  // Exported og permission: 'node:default_community:update any study content'
+  $permissions['node:default_community:update any study content'] = array(
+    'roles' => array(),
+  );
+
+  // Exported og permission: 'node:default_community:update any study_variable_attributes content'
+  $permissions['node:default_community:update any study_variable_attributes content'] = array(
+    'roles' => array(),
+  );
+
+  // Exported og permission: 'node:default_community:update own study content'
+  $permissions['node:default_community:update own study content'] = array(
+    'roles' => array(),
+  );
+
+  // Exported og permission: 'node:default_community:update own study_variable_attributes content'
+  $permissions['node:default_community:update own study_variable_attributes content'] = array(
+    'roles' => array(),
   );
 
   return $permissions;

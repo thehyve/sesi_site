@@ -122,6 +122,10 @@ fi
 # Install and enable og_email
 ensure_mod og_email
 
+# Install and enable entityreference_prepopulate
+ensure_mod enable entityreference_prepopulate
+ensure_mod enable entityreference_prepopulate_token
+
 # Install and enable pet
 ensure_mod pet
 
@@ -156,6 +160,7 @@ ensure_feat sesi_my_queries_screen
 ensure_mod query_access_rights
 
 #ontologies and vocabularies
+ensure_mod query_ontologies
 ensure_feat sesi_variable_ontologies
 isdisabled query_vocabularies && drush --yes en query_vocabularies
 
@@ -183,10 +188,10 @@ ensure_feat sesi_twitter
 ensure_feat sesi_printer_friendly
 ensure_feat sesi_expiration_date
 ensure_feat sesi_notify_expirations
-ensure_feat sesi_membership_mail
 ensure_feat sesi_og_email
 ensure_feat sesi_search_index_immediately
 ensure_feat sesi_dataset_redirect
+ensure_feat sesi_community_hub
 
 
 # UPDATE JQUERY VERSION
