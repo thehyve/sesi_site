@@ -241,3 +241,10 @@ drush php-eval 'node_access_rebuild();'
 drush cc all
 drush cron
 drush vset maintenance_mode 0
+
+#update version
+DATE_VER=`date '+%m%d%H%M'`
+COMMIT_VER=`git rev-parse --short HEAD`
+REPLACEMENT="version = '7.x-8.2-$COMMIT_VER-$DATE_VER'"
+sed -i.bak "s/version = .*$/$REPLACEMENT/g" /var/www/html/mica/profiles/mica_distribution/modules/mica/extensions/mica_core/mica_core.info
+
