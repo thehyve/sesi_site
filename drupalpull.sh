@@ -243,6 +243,7 @@ drush cron
 drush vset maintenance_mode 0
 
 #update version
+cd $DRUPAL_ROOT/sites/all
 DATE_VER=`date '+%m%d%H%M'`
 COMMIT_VER=`git rev-parse --short HEAD`
 REPLACEMENT="version = '7.x-8.2-$COMMIT_VER-$DATE_VER'"
