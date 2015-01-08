@@ -98,8 +98,7 @@ class MicaConnectorResponseParserJson extends MicaConnectorResponseParserAbstrac
 class MicaConnectorResponseParserDto extends MicaConnectorResponseParserAbstract {
 
   public function parseQueryResponse($data, $terms) {
-    $result = array('total' => array('_all' => $data->getTotalHits()));
-
+    $result = array('total' => array());
     $facets = $data->getFacetsList();
 
     foreach ($facets as $facet) {
@@ -111,6 +110,14 @@ class MicaConnectorResponseParserDto extends MicaConnectorResponseParserAbstract
       else {
         $result[$category] = $this->count($facet);
       }
+      if ($facet->hasValues()) {
+        $result[$category]['_cardinality'] = $facet->getValues(0)->getCount();
+      }
+    }
+
+    // Add total without overwriting any explicit filter in a 'total' category.
+    if(!isset($results['total']['_all'])) {
+      $result['total']['_all'] = $data->getTotalHits();
     }
 
     return $result;
@@ -181,17 +188,7 @@ class MicaConnectorResponseParserDto extends MicaConnectorResponseParserAbstract
   protected function count($facet) {
     $rval = array('_all' => 0);
 
-    if ($facet->hasFilters()) {
-      $filters = $facet->getFiltersList();
-      $total = 0;
-
-      foreach ($filters as $filter) {
-        $total += $filter->getCount();
-      }
-
-      $rval['_all'] = $total;
-    }
-    else if ($facet->hasFrequencies()) {
+    if ($facet->hasFrequencies()) {
       $frequenciesList = $facet->getFrequenciesList();
       $total = 0;
 
@@ -199,6 +196,16 @@ class MicaConnectorResponseParserDto extends MicaConnectorResponseParserAbstract
         $count = $frequency->getCount();
         $rval[$frequency->getTerm()] = $count;
         $total += $count;
+      }
+
+      $rval['_all'] = $total;
+    }
+    else if ($facet->hasFilters()) {
+      $filters = $facet->getFiltersList();
+      $total = 0;
+
+      foreach ($filters as $filter) {
+        $total += $filter->getCount();
       }
 
       $rval['_all'] = $total;

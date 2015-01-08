@@ -26,9 +26,15 @@ class MicaDatasetElasticSearchQueryApi extends MicaDatasetAbstractQuery {
     Protobuf::setDefaultCodec(new Protobuf\Codec\Binary());
   }
 
-  public function query(array $terms) {
+  public function query(array $terms, $cardinality = NULL) {
 
     list($facets, $filters) = $this->getQueryFacetsFilters($terms);
+
+    if(isset($cardinality)) {
+      $dtoTotals = new Search\QueryTermDto();
+      $dtoTotals->setFacet('total');
+      $facets[] = $dtoTotals;
+    }
 
     $dtoMatched = new Search\QueryTermDto();
     $dtoMatched->setFacet('_matched');
@@ -40,13 +46,22 @@ class MicaDatasetElasticSearchQueryApi extends MicaDatasetAbstractQuery {
         $dtoLogicalTerm->addExtension("Search.FilterDto.filters", $filter);
       }
 
-      $dtoMatched->setExtension("Search.LogicalTermDto.filter", $dtoLogicalTerm);
+      $dtoMatched->setExtension("Search.LogicalTermDto.facetFilter", $dtoLogicalTerm);
       $facets[] = $dtoMatched;
     }
 
     $dtoQueries = new Search\QueryTermsDto();
 
+    if(!is_null($cardinality)) {
+    }
+
     foreach ($facets as $facet) {
+      if(!is_null($cardinality)) {
+        $varTermDto = new Search\VariableTermDto();
+        $varTermDto->setVariable($cardinality);
+        $varTermDto->setType(Search\VariableTermDto\AggType::CARDINALITY);
+        $facet->setExtension("Search.VariableTermDto.field", $varTermDto);
+      }
       $dtoQueries->addQueries($facet);
     }
 
@@ -207,7 +222,7 @@ class MicaDatasetElasticSearchQueryApi extends MicaDatasetAbstractQuery {
     $dtoLogicalTerm = new Search\LogicalTermDto();
     $dtoLogicalTerm->setExtension("Search.FilterDto.filters", $this->asFilter($term));
 
-    $dtoQuery->setExtension("Search.LogicalTermDto.filter", $dtoLogicalTerm);
+    $dtoQuery->setExtension("Search.LogicalTermDto.facetFilter", $dtoLogicalTerm);
 
     return $dtoQuery;
   }
