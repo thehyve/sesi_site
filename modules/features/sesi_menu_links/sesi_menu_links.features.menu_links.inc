@@ -83,7 +83,7 @@ function sesi_menu_links_menu_default_menu_links() {
     'external' => 0,
     'has_children' => 0,
     'expanded' => 0,
-    'weight' => -46,
+    'weight' => 0,
     'parent_path' => 'node/2',
   );
   // Exported menu link: main-menu:data-access/admin
@@ -286,10 +286,9 @@ function sesi_menu_links_menu_default_menu_links() {
     'module' => 'menu',
     'hidden' => 0,
     'external' => 0,
-    'has_children' => 0,
+    'has_children' => 1,
     'expanded' => 1,
-    'weight' => -50,
-    'parent_path' => 'node/4',
+    'weight' => -40,
   );
   // Exported menu link: main-menu:node/5
   $menu_links['main-menu:node/5'] = array(
