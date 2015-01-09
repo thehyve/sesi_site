@@ -1,0 +1,32 @@
+<?php
+
+/**
+ * This hook intercepts the grant permissions of OG to add CONSORTIUM ADMINISTRATOR role to the user
+ * @param type $entity_type
+ * @param type $gid
+ * @param type $uid
+ * @param type $rid
+ */
+function og_admin_role_og_role_grant($entity_type, $gid, $uid, $rid) { 
+    print_r($entity_type);
+    $role_name = 'consortium administrator'; // The name of the role to add.
+    if ($role = user_role_load_by_name($role_name)) {
+      user_multiple_role_edit(array($uid), 'add_role', $role->rid);
+    }
+
+}
+
+/**
+ * This hook intercepts the revoke permissions of OG to remove CONSORTIUM ADMINISTRATOR role
+ * @param type $gid
+ * @param type $uid
+ * @param type $rid
+ */
+function og_admin_role_og_role_revoke($entity_type, $gid, $uid, $rid) { 
+    print_r($entity_type);
+    $role_name = 'consortium administrator'; // The name of the role to add.
+    if ($role = user_role_load_by_name($role_name)) {
+      user_multiple_role_edit(array($uid), 'remove_role', $role->rid);
+    }
+
+}

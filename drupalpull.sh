@@ -224,6 +224,9 @@ ensure_mod project_dataset
 
 # project community
 ensure_mod project_community
+
+# og admin role
+ensure_mod og_admin_role
  
 # Remove an old content type and some fields.
 #drush --yes php-eval "node_type_delete('page');"
