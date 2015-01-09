@@ -21,6 +21,15 @@ fi
 drush vset maintenance_mode 1
 
 
+# Patch highly critcal sql injection in drupal core if still using an old drupal version (< 7.32)
+# see https://www.drupal.org/SA-CORE-2014-005
+test=`drush status | grep 'Drupal version' | python -c "print tuple(raw_input().split(':')[1].strip().split('.')) < ('7','32')"`
+if [ "$test" = "True" ]
+then
+        patch --forward --reject-file=- "$DRUPAL_ROOT/includes/database/database.inc" < SA-CORE-2014-005-D7.patch || true
+fi
+
+
 # PATCH ORIGINAL MICA CODE
 yes | cp -Rfv "$DRUPAL_ROOT/sites/all/patch/mica_distribution" "$DRUPAL_ROOT/profiles/"
 

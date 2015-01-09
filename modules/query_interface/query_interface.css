@@ -2,3 +2,5 @@
 #query_screen { float: left; width: 75%; }
 
 #result-wrapper .query-table tr.query-result-labels td { text-align: center; }
+#result-wrapper .query-table tr.active td { background-color: #dff0d8; }
+#result-wrapper .query-table tr.active td.matched { font-weight: bold; }

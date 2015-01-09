@@ -846,6 +846,15 @@ function _mica_query_cross_variable_detail_link($cross_variable) {
   );
 }
 
+function _mica_query_cardinality($resultrow, $use_donors) {
+  if(!$use_donors) return FALSE;
+  if(isset($resultrow['_cardinality'])) {
+    return $resultrow['_cardinality'];
+  } else {
+    return NULL;
+  }
+}
+
 function _mica_query_result_table($dataset_node, $query, $cross_variable, $add_links = TRUE) {
 
   $is_cross = !empty($cross_variable);
@@ -860,6 +869,14 @@ function _mica_query_result_table($dataset_node, $query, $cross_variable, $add_l
 
   $mica_connectors = mica_connector_query_multiple($dataset_node->nid, TRUE);
   $terms = mica_query_term_query($query);
+
+  $cardinality_var = NULL;
+  $use_donors = FALSE;
+  $variable_names = array_map(function($var) {return $var->title;}, mica_dataset_dataset_variables($dataset_node->nid));
+  if(!$is_cross && in_array('donorID', $variable_names)) {
+    $cardinality_var = 'donorID';
+    $use_donors = TRUE;
+  }
 
   $headers = array();
   $sub_headers = array();
@@ -893,115 +910,13 @@ function _mica_query_result_table($dataset_node, $query, $cross_variable, $add_l
     );
 
     try {
-      $result = $is_cross ? $connector->queryBy($terms, array($cross_variable->title)) : $connector->query($terms);
+      // Cardinality queries currently only work without cross variables
+      $result = $is_cross ? $connector->queryBy($terms, array($cross_variable->title)) : $connector->query($terms, $cardinality_var);
 
       $total = $is_cross ? $result['_all']['_all'] : $result['total']['_all'];
+      $donors = _mica_query_cardinality($result['total'], $use_donors);
 
-      if ($is_cross) {
-
-        if (!$headers_initialized) {
-          $headers[] = array(
-            'data' => t('Total'),
-            'colspan' => $header_colspan,
-            'class' => array('border-left', 'border-right'),
-          );
-        }
-
-        foreach ($category_label_by_name as $name => $label) {
-          if (!$headers_initialized) {
-            $sub_headers[] = array(
-              'data' => $name,
-              'header' => TRUE,
-              'title' => $label,
-            );
-          }
-          $row[] = array(
-            'data' => isset($result['_all'][$name]) ? $result['_all'][$name] : 0,
-          );
-        }
-        if (!$headers_initialized) {
-          $sub_headers[] = array(
-            'data' => t('All'),
-            'header' => TRUE,
-            'class' => 'border-right',
-          );
-        }
-        $row[] = array(
-          'data' => $result['_all']['_all'],
-          'class' => 'border-right',
-        );
-      }
-      else {
-
-        if (!$headers_initialized) {
-          $headers[] = t('Total');
-        }
-        $row[] = $total;
-
-      }
-
-      $has_multiple_terms = count($terms) > 1;
-      foreach ($terms as $term) {
-        $impl = $term->termImpl();
-        $count = $result[$impl->getName()]['_all'];
-
-        if ($is_cross) {
-
-          if (!$headers_initialized) {
-            $headers[] = array(
-              'data' => _mica_query_run_page_header($dataset_node, $query, $term, $cross_variable,
-                $has_multiple_terms, $header_matched_tooltip, $add_links),
-              'colspan' => $header_colspan,
-              'class' => array('border-left', 'border-right'),
-            );
-          }
-
-          foreach ($category_label_by_name as $name => $label) {
-
-            if (!$headers_initialized) {
-              $sub_headers[] = array(
-                'data' => $name,
-                'header' => TRUE,
-                'title' => $label,
-              );
-            }
-            $value = isset($result[$impl->getName()][$name]) ? $result[$impl->getName()][$name] : 0;
-            $row[] = array(
-              'data' => _mica_query_count_str($value, $total),
-              'count' => $value,
-            );
-          }
-
-          if (!$headers_initialized) {
-            $sub_headers[] = array(
-              'data' => t('All'),
-              'header' => TRUE,
-              'class' => 'border-right',
-            );
-          }
-          $value = isset($result[$impl->getName()]['_all']) ? $result[$impl->getName()]['_all'] : 0;
-          $row[] = array(
-            'data' => _mica_query_count_str($value, $total),
-            'count' => $value,
-            'class' => 'border-right',
-          );
-
-        }
-        else {
-
-          if (!$headers_initialized) {
-            $headers[] = _mica_query_run_page_header($dataset_node, $query, $term, $cross_variable, $has_multiple_terms,
-              $header_matched_tooltip, $add_links);
-          }
-          $row[] = array(
-            'data' => _mica_query_count_str($count, $total),
-            'count' => $count
-          );
-
-        }
-
-      }
-
+      // build Matched column
       if ($is_cross) {
 
         if (!$headers_initialized) {
@@ -1048,11 +963,130 @@ function _mica_query_result_table($dataset_node, $query, $cross_variable, $add_l
         }
 
         $count = $result['_matched']['_all'];
-        $row[] = array(
-          'data' => _mica_query_count_str($count, $total),
+        $donors = _mica_query_cardinality($result['_matched'], $use_donors);
+        $matched = array(
+          'data' => _mica_query_count_str($count, $total, $donors),
           'count' => $count,
-          'class' => array('active')
+          'class' => array('active', 'matched')
         );
+        if($use_donors) $matched['donors'] = $donors;
+        $row[] = $matched;
+      }
+
+      // build terms columns
+      $has_multiple_terms = count($terms) > 1;
+      foreach ($terms as $term) {
+        $impl = $term->termImpl();
+        $count = $result[$impl->getName()]['_all'];
+        $donors = _mica_query_cardinality($result[$impl->getName()], $use_donors);
+
+        if ($is_cross) {
+
+          if (!$headers_initialized) {
+            $headers[] = array(
+              'data' => _mica_query_run_page_header($dataset_node, $query, $term, $cross_variable,
+                $has_multiple_terms, $header_matched_tooltip, $add_links),
+              'colspan' => $header_colspan,
+              'class' => array('border-left', 'border-right'),
+            );
+          }
+
+          foreach ($category_label_by_name as $name => $label) {
+
+            if (!$headers_initialized) {
+              $sub_headers[] = array(
+                'data' => $name,
+                'header' => TRUE,
+                'title' => $label,
+              );
+            }
+            $value = isset($result[$impl->getName()][$name]) ?: 0;
+            $row[] = array(
+              'data' => _mica_query_count_str($value, $total),
+              'count' => $value,
+            );
+          }
+
+          if (!$headers_initialized) {
+            $sub_headers[] = array(
+              'data' => t('All'),
+              'header' => TRUE,
+              'class' => 'border-right',
+            );
+          }
+          $value = isset($result[$impl->getName()]['_all']) ? $result[$impl->getName()]['_all'] : 0;
+          $row[] = array(
+            'data' => _mica_query_count_str($value, $total),
+            'count' => $value,
+            'class' => 'border-right',
+          );
+
+        }
+        else {
+
+          if (!$headers_initialized) {
+            $headers[] = _mica_query_run_page_header($dataset_node, $query, $term, $cross_variable, $has_multiple_terms,
+              $header_matched_tooltip, $add_links);
+          }
+          $row[] = array(
+            'data' => _mica_query_count_str($count, $total, $donors),
+            'count' => $count,
+            'donors' => $donors,
+          );
+
+        }
+
+      }
+
+      // build totals column
+      if ($is_cross) {
+
+        if (!$headers_initialized) {
+          $headers[] = array(
+            'data' => t('Total'),
+            'colspan' => $header_colspan,
+            'class' => array('border-left', 'border-right'),
+          );
+        }
+
+        foreach ($category_label_by_name as $name => $label) {
+          if (!$headers_initialized) {
+            $sub_headers[] = array(
+              'data' => $name,
+              'header' => TRUE,
+              'title' => $label,
+            );
+          }
+          $row[] = array(
+            'data' => isset($result['_all'][$name]) ? $result['_all'][$name] : 0,
+          );
+        }
+        if (!$headers_initialized) {
+          $sub_headers[] = array(
+            'data' => t('All'),
+            'header' => TRUE,
+            'class' => 'border-right',
+          );
+        }
+        $row[] = array(
+          'data' => $result['_all']['_all'],
+          'class' => 'border-right',
+        );
+      }
+      else {
+
+        if (!$headers_initialized) {
+          $headers[] = t('Total');
+        }
+        $cell = array('count' => $total);
+        $total_str = $total;
+        if($use_donors) {
+          $total_str .= ' items';
+          $cell['donors'] = $donors;
+        }
+        if($use_donors && !is_null($donors)) $total_str .= "<br>$donors donors";
+        $cell['data'] = $total_str;
+        $row[] = $cell;
       }
 
       $rows[] = array('data' => $row);
@@ -1067,7 +1101,7 @@ function _mica_query_result_table($dataset_node, $query, $cross_variable, $add_l
 
   // Add a summary row if there's more than one connector
   if (count($mica_connectors) > 1) {
-    _mica_query_run_page_summary($rows, $header_colspan);
+    _mica_query_run_page_summary($rows, $header_colspan, $use_donors);
   }
 
   // add tooltip to Matched header
@@ -1137,7 +1171,7 @@ function _mica_query_run_page_header($dataset_node, $query, $term, $cross_variab
 }
 
 
-function _mica_query_run_page_summary(&$rows, $header_total_nb_sub_header) {
+function _mica_query_run_page_summary(&$rows, $header_total_nb_sub_header, $use_donors) {
   $totals = array(
     array(
       'data' => 'Totals',
@@ -1155,46 +1189,89 @@ function _mica_query_run_page_summary(&$rows, $header_total_nb_sub_header) {
           'count' => 0,
           'class' => array('active'),
         );
+        if($use_donors) $totals[$key]['donors'] = 0;
+        if($key <= $header_total_nb_sub_header) $totals[$key]['class'][] = 'matched';
       }
       $totals[$key]['count'] +=
         isset($value['count'])
           ? $value['count']
           : (isset($value['data']) ? $value['data'] : $value);
+      if($use_donors) {
+        $totals[$key]['donors'] +=
+          isset($value['donors']) ? $value['donors'] : 0;
+      }
     }
   }
   // We have the count sums, now build the count display strings (i.e. with percentage)
   $totals_count = 0;
   foreach ($totals as $key => $value) {
+    if ($key < count($totals) - $header_total_nb_sub_header) {
+      continue;
+    }
+    $totals_count = $totals[$key]['count'];
+  }
+  foreach ($totals as $key => $value) {
     if ($key == 0) {
       continue;
     }
-    if ($key <= $header_total_nb_sub_header) {
-      $totals_count = $totals[$key]['count'];
-      $totals[$key]['data'] = $totals_count;
+    $donors = $use_donors ? $totals[$key]['donors'] : FALSE;
+    if ($key >= (count($totals) - $header_total_nb_sub_header)) {
+      $totals[$key]['data'] = _mica_query_count_str($totals_count, 0, $donors);
     }
     else {
-      $totals[$key]['data'] = _mica_query_count_str($totals[$key]['count'], $totals_count);
+      $totals[$key]['data'] = _mica_query_count_str($totals[$key]['count'], $totals_count, $donors);
     }
   }
-  $rows[] = array(
+  array_unshift($rows, array(
     'data' => $totals,
     'class' => array('active'),
+  ));
+
+  // Add a footer column
+  $footer = array(
+    '',
+    array(
+      'data' => 'Matching all criteria',
+      'colspan' => $header_total_nb_sub_header
+    ),
+    array(
+      'data' => 'Totals for specific criteria',
+      'colspan' => count($totals) - $header_total_nb_sub_header * 2 - 1
+    ),
+    array(
+      'data' => 'Total sample set size',
+      'colspan' => $header_total_nb_sub_header
+    )
   );
+
+  $rows[] = array(
+    'data' => $footer,
+    'class' => array('query-result-labels')  );
 }
 
 /**
- * Display the count with the percentage (if applicable).
+ * Display the count with the percentage and the no. of donors (if applicable).
  * @param $count
  * @param $total
+ * @param $donors
+ *   False: Donors not used in this table,
+ *   Null: donors displayed in this table but not available in this field.
  * @return string
  */
-function _mica_query_count_str($count, $total) {
+function _mica_query_count_str($count, $total, $donors = FALSE) {
+  $d = $donors !== FALSE;
   $data = $count;
-  if (isset($count) && $total > 0) {
-    $data = $count . '<br/>(' . round(100 * $count / $total, 2) . '%)';
+  if($d) {
+    $data .= ' items';
   }
+  if (isset($count) && $total > 0) {
+    $data .= $d ? ' ' : '<br>';
+    $data .= '(' .round(100 * $count / $total, 2) . '%)';
+  }
+  if($d && !is_null($donors)) {
+    $data .= "<br>$donors donors";
+  }
+
   return $data;
 }
-
-
 
