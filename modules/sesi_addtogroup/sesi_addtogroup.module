@@ -11,6 +11,9 @@
  * references:
  * https://www.drupal.org/node/1098700
  */
+
+define("DEFAULTGLOBAL", 50); //fallback value
+
 function sesi_addtogroup_user_insert(&$edit, $account, $category) {
   if ($account->uid) {
     $groupname = 'GLOBAL';
@@ -58,23 +61,38 @@ function _get_group_nid($groupname, $grouptype) {
  * Note: adapted for use of panels
  */
 function sesi_addtogroup_page_alter(&$page) {
-  // get nid
+  // Prevent from unsubscribing from GLOBAL group and hide GLOBAL group from page
   if (arg(0) == 'node' && is_numeric(arg(1))) {
     $nid = arg(1);
     if ($nid) {
       //drupal_set_message('Node id ' . $nid);
-    } else {
-        $nid = 50; // fixed value as default
+    }
+    else {
+      $nid = DEFAULTGLOBAL; 
     }
   }
+  // Hide unsubscribe link from GLOBAL community page
   $path = current_path();
   $alias = drupal_get_path_alias($path);
   if ($alias == 'content/global') {
+    // hide 'Unsubscribe from group'
+    // code for panels
+    $htmlblock = $page ['content']['system_main']['content']['#markup'];
+    $page ['content']['system_main']['content']['#markup'] = str_replace('Unsubscribe from group','',$htmlblock);
+    /* code for NOT working with panels
     $page ['content']['system_main']['nodes'][$nid]['group_group'][0]['#title'] = '';
     $page ['content']['system_main']['nodes'][$nid]['group_group'][0]['#href'] = '';
+     */
   }
-  if (substr($path,0,5) == 'user/') {
-    $page ['content']['system_main']['og_user_node'][0]['#title'] = '';
-    $page ['content']['system_main']['og_user_node'][0]['#href'] = '';
+  // Hide GLOBAL community from user page (e.g. ?q=user/61) 
+  if ((substr($path, 0, 5) == 'user/') && (strpos($path,'/',6) == 0)) { // the path OK: ?q=user/61, but notOK: ?q=user/61/shortcuts or ?q=user/61/track/navigation
+    foreach($page ['content']['system_main']['og_user_node'] as $group) {
+        if (is_numeric($group)) {
+          if ($page ['content']['system_main']['og_user_node'][$group]['#title'] == "GLOBAL") {   
+          $page ['content']['system_main']['og_user_node'][$group]['#title'] = '';
+          $page ['content']['system_main']['og_user_node'][$group]['#href'] = ''; 
+        }
+      }
+    }
   }
 }
