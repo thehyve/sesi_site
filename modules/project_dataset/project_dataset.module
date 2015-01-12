@@ -30,8 +30,6 @@ function project_dataset_views_post_execute(&$view) {
     }
     
     //rewrite the final results page
-    $view->query->pager->total_items = count($results);
-    $view->query->pager->update_page_info();
     $view->result = $results;
     
 }
