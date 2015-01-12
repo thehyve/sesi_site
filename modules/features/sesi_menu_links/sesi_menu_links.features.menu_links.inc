@@ -288,7 +288,8 @@ function sesi_menu_links_menu_default_menu_links() {
     'external' => 0,
     'has_children' => 1,
     'expanded' => 1,
-    'weight' => -40,
+    'weight' => -50,
+    'parent_path' => 'node/4',
   );
   // Exported menu link: main-menu:node/5
   $menu_links['main-menu:node/5'] = array(
@@ -402,6 +403,25 @@ function sesi_menu_links_menu_default_menu_links() {
     'weight' => -48,
     'parent_path' => 'node/2',
   );
+  // Exported menu link: management:admin/structure/menu
+  $menu_links['management:admin/structure/menu'] = array(
+    'menu_name' => 'management',
+    'link_path' => 'admin/structure/menu',
+    'router_path' => 'admin/structure/menu',
+    'link_title' => 'Menus',
+    'options' => array(
+      'attributes' => array(
+        'title' => 'Add new menus to your site, edit existing menus, and rename and reorganize menu links.',
+      ),
+    ),
+    'module' => 'system',
+    'hidden' => 0,
+    'external' => 0,
+    'has_children' => 1,
+    'expanded' => 0,
+    'weight' => 0,
+    'parent_path' => 'admin/structure',
+  );
   // Exported menu link: user-menu:user
   $menu_links['user-menu:user'] = array(
     'menu_name' => 'user-menu',
@@ -449,6 +469,7 @@ function sesi_menu_links_menu_default_menu_links() {
   t('Forums');
   t('Home');
   t('Log out');
+  t('Menus');
   t('My Data Access Requests');
   t('News');
   t('News & Events');
