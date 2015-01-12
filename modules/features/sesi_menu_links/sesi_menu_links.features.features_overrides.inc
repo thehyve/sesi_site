@@ -12,7 +12,7 @@ function sesi_menu_links_features_override_default_overrides() {
   $overrides = array();
   
   // Exported overrides for: fe_block_settings
-  $overrides["fe_block_settings.system-main-menu.title"] = '<none>';  
+  $overrides["fe_block_settings.system-main-menu.title"] = '<none>';
 
   // Exported overrides for: menu_links
   $overrides["menu_links.main-menu:node/4.parent_path"] = 'node/4';
