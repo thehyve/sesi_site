@@ -254,6 +254,10 @@ drush cc all
 drush cron
 drush vset maintenance_mode 0
 
+#change temporarely the snapshot
+REPLACEMENT="version = '7.x-8.2-DEPLOYING'"
+sed -i.bak "s/version = .*$/$REPLACEMENT/g" $DRUPAL_ROOT/profiles/mica_distribution/modules/mica/extensions/mica_core/mica_core.info
+
 #try to install xvfb, firefox 
 if [ ! -f /usr/bin/xvfb-run ] ; then
     echo "First time installation of virtual X server"
@@ -285,6 +289,10 @@ if [ -z "$seluser" ] ; then
      drush urol administrator selenium
 fi
 
+if [ ! -f $DRUPAL_ROOT/selenium.passwd ] ; then
+     echo "selenium password is not set"
+     exit 1
+fi
 passwd=`cat $DRUPAL_ROOT/selenium.passwd`
 echo "Running seldrush"
 xvfb-run --server-args="-screen 0, 1024x768x24" python $DRUPAL_ROOT/sites/all/seldrush.py http://localhost selenium "$passwd"
@@ -295,4 +303,9 @@ DATE_VER=`date '+%m%d%H%M'`
 COMMIT_VER=`git rev-parse --short HEAD`
 REPLACEMENT="version = '7.x-8.2-$COMMIT_VER-$DATE_VER'"
 sed -i.bak "s/version = .*$/$REPLACEMENT/g" $DRUPAL_ROOT/profiles/mica_distribution/modules/mica/extensions/mica_core/mica_core.info
+
+#refresh
+drush vset maintenance_mode 1
+drush cc all
+drush vset maintenance_mode 0
 
