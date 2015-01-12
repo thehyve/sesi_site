@@ -254,10 +254,58 @@ drush cc all
 drush cron
 drush vset maintenance_mode 0
 
+#change temporarely the snapshot
+REPLACEMENT="version = '7.x-8.2-DEPLOYING'"
+sed -i.bak "s/version = .*$/$REPLACEMENT/g" $DRUPAL_ROOT/profiles/mica_distribution/modules/mica/extensions/mica_core/mica_core.info
+
+#try to install xvfb, firefox 
+if [ ! -f /usr/bin/xvfb-run ] ; then
+    echo "First time installation of virtual X server"
+    if [[ $EUID -ne 0 ]]; then
+       echo "ERROR!!! This script must be run as root" 
+       exit 1
+    fi
+    yum -y install firefox Xvfb libXfont Xorg
+    #yum groupinstall -y development
+    yum install -y python-setuptools
+fi
+
+#try to install selenium library
+installed=`python -c "import selenium"` || installed="NOT EMPTY"
+if [ ! -z "$installed" ] ; then
+    echo "selenium not installed..trying to install"
+    curl https://pypi.python.org/packages/source/s/selenium/selenium-2.44.0.tar.gz | tar xzv
+    cd selenium-2.44.0
+    python setup.py install
+    cd ..
+fi
+
+seluser=`drush sqlq "SELECT * from users where name='selenium'"`
+if [ -z "$seluser" ] ; then
+     echo "no selenium user..creating.."
+     passwd=`date | md5sum | cut -c1-12`
+     echo "$passwd" > $DRUPAL_ROOT/selenium.passwd
+     drush user-create selenium --password="$passwd"
+     drush urol administrator selenium
+fi
+
+if [ ! -f $DRUPAL_ROOT/selenium.passwd ] ; then
+     echo "selenium password is not set"
+     exit 1
+fi
+passwd=`cat $DRUPAL_ROOT/selenium.passwd`
+echo "Running seldrush"
+xvfb-run --server-args="-screen 0, 1024x768x24" python $DRUPAL_ROOT/sites/all/seldrush.py http://localhost selenium "$passwd"
+
 #update version
 cd $DRUPAL_ROOT/sites/all
 DATE_VER=`date '+%m%d%H%M'`
 COMMIT_VER=`git rev-parse --short HEAD`
 REPLACEMENT="version = '7.x-8.2-$COMMIT_VER-$DATE_VER'"
-sed -i.bak "s/version = .*$/$REPLACEMENT/g" /var/www/html/mica/profiles/mica_distribution/modules/mica/extensions/mica_core/mica_core.info
+sed -i.bak "s/version = .*$/$REPLACEMENT/g" $DRUPAL_ROOT/profiles/mica_distribution/modules/mica/extensions/mica_core/mica_core.info
+
+#refresh
+drush vset maintenance_mode 1
+drush cc all
+drush vset maintenance_mode 0
 
