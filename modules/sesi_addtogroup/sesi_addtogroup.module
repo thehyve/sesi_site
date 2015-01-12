@@ -73,4 +73,8 @@ function sesi_addtogroup_page_alter(&$page) {
     $page ['content']['system_main']['nodes'][$nid]['group_group'][0]['#title'] = '';
     $page ['content']['system_main']['nodes'][$nid]['group_group'][0]['#href'] = '';
   }
+  if (substr($path,0,5) == 'user/') {
+    $page ['content']['system_main']['og_user_node'][0]['#title'] = '';
+    $page ['content']['system_main']['og_user_node'][0]['#href'] = '';
+  }
 }
