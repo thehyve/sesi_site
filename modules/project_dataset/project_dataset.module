@@ -7,6 +7,8 @@ function project_dataset_views_post_execute(&$view) {
     }
     watchdog(WATCHDOG_DEBUG, 'Running post execute '. $view->name);
     
+    global $user;
+            
     $results = array();
     foreach ($view->result as $key => $value) {   
         // get id of dataset, if user has access, add item and continue
@@ -14,6 +16,11 @@ function project_dataset_views_post_execute(&$view) {
         $node = node_load($nid);
         if(node_access('view',$node)) {
             array_push($results, $value);
+            continue;
+        }
+        
+        //if draft and not owner...
+        if($node->status=="0" && $node->uid != $user->uid) {
             continue;
         }
         
@@ -31,6 +38,9 @@ function project_dataset_views_post_execute(&$view) {
     
     //rewrite the final results page
     $view->result = $results;
+    $view->query->pager->total_items = count($results);
+//    $view->query->pager->update_page_info();
+
     
 }
 
