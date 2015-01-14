@@ -86,7 +86,7 @@ abstract class AbstractTerm implements QueryTermInterface {
 
   protected $options = array();
 
-  private $qt;
+  protected $qt;
 
   protected $has_categories;
 
