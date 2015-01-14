@@ -208,5 +208,10 @@ class OntologyTerm extends AbstractTerm {
       }
     }
     return FALSE;
-  }  
+  }
+
+  function asFilter() {
+    return $this->asFilterCategoric();
+  }
+
 }

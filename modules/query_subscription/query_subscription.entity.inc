@@ -213,10 +213,14 @@ class QuerySubscription extends Entity {
     $ret['connectors'] = self::id_map(mica_connector_query_multiple($query->dataset_id));
     $ret['terms'] = mica_query_term_query($query);
     $ret['dataset'] = node_load($query->dataset_id);
+    $ret['dataset_expiration_date'] = null;
     try {
-      $ret['dataset_expiration_date'] = new DateTime($ret['dataset']->field_expiration_date['und'][0]['value']);
+      $expiration_date = $ret['dataset']->field_expiration_date['und'][0]['value'];
+      if(!empty($expiration_date)) {
+        $ret['dataset_expiration_date'] = new DateTime($expiration_date);
+      }
     } catch(Exception $e) {
-      $ret['dataset_expiration_date'] = null;
+      // leave dataset_expiration_date null
     }
 
     $ret['studies'] = array();
