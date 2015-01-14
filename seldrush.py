@@ -113,10 +113,29 @@ class Drush(SeleniumBase):
         
         chkbox = self.css("#edit-2-import-csv-variables-feeds")
         self.setcheckbox(chkbox, True)
-               
+        
+        chkbox = self.css("#edit-2-create-data-access-request-content")
+        self.setcheckbox(chkbox, True)
+       
         self.clickon('#edit-submit')
 
-        
+    def changePermCommunity(self):
+        self.sd.get(self.base_url + "/mica/?q=admin/config/group/permissions/node/community")
+
+        chkbox = self.css("#edit-2-create-data-access-request-form-content")
+        self.setcheckbox(chkbox, True)
+
+        self.clickon('#edit-submit')
+
+    def changePermDefaultCommunity(self):
+        self.sd.get(self.base_url + "/mica/?q=admin/config/group/permissions/node/default_community")
+
+        chkbox = self.css("#edit-5-create-data-access-request-form-content")
+        self.setcheckbox(chkbox, True)
+
+        self.clickon('#edit-submit')
+
+ 
     def changePermConsAdmin(self):
         self.sd.get(self.base_url + "/mica/?q=admin/people/permissions/4")
 
@@ -125,6 +144,14 @@ class Drush(SeleniumBase):
         
         chkbox = self.css("#edit-4-access-toolbar")
         self.setcheckbox(chkbox, False)
+        
+        self.clickon('#edit-submit')
+
+    def changeDACF(self):
+        self.sd.get(self.base_url + "/mica/?q=admin/people/permissions/4")
+
+        chkbox = self.css("#edit-node-preview-0")
+        self.setcheckbox(chkbox, True)
         
         self.clickon('#edit-submit')
                
@@ -142,6 +169,9 @@ if __name__ == "__main__":
        if suite.login():       
            suite.changePermissions()
            suite.changePermConsAdmin()
+           suite.changePermDefaultCommunity()
+           suite.changePermCommunity()
+        #   suite.changeDACF()
 
     finally:
         suite.destroy();
