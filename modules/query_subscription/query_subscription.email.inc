@@ -96,8 +96,8 @@ function query_subscription_mail($key, &$message, $params) {
       $old = $difference['old_value'];
       $new = $difference['new_value'];
 
-      if ($difference['catgory'] === '_cardinality') {
-        $variable_name .= ' ' . $ht("(No. of donors)");
+      if ($difference['category'] === '_cardinality') {
+        $variable_name .= ' ' . $ht("(no. of donors)");
       }
 
       if ($difference['category'] === '_all' || $difference['category'] === '_cardinality') {

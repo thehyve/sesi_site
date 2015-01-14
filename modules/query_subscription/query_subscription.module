@@ -407,11 +407,16 @@ function query_subscription_query_result($query) {
   $fullresult = array();
   foreach($connectors as $connector) {
 
+    $variable_names = array_map(function($var) {return $var->title;}, mica_dataset_dataset_variables($query->dataset_id));
     $terms = mica_query_term_query($query);
     $cross_variable = node_load($query->cross_variable_id);
 
     if(empty($cross_variable)) {
-      $result = $connector->query($terms);
+      $cardinality_var = NULL;
+      if(in_array('donorID', $variable_names)) {
+        $cardinality_var = 'donorID';
+      }
+      $result = $connector->query($terms, $cardinality_var);
       unset($result['_all']);
     } else {
       $result = $connector->queryBy($terms, array($cross_variable->title));
