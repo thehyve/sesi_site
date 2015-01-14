@@ -14,14 +14,40 @@ function sesi_default_community_ctools_plugin_api($module = NULL, $api = NULL) {
 }
 
 /**
- * Implements hook_field_default_field_bases_alter().		
- */		
-function sesi_default_community_field_default_field_bases_alter(&$data) {		
-  if (isset($data['og_group_ref'])) {		
-    $data['og_group_ref']['field_permissions']['type'] = 0; /* WAS: 0 */		
-  }		
-}		
-
+ * Implements hook_og_features_default_permissions_alter().
+ */
+function sesi_default_community_og_features_default_permissions_alter(&$data) {
+  if (isset($data['node:default_community:create community_document content'])) {
+    unset($data['node:default_community:create community_document content']['roles']['member']);
+  }
+  if (isset($data['node:default_community:delete any variable content'])) {
+    unset($data['node:default_community:delete any variable content']['roles']['member']);
+  }
+  if (isset($data['node:default_community:delete own community_document content'])) {
+    unset($data['node:default_community:delete own community_document content']['roles']['member']);
+  }
+  if (isset($data['node:default_community:delete own dataset content'])) {
+    unset($data['node:default_community:delete own dataset content']['roles']['member']);
+  }
+  if (isset($data['node:default_community:delete own event content'])) {
+    unset($data['node:default_community:delete own event content']['roles']['member']);
+  }
+  if (isset($data['node:default_community:delete own variable content'])) {
+    unset($data['node:default_community:delete own variable content']['roles']['member']);
+  }
+  if (isset($data['node:default_community:update own community_document content'])) {
+    unset($data['node:default_community:update own community_document content']['roles']['member']);
+  }
+  if (isset($data['node:default_community:update own dataset content'])) {
+    unset($data['node:default_community:update own dataset content']['roles']['member']);
+  }
+  if (isset($data['node:default_community:update own event content'])) {
+    unset($data['node:default_community:update own event content']['roles']['member']);
+  }
+  if (isset($data['node:default_community:update own variable content'])) {
+    unset($data['node:default_community:update own variable content']['roles']['member']);
+  }
+}
 
 /**
  * Implements hook_node_info().

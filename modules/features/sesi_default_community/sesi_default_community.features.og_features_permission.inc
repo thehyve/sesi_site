@@ -38,9 +38,7 @@ function sesi_default_community_og_features_default_permissions() {
 
   // Exported og permission: 'node:default_community:create community_document content'
   $permissions['node:default_community:create community_document content'] = array(
-    'roles' => array(
-      'member' => 'member',
-    ),
+    'roles' => array(),
   );
 
   // Exported og permission: 'node:default_community:create data_access_request_form content'
@@ -90,9 +88,7 @@ function sesi_default_community_og_features_default_permissions() {
 
   // Exported og permission: 'node:default_community:delete any variable content'
   $permissions['node:default_community:delete any variable content'] = array(
-    'roles' => array(
-      'member' => 'member',
-    ),
+    'roles' => array(),
   );
 
   // Exported og permission: 'node:default_community:delete own article content'
@@ -102,9 +98,7 @@ function sesi_default_community_og_features_default_permissions() {
 
   // Exported og permission: 'node:default_community:delete own community_document content'
   $permissions['node:default_community:delete own community_document content'] = array(
-    'roles' => array(
-      'member' => 'member',
-    ),
+    'roles' => array(),
   );
 
   // Exported og permission: 'node:default_community:delete own data_access_request_form content'
@@ -114,23 +108,17 @@ function sesi_default_community_og_features_default_permissions() {
 
   // Exported og permission: 'node:default_community:delete own dataset content'
   $permissions['node:default_community:delete own dataset content'] = array(
-    'roles' => array(
-      'member' => 'member',
-    ),
+    'roles' => array(),
   );
 
   // Exported og permission: 'node:default_community:delete own event content'
   $permissions['node:default_community:delete own event content'] = array(
-    'roles' => array(
-      'member' => 'member',
-    ),
+    'roles' => array(),
   );
 
   // Exported og permission: 'node:default_community:delete own variable content'
   $permissions['node:default_community:delete own variable content'] = array(
-    'roles' => array(
-      'member' => 'member',
-    ),
+    'roles' => array(),
   );
 
   // Exported og permission: 'node:default_community:email people'
@@ -224,9 +212,7 @@ function sesi_default_community_og_features_default_permissions() {
 
   // Exported og permission: 'node:default_community:update own community_document content'
   $permissions['node:default_community:update own community_document content'] = array(
-    'roles' => array(
-      'member' => 'member',
-    ),
+    'roles' => array(),
   );
 
   // Exported og permission: 'node:default_community:update own data_access_request_form content'
@@ -236,23 +222,17 @@ function sesi_default_community_og_features_default_permissions() {
 
   // Exported og permission: 'node:default_community:update own dataset content'
   $permissions['node:default_community:update own dataset content'] = array(
-    'roles' => array(
-      'member' => 'member',
-    ),
+    'roles' => array(),
   );
 
   // Exported og permission: 'node:default_community:update own event content'
   $permissions['node:default_community:update own event content'] = array(
-    'roles' => array(
-      'member' => 'member',
-    ),
+    'roles' => array(),
   );
 
   // Exported og permission: 'node:default_community:update own variable content'
   $permissions['node:default_community:update own variable content'] = array(
-    'roles' => array(
-      'member' => 'member',
-    ),
+    'roles' => array(),
   );
 
   return $permissions;
