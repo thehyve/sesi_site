@@ -52,9 +52,6 @@ class MicaDatasetElasticSearchQueryApi extends MicaDatasetAbstractQuery {
 
     $dtoQueries = new Search\QueryTermsDto();
 
-    if(!is_null($cardinality)) {
-    }
-
     foreach ($facets as $facet) {
       if(!is_null($cardinality)) {
         $varTermDto = new Search\VariableTermDto();
@@ -244,56 +241,57 @@ class MicaDatasetElasticSearchQueryApi extends MicaDatasetAbstractQuery {
   }
 
   protected  function asFilter(QueryTermInterface $term) {
-    $dtoFilter = new Search\FilterDto();
-    $dtoFilter->setVariable($term->getFieldName());
-
-    switch ($term->getType()) {
-      case 'CategoryTerm':
-        if (count($term->categories()) > 0) {
-          $dtoTerms = new Search\InTermDto();
-
-          foreach ($term->categories() as $category) {
-            $dtoTerms->addValues($category);
-          }
-
-          $dtoFilter->setExtension("Search.InTermDto.terms", $dtoTerms);
-        }
-        break;
-
-      case 'RangeTerm':
-        if (count($term->ranges()) > 0) {
-          $ranges = $term->ranges();
-          $range = $ranges[0];
-          if (isset($range['value'])) {
-            $dtoTerms = new Search\InTermDto();
-            $dtoTerms->addValues($range['value']);
-            $dtoFilter->setExtension("Search.InTermDto.terms", $dtoTerms);
-          }
-          else {
-            $dtoRange = new Search\RangeTermDto();
-
-            if (isset($range['from'])) {
-              $dtoRange->setFrom($range['from']);
-              $dtoRange->setIncludeLower(TRUE);
-            }
-
-            if (isset($range['to'])) {
-              $dtoRange->setTo($range['to']);
-              $dtoRange->setIncludeUpper(TRUE);
-            }
-
-            $dtoFilter->setExtension("Search.RangeTermDto.range", $dtoRange);
-          }
-        }
-        break;
-      default:
-        break;
-    }
-
-    if ($term->isInverted()) {
-      $dtoFilter->setNot(TRUE);
-    }
-    return $dtoFilter;
+    return $term->asFilter();
+//    $dtoFilter = new Search\FilterDto();
+//    $dtoFilter->setVariable($term->getFieldName());
+//
+//    switch ($term->getType()) {
+//      case 'CategoryTerm':
+//        if (count($term->categories()) > 0) {
+//          $dtoTerms = new Search\InTermDto();
+//
+//          foreach ($term->categories() as $category) {
+//            $dtoTerms->addValues($category);
+//          }
+//
+//          $dtoFilter->setExtension("Search.InTermDto.terms", $dtoTerms);
+//        }
+//        break;
+//
+//      case 'RangeTerm':
+//        if (count($term->ranges()) > 0) {
+//          $ranges = $term->ranges();
+//          $range = $ranges[0];
+//          if (isset($range['value'])) {
+//            $dtoTerms = new Search\InTermDto();
+//            $dtoTerms->addValues($range['value']);
+//            $dtoFilter->setExtension("Search.InTermDto.terms", $dtoTerms);
+//          }
+//          else {
+//            $dtoRange = new Search\RangeTermDto();
+//
+//            if (isset($range['from'])) {
+//              $dtoRange->setFrom($range['from']);
+//              $dtoRange->setIncludeLower(TRUE);
+//            }
+//
+//            if (isset($range['to'])) {
+//              $dtoRange->setTo($range['to']);
+//              $dtoRange->setIncludeUpper(TRUE);
+//            }
+//
+//            $dtoFilter->setExtension("Search.RangeTermDto.range", $dtoRange);
+//          }
+//        }
+//        break;
+//      default:
+//        break;
+//    }
+//
+//    if ($term->isInverted()) {
+//      $dtoFilter->setNot(TRUE);
+//    }
+//    return $dtoFilter;
   }
 
   private function asCrossFacetBy($facetName, QueryTermInterface $term, $field, $filterField, $categories) {

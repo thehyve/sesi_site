@@ -59,6 +59,11 @@ interface QueryTermInterface {
 
   function getOptions();
 
+  /**
+   * Return a Search\FilterDto of this term
+   */
+  function asFilter();
+
 }
 
 /**
@@ -83,6 +88,8 @@ abstract class AbstractTerm implements QueryTermInterface {
 
   private $qt;
 
+  protected $has_categories;
+
   function __construct($type, MicaDatasetQueryTerm $qt) {
     // Set initial values.
     foreach ($qt->options as $key => $value) {
@@ -92,6 +99,15 @@ abstract class AbstractTerm implements QueryTermInterface {
     $this->type = $type;
     $this->qt = $qt;
     $this->options = & $qt->options;
+
+    $variablewrapper = entity_metadata_wrapper('node', node_load($qt->variable_id));
+    $this->has_categories = FALSE;
+    foreach ($variablewrapper->field_variable_categories->value() as $category) {
+      if ($category['missing'] == FALSE) {
+        $this->has_categories = TRUE;
+        break;
+      }
+    }
   }
 
   static function typeFor($variable) {
@@ -219,6 +235,41 @@ abstract class AbstractTerm implements QueryTermInterface {
     return !empty($acronym) ? $study_wrapper->field_acroym->value() : $study_wrapper->title->value();
   }
 
+  function asFilter() {
+    $dtoFilter = new Search\FilterDto();
+    $dtoFilter->setVariable($this->getFieldName());
+    if ($this->isInverted()) {
+      $dtoFilter->setNot(TRUE);
+    }
+    return $dtoFilter;
+  }
+
+  protected function lowercaseIfNoCategories(array $values) {
+    if($this->has_categories) return $values;
+    return array_map('strtolower', $values);
+  }
+
+  /**
+   * A helper function for categoric like terms
+   * @return \Search\FilterDto
+   */
+  protected function asFilterCategoric() {
+    $dtoFilter = self::asFilter();
+    $categories = $this->categories();
+
+    if (count($categories) > 0) {
+      $dtoTerms = new Search\InTermDto();
+      // Non-categoric variables are indexed by Opal as full text, which means indexed items are analysed and
+      // lowercased. To match, we need to specify the indexed terms.
+      if(!$this->has_categories) {
+        $categories = array_map('strtolower', $categories);
+      }
+      $dtoTerms->setValues($categories);
+      $dtoFilter->setExtension("Search.InTermDto.terms", $dtoTerms);
+    }
+
+    return $dtoFilter;
+  }
 }
 
 /**
@@ -417,6 +468,10 @@ class CategoryTerm extends AbstractTerm {
       $categories[] = substr($c, 2);
     }
     return $categories;
+  }
+
+  function asFilter() {
+    return $this->asFilterCategoric();
   }
 
 }
@@ -665,6 +720,37 @@ class RangeTerm extends AbstractTerm {
     }
     return FALSE;
   }
+
+  function asFilter() {
+    $dtoFilter = parent::asFilter();
+
+    if (count($this->ranges()) > 0) {
+      $ranges = $this->ranges();
+      $range = $ranges[0];
+      if (isset($range['value'])) {
+        $dtoTerms = new Search\InTermDto();
+        $dtoTerms->addValues($range['value']);
+        $dtoFilter->setExtension("Search.InTermDto.terms", $dtoTerms);
+      }
+      else {
+        $dtoRange = new Search\RangeTermDto();
+
+        if (isset($range['from'])) {
+          $dtoRange->setFrom($range['from']);
+          $dtoRange->setIncludeLower(TRUE);
+        }
+
+        if (isset($range['to'])) {
+          $dtoRange->setTo($range['to']);
+          $dtoRange->setIncludeUpper(TRUE);
+        }
+
+        $dtoFilter->setExtension("Search.RangeTermDto.range", $dtoRange);
+      }
+    }
+
+    return $dtoFilter;
+  }
 }
 
 class TodoTerm extends AbstractTerm {
@@ -762,5 +848,19 @@ class TodoTerm extends AbstractTerm {
 
   function checkStats() {
     return TRUE;
+  }
+
+  function asFilter() {
+    $dtoFilter = parent::asFilter();
+
+    $dtoTerms = new Search\InTermDto();
+    $values = $this->match();
+    if(!$this->has_categories) {
+      $values = array_map('strtolower', $values);
+    }
+    $dtoTerms->setValues($values);
+    $dtoFilter->setExtension("Search.InTermDto.terms", $dtoTerms);
+
+    return $dtoFilter;
   }
 }
