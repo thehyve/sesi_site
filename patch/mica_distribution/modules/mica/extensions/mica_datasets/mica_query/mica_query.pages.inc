@@ -1105,7 +1105,7 @@ function _mica_query_result_table($dataset_node, $query, $cross_variable, $add_l
   }
 
   // add tooltip to Matched header
-  $headers[count($headers) - 1]['title'] = $header_matched_tooltip;
+  $headers[0]['title'] = $header_matched_tooltip;
 
   return theme(
     'table',
