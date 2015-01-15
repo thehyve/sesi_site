@@ -117,6 +117,20 @@ class Drush(SeleniumBase):
         chkbox = self.css("#edit-2-create-data-access-request-content")
         self.setcheckbox(chkbox, True)
        
+
+        # ----------------------------
+        # Permission setting for Forum 
+        # ----------------------------
+        chkbox = self.css("#edit-2-create-forum-content")
+        self.setcheckbox(chkbox, False)
+
+        chkbox = self.css("#edit-2-edit-own-forum-content")
+        self.setcheckbox(chkbox, False)
+
+        chkbox = self.css("#edit-2-delete-own-forum-content")
+        self.setcheckbox(chkbox, False)
+        # ----------------------------
+
         self.clickon('#edit-submit')
 
     def changePermCommunity(self):
