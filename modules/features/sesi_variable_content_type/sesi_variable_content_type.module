@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Sesi Variable content type feature.
+ */
+
+include_once 'sesi_variable_content_type.features.inc';

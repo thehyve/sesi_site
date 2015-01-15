@@ -117,6 +117,7 @@ class Drush(SeleniumBase):
         chkbox = self.css("#edit-2-create-data-access-request-content")
         self.setcheckbox(chkbox, True)
        
+
         # ----------------------------
         # Permission setting for Forum 
         # ----------------------------

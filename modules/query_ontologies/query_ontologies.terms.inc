@@ -132,8 +132,7 @@ class OntologyTerm extends AbstractTerm {
       '#title' => 'Values',
     );
 
-    // TODO: check selected values already at the start
-    $uri = "sesi/variable/" . $this->getVariable()->nid . "/variabletaxonomy";
+    $uri = "sesi/node/" . $this->qt->dataset_id . "/queries/" . $this->qt->id . "/variable/" . $this->getVariable()->nid . "/variabletaxonomy";
     $taxonomyUrl = url($uri);
     $selectedIds = $this->getSelectedTermIds();
     $default_value = ''; // implode(" ", $this->match());
@@ -209,5 +208,10 @@ class OntologyTerm extends AbstractTerm {
       }
     }
     return FALSE;
-  }  
+  }
+
+  function asFilter() {
+    return $this->asFilterCategoric();
+  }
+
 }

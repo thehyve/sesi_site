@@ -914,7 +914,7 @@ function _mica_query_result_table($dataset_node, $query, $cross_variable, $add_l
       $result = $is_cross ? $connector->queryBy($terms, array($cross_variable->title)) : $connector->query($terms, $cardinality_var);
 
       $total = $is_cross ? $result['_all']['_all'] : $result['total']['_all'];
-      $donors = _mica_query_cardinality($result['total'], $use_donors);
+      $total_donors = _mica_query_cardinality($result['total'], $use_donors);
 
       // build Matched column
       if ($is_cross) {
@@ -1082,9 +1082,9 @@ function _mica_query_result_table($dataset_node, $query, $cross_variable, $add_l
         $total_str = $total;
         if($use_donors) {
           $total_str .= ' items';
-          $cell['donors'] = $donors;
+          $cell['donors'] = $total_donors;
         }
-        if($use_donors && !is_null($donors)) $total_str .= "<br>$donors donors";
+        if($use_donors && !is_null($total_donors)) $total_str .= "<br>$total_donors donors";
         $cell['data'] = $total_str;
         $row[] = $cell;
       }

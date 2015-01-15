@@ -162,5 +162,9 @@ class VocabularyTerm extends AbstractTerm {
       }
     }
     return FALSE;
-  }  
+  }
+
+  function asFilter() {
+    return $this->asFilterCategoric();
+  }
 }
