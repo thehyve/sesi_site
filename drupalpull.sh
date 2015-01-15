@@ -72,6 +72,16 @@ if isdisabled fe_block; then
     drush --yes en fe_block
 fi
 
+# Fix problem of missing contact table
+TABLEFOUND=`sudo drush sqlq "SELECT count(*) FROM information_schema.TABLES WHERE (TABLE_SCHEMA = 'mica') AND (TABLE_NAME = 'contact');"|sed '1d'`
+if [ $TABLEFOUND -eq 0 ]; then
+   echo "No contact table found; creating..."
+   drush --y dre contact
+   drush en --y sesi_contact_form
+else
+   echo "Contact table found"
+fi
+
 # Enable Rules
 isdisabled rules_admin && drush --yes en rules rules_admin
 
@@ -227,8 +237,7 @@ ensure_mod project_dataset
 ensure_mod project_community
 
 # og admin role
-ensure_mod og_admin_role
- 
+ensure_mod og_admin_role 
 # Remove an old content type and some fields.
 #drush --yes php-eval "node_type_delete('page');"
 #drush field-delete field_news_tags --bundle=news
