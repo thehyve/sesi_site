@@ -192,6 +192,7 @@ ensure_feat sesi_og_email
 ensure_feat sesi_search_index_immediately
 ensure_feat sesi_dataset_redirect
 ensure_feat sesi_community_hub
+ensure_feat sesi_variable_content_type
 
 
 # UPDATE JQUERY VERSION
