@@ -853,13 +853,15 @@ class TodoTerm extends AbstractTerm {
   function asFilter() {
     $dtoFilter = parent::asFilter();
 
-    $dtoTerms = new Search\InTermDto();
     $values = $this->match();
-    if(!$this->has_categories) {
-      $values = array_map('strtolower', $values);
+    if(!empty($values)) {
+      $dtoTerms = new Search\InTermDto();
+      if (!$this->has_categories) {
+        $values = array_map('strtolower', $values);
+      }
+      $dtoTerms->setValues($values);
+      $dtoFilter->setExtension("Search.InTermDto.terms", $dtoTerms);
     }
-    $dtoTerms->setValues($values);
-    $dtoFilter->setExtension("Search.InTermDto.terms", $dtoTerms);
 
     return $dtoFilter;
   }
