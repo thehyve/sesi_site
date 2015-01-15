@@ -141,8 +141,15 @@ class ServicesOpalFormatter implements ServicesFormatterInterface {
     foreach ($this->languages as $language) {
       $url = $wrapper->language($language)->field_vocabulary_url->value();
       $this->addAttribute($attributes, 'vocabulary_url', 'text', $language, $url, self::MAELSTROM_NS);
-    } 
-    
+    }
+
+    $field_validate_categories = $wrapper->language($language)->field_validate_categories->value();
+    if (isset($field_validate_categories) && ($wrapper->language($language)->field_validate_categories->value() == '1')) {
+      foreach ($this->languages as $language) {
+        $url = $wrapper->language($language)->field_validate_categories->value();
+        $this->addAttribute($attributes, 'strict_categories', 'text', $language, $url, self::MAELSTROM_NS);
+      }
+    }
 
     foreach ($this->languages as $language) {
       $this->addAttribute($attributes, 'label', 'text', $language, $wrapper->language($language)->field_label->value());
