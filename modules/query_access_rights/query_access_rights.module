@@ -29,11 +29,11 @@ function query_access_rights_is_expired($dataset) {
 
   try {
     $wrapper = entity_metadata_wrapper( 'node', $dataset );
-    $date = $wrapper->field_expiration_data->value();
+    $date = $wrapper->field_expiration_date->value();
     if( !$date ) 
         return false;
     
-    $expdate = new DateTime($date);
+    $expdate = DateTime::createFromFormat( "U", $date );
   } catch (Exception $e) {
     // If there is no valid field_expiration_date set
     return false;
