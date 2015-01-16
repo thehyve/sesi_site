@@ -132,7 +132,7 @@ class OntologyTerm extends AbstractTerm {
       '#title' => 'Values',
     );
 
-    $uri = "sesi/node/" . $this->qt->dataset_id . "/queries/" . $this->qt->id . "/variable/" . $this->getVariable()->nid . "/variabletaxonomy";
+    $uri = "sesi/node/" . $this->qt->dataset_id . "/variable/" . $this->getVariable()->nid . "/variabletaxonomy";
     $taxonomyUrl = url($uri);
     $selectedIds = $this->getSelectedTermIds();
     $default_value = ''; // implode(" ", $this->match());
