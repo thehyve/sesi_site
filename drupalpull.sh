@@ -73,7 +73,8 @@ if isdisabled fe_block; then
 fi
 
 # Fix problem of missing contact table
-TABLEFOUND=`sudo drush sqlq "SELECT count(*) FROM information_schema.TABLES WHERE (TABLE_SCHEMA = 'mica') AND (TABLE_NAME = 'contact');"|sed '1d'`
+cd $DRUPAL_ROOT
+TABLEFOUND=`drush sqlq "SELECT count(*) FROM information_schema.TABLES WHERE (TABLE_SCHEMA = 'mica') AND (TABLE_NAME = 'contact');"|sed '1d'`
 if [ $TABLEFOUND -eq 0 ]; then
    echo "No contact table found; creating..."
    drush --y dre contact
@@ -300,9 +301,12 @@ if [ -z "$seluser" ] ; then
 fi
 
 if [ ! -f $DRUPAL_ROOT/selenium.passwd ] ; then
-     echo "selenium password is not set"
-     exit 1
+     echo "selenium password is not set but user selenium exists...regenerating passwd.."
+     passwd=`date | md5sum | cut -c1-12`
+     echo "$passwd" > $DRUPAL_ROOT/selenium.passwd
+     drush upwd --password="$passwd" selenium
 fi
+
 passwd=`cat $DRUPAL_ROOT/selenium.passwd`
 echo "Running seldrush"
 xvfb-run --server-args="-screen 0, 1024x768x24" python $DRUPAL_ROOT/sites/all/seldrush.py http://localhost selenium "$passwd"
