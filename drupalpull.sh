@@ -319,6 +319,7 @@ REPLACEMENT="version = '7.x-8.2-$COMMIT_VER-$DATE_VER'"
 sed -i.bak "s/version = .*$/$REPLACEMENT/g" $DRUPAL_ROOT/profiles/mica_distribution/modules/mica/extensions/mica_core/mica_core.info
 
 #refresh
+cd $DRUPAL_ROOT
 drush vset maintenance_mode 1
 drush cc all
 drush vset maintenance_mode 0
