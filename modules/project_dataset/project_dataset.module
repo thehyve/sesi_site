@@ -20,9 +20,10 @@ function project_dataset_views_post_execute(&$view) {
         }
         
         //if draft and not owner...
-        if($node->status=="0" && $node->uid != $user->uid) {
-            continue;
-        }
+        //This is not neccesary anymore because we changed permissions
+        ////if($node->status=="0" && $node->uid != $user->uid) {
+        //    continue;
+        //}
         
         // user has no access.. are any communities associated hidden (project communities)?
         // if at least 1 community is hidden, is not visible 
