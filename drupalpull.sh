@@ -9,6 +9,8 @@ echo ' |    `   \    |   \    |  / |    |  /    |    \    |___   |    |   |    |
 echo '/_______  /____|_  /______/  |____|  \____|__  /_______ \  |____|   |______/ |_______ \_______ \ '
 echo '        \/       \/                          \/        \/                            \/       \/ '
 
+set -x
+
 # Get drupal root
 DRUPAL_ROOT=`drush status | grep 'Drupal root' | sed 's/.*:[ ]*//' | sed 's/ *$//'`
 echo $DRUPAL_ROOT
