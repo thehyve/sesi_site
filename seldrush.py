@@ -160,6 +160,14 @@ class Drush(SeleniumBase):
         chkbox = self.css("#edit-5-create-data-access-request-form-content")
         self.setcheckbox(chkbox, True)
 
+        #group admin 
+        entities=['community-document','dataset','event','study','study-variable-attributes','variable','article','data-access-request-form']
+        actions =['create','update-own','update-any','delete-own','delete-any']
+        for ent in entities:
+            for act in actions:
+                self.setcheckbox(self.css("#edit-6-%s-%s-content" % (act,ent)), True)                
+
+
         self.clickon('#edit-submit')
 
  
