@@ -293,21 +293,15 @@ if [ ! -z "$installed" ] ; then
     cd ..
 fi
 
+#if selenium user exists, remove it and create a new one
 seluser=`drush sqlq "SELECT * from users where name='selenium'"`
-if [ -z "$seluser" ] ; then
-     echo "no selenium user..creating.."
-     passwd=`date | md5sum | cut -c1-12`
-     echo "$passwd" > $DRUPAL_ROOT/selenium.passwd
-     drush user-create selenium --password="$passwd"
-     drush urol administrator selenium
+if [ ! -z "$seluser" ] ; then
+   drush user-cancel --yes selenium 
 fi
-
-if [ ! -f $DRUPAL_ROOT/selenium.passwd ] ; then
-     echo "selenium password is not set but user selenium exists...regenerating passwd.."
-     passwd=`date | md5sum | cut -c1-12`
-     echo "$passwd" > $DRUPAL_ROOT/selenium.passwd
-     drush upwd --password="$passwd" selenium
-fi
+passwd=`date | md5sum | cut -c1-12`
+echo "$passwd" > $DRUPAL_ROOT/selenium.passwd
+drush user-create selenium --password="$passwd"
+drush urol administrator selenium
 
 passwd=`cat $DRUPAL_ROOT/selenium.passwd`
 echo "Running seldrush"
