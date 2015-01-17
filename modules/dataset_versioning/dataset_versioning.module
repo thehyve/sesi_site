@@ -99,6 +99,14 @@ function dataset_versioning_custom_form_submit($form, &$form_state) {
       }  
       
     }
+    
+    
+    $search_api_index = search_api_index_load('dataset_index');
+    search_api_index_items($search_api_index, -1);
+    
+    $var_api_index = search_api_index_load('variable_index');
+    search_api_index_items($var_api_index, -1);
+    
     //
     
     // redirects to you created ds

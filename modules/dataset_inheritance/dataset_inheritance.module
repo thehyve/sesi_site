@@ -96,6 +96,12 @@ function dataset_inheritance_node_insert($node) {
         drupal_set_message(t("Added @entries variables.", array('@entries' => $num_variables)), 'status');
     }
     
+    $search_api_index = search_api_index_load('dataset_index');
+    search_api_index_items($search_api_index, -1);
+    
+    $var_api_index = search_api_index_load('variable_index');
+    search_api_index_items($var_api_index, -1);
+    
 }
 
 /**
@@ -360,6 +366,7 @@ function _dataset_inheritance_clone_variables_from_parent($child_dataset, $paren
             $variable_node->status = 1;
 
             node_save($variable_node);
+            
         }
         $entries = count($parent_variables);
 
