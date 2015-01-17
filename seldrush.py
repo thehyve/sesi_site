@@ -1,5 +1,4 @@
-# -*- coding: utf-8 -*-
-import sys
+mport sys
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -168,8 +167,54 @@ class Drush(SeleniumBase):
         self.setcheckbox(chkbox, True)
         
         self.clickon('#edit-submit')
-               
+    
+    def changeEnableContactForm(self):
+        driver=self.sd    
+
+        driver.get(self.base_url + "/mica/?q=admin/structure/menu/manage/main-menu")
+        try: 
+            driver.find_element_by_link_text('Contact')
+            return True
+        except:
+            None
+
+        print "Creating contact menu link"
+        #create Contact menu link
+        driver.find_element_by_css_selector("ul.action-links > li > a").click()
+        driver.find_element_by_css_selector("#edit-link-title").send_keys("Contact")
+        driver.find_element_by_css_selector("#edit-link-path").send_keys("contact")
+        Select(driver.find_element_by_css_selector("#edit-parent")).select_by_visible_text("-- About")
+        Select(driver.find_element_by_css_selector("#edit-weight")).select_by_visible_text("10")
         
+        self.clickon('#edit-submit')
+
+    def selectCaptchaContactForm(self):
+        driver=self.sd    
+        driver.get(self.base_url + "/mica/?q=admin/config/people/captcha")
+        Select(driver.find_element_by_id("edit-captcha-form-id-overview-captcha-captcha-points-contact-site-form-captcha-type")).select_by_visible_text("Image (from module image_captcha)")
+        driver.find_element_by_id("edit-submit").click()
+
+    
+    def createLinksOnCommunityHome(self):
+        
+        #article
+        self.sd.get(self.base_url + "/mica/?q=admin/structure/types/manage/article/fields/og_group_ref")
+        chkbox = self.sd.find_element_by_xpath("//*[@id='edit-instance-settings-behaviors-prepopulate-status']")
+        self.setcheckbox(chkbox, True)
+        self.clickon('#edit-submit')
+        
+        #event
+        self.sd.get(self.base_url + "/mica/?q=admin/structure/types/manage/event/fields/og_group_ref")
+        chkbox = self.sd.find_element_by_xpath("//*[@id='edit-instance-settings-behaviors-prepopulate-status']")
+        self.setcheckbox(chkbox, True)  
+        self.clickon('#edit-submit')
+
+        #study
+        self.sd.get(self.base_url + "/mica/?q=admin/structure/types/manage/study/fields/og_group_ref")
+        chkbox = self.sd.find_element_by_xpath("//*[@id='edit-instance-settings-behaviors-prepopulate-status']")
+        self.setcheckbox(chkbox, True)
+        self.clickon('#edit-submit')
+
 if __name__ == "__main__":
 
     try:
@@ -185,7 +230,10 @@ if __name__ == "__main__":
            suite.changePermConsAdmin()
            suite.changePermDefaultCommunity()
            suite.changePermCommunity()
-        #   suite.changeDACF()
+           suite.changeEnableContactForm()
+           suite.selectCaptchaContactForm()
+           #this still needs test, there is a bug on selenium
+           #suite.createLinksOnCommunityHome()
 
     finally:
         suite.destroy();
