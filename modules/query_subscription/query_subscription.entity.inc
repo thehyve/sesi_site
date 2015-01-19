@@ -210,8 +210,6 @@ class QuerySubscription extends Entity {
     $query = $this->query();
 
     $ret = array();
-    $ret['connectors'] = self::id_map(mica_connector_query_multiple($query->dataset_id));
-    $ret['terms'] = mica_query_term_query($query);
     $ret['dataset'] = node_load($query->dataset_id);
     $ret['dataset_expiration_date'] = null;
     try {
@@ -221,6 +219,12 @@ class QuerySubscription extends Entity {
       }
     } catch(Exception $e) {
       // leave dataset_expiration_date null
+    }
+    $ret['connectors'] = $ret['terms'] = array();
+    if (is_null($ret['dataset_expiration_date'])) {
+      // Accessing this on an expired dataset generates an error message
+      $ret['connectors'] = self::id_map(mica_connector_query_multiple($query->dataset_id));
+      $ret['terms'] = mica_query_term_query($query);
     }
 
     $ret['studies'] = array();
