@@ -91,10 +91,16 @@ function dataset_inheritance_node_insert($node) {
         return;
     }
 
-    $num_variables = _dataset_inheritance_clone_variables_from_parent($wrapper, $parent_nid, $wrapper->field_inherit_permissions->value());
+    $added_variable_ids = _dataset_inheritance_clone_variables_from_parent($wrapper, $parent_nid, $wrapper->field_inherit_permissions->value());
+    $num_variables = count( $added_variable_ids );
     if ( $num_variables > 0 ) {
         drupal_set_message(t("Added @entries variables.", array('@entries' => $num_variables)), 'status');
     }
+    
+    // Set reference to newly added variables in dataset object
+    // without resaving the node itself
+    $wrapper->field_dataset_variables->set( $added_variable_ids );
+    field_attach_update( 'node', $node );
     
     $search_api_index = search_api_index_load('dataset_index');
     search_api_index_items($search_api_index, -1);
@@ -317,6 +323,8 @@ function _dataset_inheritance_clone_variables_from_parent($child_dataset, $paren
 
     $result = $query->execute();
 
+    $variable_ids = array();
+    
     if (isset($result['node'])) {
         // Load parent variables
         $vars_items_nids = array_keys($result['node']);
@@ -367,13 +375,11 @@ function _dataset_inheritance_clone_variables_from_parent($child_dataset, $paren
 
             node_save($variable_node);
             
+            $variable_ids[] = $variable_node->nid;
         }
-        $entries = count($parent_variables);
-
-        return $entries;
     }
 
-    return 0;
+    return $variable_ids;
 }
 
 /**
