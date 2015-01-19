@@ -1,5 +1,5 @@
 <?php
-
+        
 /**
  * Add link to access Request for Data Access Form, a customized content type
  * for user to request data access to dataset owner(s).
@@ -37,6 +37,7 @@
             );       
         
             $dataset_node = $router_item['page_arguments'][1];
+                        
             $links['add-data-access-request-form']['#link']['localized_options'] = array(
               'query' => array (
                   'field_dataset_access' => $dataset_node->nid,
@@ -212,10 +213,23 @@ function dataset_access_form_form_alter(&$form, $form_state, $form_id) {
         // No referrer 
     } 
     
+    // Get group(s) where this dataset and user belong to.
+    $gids = _dataset_access_form_get_intersect_groups($user, $_GET['field_dataset_access']);
+    
+    // Pre-populate values
     if (array_key_exists('field_dataset_access', $_GET)) {
+      // set title 
       $form['title_field']['und'][0]['value']['#default_value'] = 'New Dataset Access Request for Dataset ID:' . $_GET['field_dataset_access'] . ' From: ' . $user->name;  
+      // set dataset id
       $form['field_dataset_id']['und'][0]['value']['#default_value'] = $_GET['field_dataset_access'];  
+      // set query path
       $form['field_query_path']['und'][0]['value']['#default_value'] = $referrer; 
+      // set og group
+      $form['og_group_ref']['und'][0]['default']['#default_value'] = $gids;
+      if (!user_access('administer nodes')) {
+          // hide it from normal users
+           $form['og_group_ref']['und']['#prefix'] = '<div id="og-group-ref-add-more-wrapper" style="display:none;">';
+      }     
     }    
     
  }
