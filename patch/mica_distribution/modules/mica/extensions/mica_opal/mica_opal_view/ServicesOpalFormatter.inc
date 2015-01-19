@@ -113,10 +113,16 @@ class ServicesOpalFormatter implements ServicesFormatterInterface {
   private function render_variable($variable, &$element, $sva = NULL) {
     $wrapper = entity_metadata_wrapper('node', $variable);
     //debug($variable);
-
+    
+    $value_type = drupal_strtolower($wrapper->field_value_type->value());
+    if ($value_type == 'date_time') {
+        //fixing the type of datetime (as Opal expects it)
+        $value_type = 'datetime';
+    }
+    
     $variable_element = $element->appendChild($this->doc->createElement('variable'));
     $variable_element->setAttribute('name', $wrapper->title->value());
-    $variable_element->setAttribute('valueType', drupal_strtolower($wrapper->field_value_type->value()));
+    $variable_element->setAttribute('valueType', $value_type);
     $variable_element->setAttribute('entityType', 'Participant');
 
     if (isset($wrapper->unit)) {
