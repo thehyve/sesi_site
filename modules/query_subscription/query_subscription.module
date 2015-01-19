@@ -367,14 +367,14 @@ function query_subscription_poll($arg) {
         if(stripos($msg, 'Curl Error') == 0 && stristr($msg, 'timed out')) {
           // Curl timeout, probably an Opal server for this query is offline, ignore
           watchdog('query_subscription',
-            'Timeout while connecting to Opal, server may be offline. Subscription id @id, uid @uid, exception: @ex',
-            array('@uid' => $uid, '@ids' => implode(', ', $ids), '@ex' => $msg), WATCHDOG_NOTICE);
-          continue;
+            'Timeout while connecting to Opal, server may be offline. Subscription id @id, uid @uid, exception:\n@ex',
+            array('@uid' => $uid, '@id' => $id, '@ex' => $msg), WATCHDOG_NOTICE);
+        } else {
+          watchdog('query_subscription',
+            'Caught exception while looking for updates on subscribed query. Subscription id @id, uid @uid, exception:\n@ex',
+            array('@uid' => $uid, '@id' => $id, '@ex' => $e), WATCHDOG_ERROR);
         }
-        watchdog('query_subscription',
-          'Caught exception while looking for updates on subscribed query. Uid @uid, subscription id @id, exception:\n@ex',
-          array('@uid' => $uid, '@id' => implode(', ', $id), '@ex' => $e), WATCHDOG_ERROR);
-
+        continue;
       }
     }
 
