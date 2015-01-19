@@ -131,8 +131,13 @@ class OntologyTerm extends AbstractTerm {
       '#type' => 'fieldset',
       '#title' => 'Values',
     );
-
-    $uri = "sesi/node/" . $this->qt->dataset_id . "/variable/" . $this->getVariable()->nid . "/variabletaxonomy";
+    
+    // Determine the dataset ID as it is needed to retrieve the taxonomy
+    $dataset = $form_state[ "build_info" ][ "args" ][ 0 ];
+    
+    $dataset_id = $dataset->nid;
+    
+    $uri = "sesi/node/" . $dataset_id . "/variable/" . $this->getVariable()->nid . "/variabletaxonomy";
     $taxonomyUrl = url($uri);
     $selectedIds = $this->getSelectedTermIds();
     $default_value = ''; // implode(" ", $this->match());
