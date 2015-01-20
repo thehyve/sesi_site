@@ -1,0 +1,7 @@
+name = OG add content block
+description = Provides a add content block that shows the links depending on role. For us on group Hub page.
+core = 7.x
+version = "7.0"
+package = sesi
+project = sesi_og_add_content
+dependencies[] = og

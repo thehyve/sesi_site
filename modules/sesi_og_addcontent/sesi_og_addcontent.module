@@ -1,0 +1,99 @@
+<?php
+/**
+ * Module file for sesi_og_addcontent block
+ * This module creates a links block for use on the og group hub (page)
+ */
+
+/**
+ * Implements hook_menu().
+ *
+ * Provides a default page to explain what this module does.
+ */
+function sesi_og_addcontent_menu() {
+  $items['examples/sesi_og_addcontent'] = array(
+    'page callback' => 'sesi_og_addcontent_page',
+    'access callback' => TRUE,
+    'title' => 'Add links to Organic Group Hub',
+  );
+  return $items;
+}
+
+/**
+ * Simple page function to explain what the block example is about.
+ */
+function sesi_og_addcontent_page() {
+  $page = array(
+    '#type' => 'markup',
+    '#markup' => t('This page shows the content creation links for a group hun (page)', array('@url' => url('admin/structure/block'))),
+  );
+  return $page;
+}
+
+/**
+ * Implements hook_block_info().
+ *
+ * This hook declares what blocks are provided by the module.
+ */
+function sesi_og_addcontent_block_info() {
+  $blocks = array();
+  //$blocks['example_uppercase'] = array(
+  $blocks['ogaddcontent'] = array(
+    // info: The name of the block.
+    'info' => t('Sesi: OG add content block'),
+    'status' => TRUE,
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ *
+ * This hook generates the contents of the block
+ */
+function sesi_og_addcontent_block_view($delta = '') {
+  // The $delta parameter tells us which block is being requested in case there are more than 1 block created in this module 
+  global $user;
+
+  $block = array();
+  // get the group $gid
+  $path_args = explode('/', current_path());
+  $gid = $path_args[1];
+  if (is_numeric($gid) && ($gid > 0)) { // there is a node on the page
+    // drupal_set_message('RETRIEVE Node id ' . $gid);
+    // get the group to find the type
+    $currnode = node_load($gid);
+    // dsm($currnode);
+    // drupal_set_message("NODE TYPE " . $currnode->type);
+    // get the current user
+    // drupal_set_message('RETRIEVE User id ' . $user->uid);
+    //dsm($user);
+    switch ($delta) {
+      // in case there are more than one blocks in this module
+      case 'ogaddcontent':
+        $block['subject'] = t("Content create links");
+        if ($user->uid) {
+          // no anonymous user
+          if (og_is_member('node', $gid, 'user', $user->uid) || ($currnode->uid == $user->uid)) { // og_is_member() needs "node" as input even though the content type is "community"!!!
+            // user is member
+            $ogroles = array();
+            if (_check_user_is_adminmember_of_group($user->uid, $gid) || _check_user_is_admin_of_group($user->uid, $gid)) {
+              // user is admin-member of the group or creator of the group
+              $block['content'] = t("<li><a href='?q=node/add/article'>Article</a></li><li><a href='?q=node/add/community-document'>Community document</a></li><li><a href='?q=node/add/dataset'>Dataset</a></li><li><a href='?q=node/add/event'>Event</a></li><li><a href='?q=node/add/study'>Study</a></li>");
+            }
+            else {
+              // member but not admin
+              $block['content'] = t("<li><a href='?q=node/add/community-document'>Community document</a></li>");
+            }
+          }
+          else {
+            // not member
+          }
+        }
+        else {
+          // not logged in
+        }
+        break;
+    }
+  }
+  return $block;
+}
