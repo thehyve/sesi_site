@@ -29,36 +29,6 @@ function sesi_community_hub_field_default_field_instances_alter(&$data) {
       'status' => 0,
     ); /* WAS: '' */
   }
-  if (isset($data['node-community_document-og_group_ref'])) {
-    $data['node-community_document-og_group_ref']['settings']['behaviors']['prepopulate'] = array(
-      'action' => 'none',
-      'action_on_edit' => 0,
-      'fallback' => 'none',
-      'providers' => array(
-        'og_context' => 0,
-        'token_patterns' => 0,
-        'url' => 1,
-      ),
-      'skip_perm' => 0,
-      'status' => 1,
-      'token_patterns' => '',
-    ); /* WAS: '' */
-  }
-  if (isset($data['node-dataset-og_group_ref'])) {
-    $data['node-dataset-og_group_ref']['settings']['behaviors']['prepopulate'] = array(
-      'action' => 'none',
-      'action_on_edit' => 0,
-      'fallback' => 'none',
-      'providers' => array(
-        'og_context' => 0,
-        'token_patterns' => 0,
-        'url' => 1,
-      ),
-      'skip_perm' => 0,
-      'status' => 1,
-      'token_patterns' => '',
-    ); /* WAS: '' */
-  }
 }
 
 /**
