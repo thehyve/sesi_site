@@ -170,6 +170,7 @@ ensure_feat sesi_vocabulary
 ensure_mod sesi_addtogroup
 ensure_mod sesi_notifyexpiration
 ensure_mod sesi_membership_fields
+ensure_mod sesi_og_add_content
 
 # Download Autologout module dependencies and enable it
 drush --yes dl autologout
