@@ -3,7 +3,6 @@ description = Implements dataset inheritance
 package = Sesi
 core = 7.x
 ;files[] = dataset_inheritance.test
-dependencies[] = sesi_inherit_variable_permissions
 
 ; Information added by Drupal.org packaging script on 2014-07-10
 version = "7.x-1.0b"

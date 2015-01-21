@@ -91,7 +91,7 @@ function dataset_inheritance_node_insert($node) {
         return;
     }
 
-    $added_variable_ids = _dataset_inheritance_clone_variables_from_parent($wrapper, $parent_nid, $wrapper->field_inherit_permissions->value());
+    $added_variable_ids = _dataset_inheritance_clone_variables_from_parent($wrapper, $parent_nid, true);
     $num_variables = count( $added_variable_ids );
     if ( $num_variables > 0 ) {
         drupal_set_message(t("Added @entries variables.", array('@entries' => $num_variables)), 'status');
@@ -153,7 +153,7 @@ function dataset_inheritance_form_alter(&$form, $form_state, $form_id) {
         $newbutton = array(
             '#type' => 'submit',
             '#value' => 'Update inherited fields',
-            '#weight' => $form['field_inherit_permissions']['#weight'] + 1,
+            '#weight' => $form['field_dataset_parent']['#weight'] + 1,
             '#submit' => array( 'node_form_submit', 'dataset_inheritance_update_inherited_fields' )
         );
 
@@ -272,7 +272,7 @@ function _dataset_inheritance_update_inheritance($child_dataset, $parent_dataset
     
     // Only clone variables from the parent, if one is given
     if( $parent_dataset_id ) 
-        _dataset_inheritance_clone_variables_from_parent($child_dataset, $parent_dataset_id, $child_dataset->field_inherit_permissions->value());
+        _dataset_inheritance_clone_variables_from_parent($child_dataset, $parent_dataset_id, true);
 }
 
 /**
