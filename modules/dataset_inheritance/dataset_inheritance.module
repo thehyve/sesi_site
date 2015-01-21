@@ -20,6 +20,8 @@
  * 
  *   dataset_inheritance_node_presave
  *      resetting the variable_inherited flag when editing a variable
+ *      also associating variables and study variable attributes to the same 
+ *          communities as the datasets and variables they belong to
  * 
  *   dataset_inheritance_form_alter
  *      Adds a button 'update inherited fields' to the edit dataset form. When
@@ -130,10 +132,67 @@ function dataset_inheritance_node_update($node) {
  * @return void 
  */
 function dataset_inheritance_node_presave($node) {
+    // Mark variable as not inherited as it has been changed
     if( $node->type == 'variable' && !$node->is_new ) {
         $wrapper = entity_metadata_wrapper( 'node', $node );
         _dataset_inheritance_mark_variable_as_not_inherited( $wrapper );
     }
+    
+    // Associate the variable with the same og_groups as the dataset
+    // that it belongs to
+    if( $node->type == 'variable' ) {
+        $variable_wrapper = entity_metadata_wrapper( 'node', $node );
+        
+        // Retrieve the dataset
+        $dataset = $variable_wrapper->field_dataset->value();
+        $dataset_wrapper = entity_metadata_wrapper( 'node', $dataset );
+        
+        // Make sure that all og_groups within the dataset are also
+        // available in the variable.
+        _dataset_inheritance_synchronize_og_groups( $dataset_wrapper, $variable_wrapper );
+    }
+    
+    // Associate the variable with the same og_groups as the dataset
+    // that it belongs to
+    if( $node->type == 'study_variable_attributes' ) {
+        $sva_wrapper = entity_metadata_wrapper( 'node', $node );
+        
+        // Retrieve the dataset
+        $variable_node = $sva_wrapper->field_sva_variable->value();
+        $variable_wrapper = entity_metadata_wrapper( 'node', $variable_node );
+        
+        // Make sure that all og_groups within the dataset are also
+        // available in the variable.
+        _dataset_inheritance_synchronize_og_groups( $variable_wrapper, $sva_wrapper );
+    }    
+}
+
+/**
+ * Synchronize the og_group_ref for two nodes. The latter one will be associated 
+ * with at least those groups that the former one is associated with.
+ * @param entity_metadata_wrapper $wrapper_from entity_metadata_wrapper
+ * @param entity_metadata_wrapper $wrapper_to 
+ */
+function _dataset_inheritance_synchronize_og_groups( $wrapper_from, $wrapper_to ) {
+    $from_groups = $wrapper_from->og_group_ref->value();
+    $to_groups = $wrapper_to->og_group_ref->value();
+
+    foreach( $from_groups as $group ) {
+        // See if this group was already selected. If not, add it
+        $found = false;
+        foreach( $to_groups as $group_selected ) {
+            if( $group->vid == $group_selected->vid ) {
+                $found = true;
+                break;
+            }
+        }
+        if( !$found ) {
+            $to_groups[] = $group;
+        }
+    }
+
+    // Update the og_groups ref
+    $wrapper_to->og_group_ref->set( $to_groups );
 }
 
 /**
