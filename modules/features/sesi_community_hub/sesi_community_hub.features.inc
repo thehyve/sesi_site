@@ -21,17 +21,6 @@ function sesi_community_hub_views_api($module = NULL, $api = NULL) {
 }
 
 /**
- * Implements hook_field_default_field_instances_alter().
- */
-function sesi_community_hub_field_default_field_instances_alter(&$data) {
-  if (isset($data['node-article-og_group_ref'])) {
-    $data['node-article-og_group_ref']['settings']['behaviors']['prepopulate'] = array(
-      'status' => 0,
-    ); /* WAS: '' */
-  }
-}
-
-/**
  * Implements hook_image_default_styles().
  */
 function sesi_community_hub_image_default_styles() {
