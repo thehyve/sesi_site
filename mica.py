@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-import atexit
-from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -8,40 +6,6 @@ from selenium.webdriver.common.by import By
 
 from pylenium import Pylenium
 import pylenium.conditions as C
-
-from mica import *
-
-opal = 'http://localhost:8080'
-
-
-mica = 'http://localhost:7880/mica'
-mica_username = 'jan'
-mica_password = 'mica'
-
-
-
-timeout = 3
-
-def test_main():
-    global pylenium, usernamefield, passwordfield, driver
-    # Create a new instance of the Firefox driver
-    driver = pylenium = Pylenium(webdriver.Firefox())
-    # auto-kill the browser on exit
-    atexit.register(pylenium.quit)
-    
-
-    pylenium.get(mica)
-    size = pylenium.window_size
-    if size[1] > 1000:
-        pylenium.window_size = (size[0], 1000)
-    page = HomePage(pylenium)
-    print "page title:" + page.title
-
-    assert not page.loggedIn()
-    page.logIn()
-    assert HomePage.onPage(page)
-    assert page.loggedIn()
-
 
 
 class Page (object):
@@ -95,7 +59,4 @@ class HomePage (Page):
                                         C.element_visible(css='div.alert.alert-error')))
         
 
-
-if __name__ == '__main__':
-    test_main()
 
