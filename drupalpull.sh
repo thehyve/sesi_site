@@ -144,10 +144,6 @@ fi
 # Install and enable og_email
 ensure_mod og_email
 
-# Install and enable entityreference_prepopulate
-ensure_mod enable entityreference_prepopulate
-ensure_mod enable entityreference_prepopulate_token
-
 # Install and enable pet
 ensure_mod pet
 
@@ -170,7 +166,7 @@ ensure_feat sesi_vocabulary
 ensure_mod sesi_addtogroup
 ensure_mod sesi_notifyexpiration
 ensure_mod sesi_membership_fields
-ensure_mod sesi_og_add_content
+ensure_mod sesi_og_add_content 
 
 # Download Autologout module dependencies and enable it
 drush --yes dl autologout
