@@ -103,6 +103,10 @@ drush --yes en og og_ui og_context og_access
 # Install and enable og_email
 ensure_mod og_email
 
+# disable entityreference_prepopulate
+isenabled entityreference_prepopulate_token && drush --yes dis entityreference_prepopulate_token
+isenabled entityreference_prepopulate && drush --yes dis entityreference_prepopulate
+
 # Install and enable og_email_blast to send emails to a complete group
 # Please note that using the ensure_mod function doesn't work here
 # as we need a specific version
