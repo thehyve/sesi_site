@@ -155,22 +155,9 @@ function sesi_community_hub_default_page_manager_handlers() {
     $pane->pid = 'new-3';
     $pane->panel = 'center';
     $pane->type = 'views_panes';
-    $pane->subtype = 'og_nodes-panel_pane_2';
+    $pane->subtype = 'og_content_draft_-panel_pane_2';
     $pane->shown = TRUE;
-    $pane->access = array(
-      'plugins' => array(
-        0 => array(
-          'name' => 'role',
-          'settings' => array(
-            'rids' => array(
-              0 => 1,
-            ),
-          ),
-          'context' => 'logged-in-user',
-          'not' => TRUE,
-        ),
-      ),
-    );
+    $pane->access = array();
     $pane->configuration = array(
       'context' => array(
         0 => 'argument_entity_id:node_1',
