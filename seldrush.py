@@ -256,6 +256,13 @@ class Drush(SeleniumBase):
         self.setcheckbox(chkbox, True)
         self.clickon('#edit-submit')
 
+
+    def changeCommunityProjectVisibilityDefault(self):
+        self.sd.get(self.base_url + "/mica/?q=admin/structure/types/manage/community/fields/field_project_visibility")
+        radio = self.sd.find_element_by_css_selector("#edit-field-project-visibility-und-0")
+        radio.click()
+        self.clickon('#edit-submit')
+
 if __name__ == "__main__":
 
     try:
@@ -273,8 +280,7 @@ if __name__ == "__main__":
            suite.changePermCommunity()
            suite.changeEnableContactForm()
            suite.selectCaptchaContactForm()
-           #this still needs test, there is a bug on selenium
-           #suite.createLinksOnCommunityHome()
+           suite.changeCommunityProjectVisibilityDefault()	
 
     finally:
         suite.destroy();
