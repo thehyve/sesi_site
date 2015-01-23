@@ -3,5 +3,5 @@ description = Provides a add content block that shows the links depending on rol
 core = 7.x
 version = "7.0"
 package = sesi
-project = sesi_og_add_content
+project = sesi_og_addcontent
 dependencies[] = og
