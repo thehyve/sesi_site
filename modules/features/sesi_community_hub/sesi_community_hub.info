@@ -11,6 +11,7 @@ features[features_api][] = api:2
 features[image][] = mini_thumbnail
 features[page_manager_handlers][] = node_view_panel_context
 features[views_view][] = mica_og_members_admin
+features[views_view][] = og_content_draft_
 features_exclude[dependencies][image] = image
 features_exclude[dependencies][page_manager] = page_manager
 features_exclude[dependencies][views] = views
