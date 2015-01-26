@@ -263,6 +263,21 @@ class Drush(SeleniumBase):
         radio.click()
         self.clickon('#edit-submit')
 
+    def disablePromoteToFrontPage(self):
+        self.sd.get(self.base_url + "/mica/?q=admin/structure/types/manage/community")
+
+        elems = self.sd.find_elements_by_xpath("//strong[contains(., 'Publishing options')]")
+        if len(elems)==0:
+            raise NoSuchElementException("Cannot find tab")
+        tab = elems[0]
+        tab.click()
+
+        chkbox = self.css("#edit-node-options-promote")
+        self.setcheckbox(chkbox, False)
+
+        self.clickon('#edit-submit')
+
+
 if __name__ == "__main__":
 
     try:
@@ -280,7 +295,8 @@ if __name__ == "__main__":
            suite.changePermCommunity()
            suite.changeEnableContactForm()
            suite.selectCaptchaContactForm()
-           suite.changeCommunityProjectVisibilityDefault()	
+           suite.changeCommunityProjectVisibilityDefault()
+           suite.disablePromoteToFrontPage()
 
     finally:
         suite.destroy();
