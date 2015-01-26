@@ -103,6 +103,10 @@ drush --yes en og og_ui og_context og_access
 # Install and enable og_email
 ensure_mod og_email
 
+# disable entityreference_prepopulate
+isenabled entityreference_prepopulate_token && drush --yes dis entityreference_prepopulate_token
+isenabled entityreference_prepopulate && drush --yes dis entityreference_prepopulate
+
 # Install and enable og_email_blast to send emails to a complete group
 # Please note that using the ensure_mod function doesn't work here
 # as we need a specific version
@@ -144,10 +148,6 @@ fi
 # Install and enable og_email
 ensure_mod og_email
 
-# Install and enable entityreference_prepopulate
-ensure_mod enable entityreference_prepopulate
-ensure_mod enable entityreference_prepopulate_token
-
 # Install and enable pet
 ensure_mod pet
 
@@ -169,7 +169,7 @@ ensure_feat sesi_vocabulary
 ensure_mod sesi_addtogroup
 ensure_mod sesi_notifyexpiration
 ensure_mod sesi_membership_fields
-ensure_mod sesi_og_add_content
+ensure_mod sesi_og_addcontent
 
 # Download Autologout module dependencies and enable it
 drush --yes dl autologout

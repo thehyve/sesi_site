@@ -25,15 +25,19 @@ function sesi_og_email_strongarm() {
     	User ID: [account:id]<br>
         User Unique ID: [account:uuid]<br>
     	User Name: [account:name]<br>
-		Account Status: [account:status]<br>
-		First Name: [account:profile-main:field_profile_first_name]<br>
-		Last Name: [account:profile-main:field-profile-last-name]<br>
-		Institution: [account:profile-main:field-profile-institution]<br>
-		Departement: [account:profile-main:field-profile-department]<br>
-		Telephone: [account:profile-main:field-profile-telephone]<br>
+	Account Status: [account:status]<br>
+	First Name: [account:profile-main:field_profile_first_name]<br>
+	Last Name: [account:profile-main:field-profile-last-name]<br>
+	Institution: [account:profile-main:field-profile-institution]<br>
+	Departement: [account:profile-main:field-profile-department]<br>
+	Telephone: [account:profile-main:field-profile-telephone]<br>
     	Real Name: [account:realname]<br>
     	Email: [account:mail]<br>
     </p>
+    <br>
+    <p>
+        Membership will expire in : [og-membership:field-expiration-date]
+     </p>
     <hr> 
 Edit account: [account:edit-url]
 
@@ -102,7 +106,10 @@ Edit account: [account:edit-url]
   $strongarm->value = array(
     'value' => '<p>Dear [account:name],</p>
 
-<p>You are now a member in the group \'[group:title]\' located at [group:url]</p>
+<p>
+You are now a member in the group \'[group:title]\' located at [group:url]<br>
+Your membership will be expired at [og-membership:field-expiration-date].
+</p>
 
 <hr>
 [site:name]<br>

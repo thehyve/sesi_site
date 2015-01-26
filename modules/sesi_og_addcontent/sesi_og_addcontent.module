@@ -6,7 +6,6 @@
 
 /**
  * Implements hook_menu().
- *
  * Provides a default page to explain what this module does.
  */
 function sesi_og_addcontent_menu() {
