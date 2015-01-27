@@ -1,0 +1,112 @@
+<?php
+
+/**
+ * Implement hook_search_info()
+ */
+function og_filter_search_search_info() {
+  return array (
+    'title' => 'OG Filter Search',
+    'path' => 'node');
+}
+
+/**
+ * Implements hook_search_execute().
+ */
+function og_filter_search_search_execute($keys = NULL, $conditions = NULL) {
+  // Build matching conditions
+  $query = db_select('search_index', 'i', array('target' => 'slave'))->extend('SearchQuery')->extend('PagerDefault');
+  $query->join('node', 'n', 'n.nid = i.sid');
+  $query
+    ->condition('n.status', 1)
+    ->addTag('node_access')
+    ->searchExpression($keys, 'node');
+
+  // Insert special keywords.
+  $query->setOption('type', 'n.type');
+  $query->setOption('language', 'n.language');
+  if ($query->setOption('term', 'ti.tid')) {
+    $query->join('taxonomy_index', 'ti', 'n.nid = ti.nid');
+  }
+  // Only continue if the first pass query matches.
+  if (!$query->executeFirstPass()) {
+    return array();
+  }
+
+  // Add the ranking expressions.
+  _node_rankings($query);
+
+  // Load results.
+  $find = $query
+    ->limit(10)
+    ->execute();
+  $results = array();
+  foreach ($find as $item) {
+    // Render the node.
+    $node = node_load($item->sid);
+    
+    // continue if node is not viewable
+    if (_og_filter_search_is_not_viewable($node)) {
+        continue;
+    }
+    
+    $build = node_view($node, 'search_result');
+    unset($build['#theme']);
+    $node->rendered = drupal_render($build);
+
+    // Fetch comments for snippet.
+    $node->rendered .= ' ' . module_invoke('comment', 'node_update_index', $node);
+
+    $extra = module_invoke_all('node_search_result', $node);
+
+    $uri = entity_uri('node', $node);
+    $results[] = array(
+      'link' => url($uri['path'], array_merge($uri['options'], array('absolute' => TRUE))),
+      'type' => check_plain(node_type_get_name($node)),
+      'title' => $node->title,
+      'user' => theme('username', array('account' => $node)),
+      'date' => $node->changed,
+      'node' => $node,
+      'extra' => $extra,
+      'score' => $item->calculated_score,
+      'snippet' => search_excerpt($keys, $node->rendered),
+      'language' => entity_language('node', $node),
+    );
+  }
+    
+  return $results;
+}
+
+/**
+ * Check if a node is viewable or not
+ */
+function _og_filter_search_is_not_viewable($node) {
+     
+    global $user;
+    $retval = FALSE;
+    
+    // check if node's content type is organic group
+    if (isset($node->group_group) && 
+            $node->group_group['und'][0]['value'] == '1') {
+        // if yes then 
+        // check if it's a hidden project
+        if ($node->field_project_visibility['und'][0]['value'] == '0') {
+            return TRUE; //return true if it is
+        }    
+        
+        // TODO Check if user member of hidden group
+        
+        return FALSE;
+    }   
+    
+    // if a node is:
+    // - a content of hidden project, and
+    // - user is not member that project
+    // the content is not viewable
+    if (_is_hidden_project_content($node) && 
+            !_dataset_access_form_get_intersect_groups($user, $node->nid)) {
+        $retval = TRUE;
+    }
+    
+    // others content is viewable
+    return $retval;
+}
