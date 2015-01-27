@@ -7,25 +7,13 @@ from selenium.webdriver.common.by import By
 from pylenium import Pylenium
 import pylenium.conditions as C
 
+from browser import Page
 
-class Page (object):
-    def __init__(self, driver=None):
-        self._driver = driver
-    
-    @property
-    def driver(self):
-        """Allow using a global for now to prevent threading the driver through all objects. 
-        This should really be a dynamic scoped variable."""
-        #global driver
-        return self._driver or driver
 
-    @property
-    def title(self):
-        return self.driver.title
-
+class MicaPage (Page):
     def loggedIn(self):
         self.ensureScreenWidth()
-        return C.element_present(link_text='User menu').test(driver)
+        return C.element_present(link_text='User menu').test(self.driver)
 
     def ensureScreenWidth(self):
         size = self.driver.window_size
@@ -35,21 +23,21 @@ class Page (object):
 
 
 
-class Autologout (Page):
+class Autologout (MicaPage):
     def onPage(self):
         return not self.loggedIn() and text_in_element(css='div.alert.alert-succes', text='You have been logged out').test(self.driver)
 
 
-class HomePage (Page):
+class HomePage (MicaPage):
     def onPage(self):
         return C.text_in_element(css='h1', text='CMI - Center for Medical Innovation vzw').test(self.driver)
 
-    def ensureLoggedIn(self):
+    def ensureLoggedIn(self, username, password):
         if not self.loggedIn():
-            self.logIn()
+            self.logIn(username, password)
         assert self.loggedIn()
 
-    def logIn(self):
+    def logIn(self, username, password):
         usernamefield = self.driver.find_element(id='edit-name')
         usernamefield.send_keys(username)
         passwordfield = self.driver.find_element(id='edit-pass')
