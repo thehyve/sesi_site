@@ -97,8 +97,8 @@ function sesi_addtogroup_page_alter(&$page) {
 
   }
   // Hide GLOBAL community from user page (e.g. ?q=user/61) 
-  if ((substr($path, 0, 5) == 'user/') && (strpos($path, '/', 6) == 0)) { // the path OK: ?q=user/61, but notOK: ?q=user/61/shortcuts or ?q=user/61/track/navigation
-    if (isset($page ['content']['system_main']['og_user_node'])) {
+  if ((substr($path, 0, 5) == 'user/') && (strpos($path, '/', 6) == 0) && (strcmp($path, 'user/register') != 0)) { // the path OK: ?q=user/61, but notOK: ?q=user/61/shortcuts or ?q=user/61/track/navigation or ?q=user/register
+      if (isset($page ['content']['system_main']['og_user_node'])) {
       foreach ($page ['content']['system_main']['og_user_node'] as $group) {
         if (is_numeric($group)) {
           if ($page ['content']['system_main']['og_user_node'][$group]['#title'] == "GLOBAL") {
