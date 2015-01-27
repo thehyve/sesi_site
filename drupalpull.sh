@@ -162,7 +162,6 @@ fi
 
 ensure_feat sesi_user_registration
 ensure_feat sesi_dataset_inheritance 
-ensure_feat sesi_inherit_variable_permissions
 ensure_feat sesi_dataset_versioning
 ensure_feat sesi_dataset_access_form
 ensure_feat sesi_vocabulary
@@ -170,7 +169,7 @@ ensure_feat sesi_vocabulary
 ensure_mod sesi_addtogroup
 ensure_mod sesi_notifyexpiration
 ensure_mod sesi_membership_fields
-ensure_mod sesi_og_add_content 
+ensure_mod sesi_og_addcontent
 
 # Download Autologout module dependencies and enable it
 drush --yes dl autologout
