@@ -28,7 +28,7 @@ function project_dataset_views_post_execute(&$view) {
         // user has no access.. are any communities associated hidden (project communities)?
         // if at least 1 community is hidden, is not visible 
         
-        if(_project_dataset_ishidden($nid)) {
+        if(_is_hidden_project_content($nid)) {
             continue;        
         }
         
@@ -45,24 +45,35 @@ function project_dataset_views_post_execute(&$view) {
     
 }
 
+/**
+ * To check if a node is a content of hidden community / project
+ */
+function _is_hidden_project_content($nid) {
+    
+    // get number of communities associated to the given dataset and count 
+    // the hidden
+    $gids = og_get_entity_groups('node', $nid);
+    
+    if (sizeof($gids) > 0) {
+        // get gids as keys
+        $keys = array_keys(array_flip($gids['node']));
 
-function _project_dataset_ishidden($nid) {
-    
-    // get number of communities associated to the given dataset and count the hidden
-    $ids = og_get_entity_groups('node',$nid);
-    $keys = array_keys(array_flip($ids['node']));
-    $groups = entity_load('node', $keys);
-    
-    foreach ($groups as $g) {
-        if(!property_exists($g, 'field_project_visibility')) {
-            continue;
-        }
-        
-        $h = $g->field_project_visibility[LANGUAGE_NONE][0]['value'];
-        if($h=='0') {
-            return TRUE;
-        }
+        // get complete entity of each group
+        $groups = entity_load('node', $keys);
+
+        foreach ($groups as $g) {
+            if (!property_exists($g, 'field_project_visibility')) {
+                continue;
+            }
+
+            $h = $g->field_project_visibility[LANGUAGE_NONE][0]['value'];
+
+            // return true then project visibility is hidden
+            if ($h=='0') {
+                return TRUE;
+            }
+        }        
     }
-    
+     
     return FALSE;
 }

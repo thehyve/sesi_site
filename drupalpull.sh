@@ -241,6 +241,11 @@ ensure_mod project_community
 
 # og admin role
 ensure_mod og_admin_role 
+
+# Filter search result
+ensure_mod og_filter_search
+ensure_feat sesi_filter_search
+
 # Remove an old content type and some fields.
 #drush --yes php-eval "node_type_delete('page');"
 #drush field-delete field_news_tags --bundle=news
