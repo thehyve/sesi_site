@@ -62,26 +62,3 @@ function prepopulate_group_ref_form_alter(&$form, &$form_state, $form_id) {
         }
     }
 }
-
-/*
-function prepopulate_group_ref_node_presave($node) {
-
-    watchdog(WATCHDOG_DEBUG, 'prepopulate_group_ref_node_presave ');
-    if($node['type'] == 'variable') {
-        
-        if(isset($_GET, 'dataset')) {
-            $ds = $_GET['dataset'];
-            if(!is_numeric($ds)) {
-                watchdog(WATCHDOG_ERROR, 'dataset request parameter is not numeric');
-                return;            
-            }
-        } else {
-            watchdog(WATCHDOG_ERROR, 'No dataset parameter to create variable');
-            return;
-        }
-        
-        $nds = node_load($ds);
-        og_g
-        
-    }
-}*/
