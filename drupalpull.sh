@@ -241,6 +241,9 @@ ensure_mod project_community
 
 # og admin role
 ensure_mod og_admin_role 
+
+# og prepopulate
+ensure_mod prepopulate_group_ref
 # Remove an old content type and some fields.
 #drush --yes php-eval "node_type_delete('page');"
 #drush field-delete field_news_tags --bundle=news
