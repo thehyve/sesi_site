@@ -66,10 +66,7 @@ class OpalPage (Page):
         return LoginPage(self.driver).waitFor()
 
     def findByLabel(self, label, class_='gwt-TextBox'):
-        "Find an <input> element with a certain class that is preceded by a <label> containing the given text"
-        # Unfortunately the only way powerful enough seems to be xpath
-        return self.driver.find_element(xpath="//label[contains(text(), %s)]/following-sibling::input[contains(@class, %s)]" % (
-            xpath_string_escape(label), xpath_string_escape(class_)))
+        return find_by_label(self.driver, label, class_)
 
 
 class LoginPage (OpalPage):
@@ -77,13 +74,9 @@ class LoginPage (OpalPage):
         return self.onPageContents()
 
     def onPageContents(self):
-        try:
-            self.driver.find_element(tag='label', contains_text='User Name')
-            self.driver.find_element(tag='label', contains_text='Password')
-            self.driver.find_element(tag='a', contains_text='Sign In')
-            return True
-        except NoSuchElementException:
-            return False
+        return self.elementExists(tag='label', contains_text='User Name') and \
+            self.elementExists(tag='label', contains_text='Password') and \
+            self.elementExists(tag='a', contains_text='Sign In')
 
     def logIn(self, username, password):
         username_field = self.findByLabel('User Name')
@@ -98,7 +91,7 @@ class Dashboard (OpalPage):
     url_location = 'dashboard'
 
     def onPageContents(self):
-        return C.element_present(tag='h1', contains_text='Dashboard')
+        return self.elementExists(tag='h1', contains_text='Dashboard')
 
     def exploreData(self):
         self.driver.find_element(link_text='Explore Data').click()
@@ -109,15 +102,16 @@ class Projects (OpalPage):
     url_location = 'projects'
 
     def onPageContents(self):
-        return C.element_present(tag='h1', contains_text='Projects') and self._projectlinks()
+        return self.elementExists(tag='h1', contains_text='Projects') and self._projectlinks()
 
     def _projectlinks(self, contains=''):
-        return self.driver.find_elements(xpath="//tr//div/a[contains(@href, '#!project;name=')]", contains_text=contains)
+        return self.driver.find_elements(css="tr div a[href^='#!project;name=']", contains_text=contains)
 
     def project(self, name):
         projects = self._projectlinks(name)
         assert projects
-        assert False
+        projects[0].click()
+        return Project(self.driver, name).waitFor()
 
     def createProject(self, name):
         assert not self.hasProject(name)
@@ -126,16 +120,74 @@ class Projects (OpalPage):
         self.findByLabel('Name').send_keys(name)
         self.findByLabel('Title').send_keys(name)
         self.driver.find_element(link_text='Save').click()
-                    
+        self.waitForCondition(lambda: not_find_by_label(self.driver, 'Name'))
 
     def hasProject(self, name):
         return bool(self._projectlinks(name))
 
 
 class Project (OpalPage):
-    pass
+    def __init__(self, driver, name):
+        super(Project, self).__init__(driver)
+        self.name = name
+        self.selector = "tr div a[href^='#!project;name=%s;tab=TABLES;path=']" % css_escape(name)
+
+    def onPageContents(self):
+        # global debug
+        # debug = self.driver.find_elements(css=self.selector)
+        # return debug
+        # return C.element_present(css=self.selector)
+
+        # FIXME: There is a strange race condition in which something matches the self.selector that 
+        # shouldn't (The <a> that containing 'Dashboard' in the left top corner matches). Sleep as a workaround
+        # time.sleep(0.1) 
+        return self.elementExists(css='tr div span.gwt-InlineLabel', contains_text='No tables') or \
+            self.elementExists(css=self.selector)
+
+    def tables(self):
+        return self.driver.find_elements(css=self.selector)
+
+    def addTable(self, name):
+        self.findElement(link_text='Add Table').click()
+        self.waitForCondition(lambda: self.elementExists(link_text='Add table...'))
+        self.findElement(link_text='Add table...').click()
+        self.waitForCondition(lambda: self.findByLabel('Name'))
+        self.findByLabel('Name').send_keys(name)
+        self.findElement(link_text='Save').click()
+        return Table(self.driver, self.name, name).waitFor()
+        
+
+class Table (OpalPage):
+    def __init__(self, driver, projectname, tablename):
+        super(Table, self).__init__(driver)
+        self.projectname = projectname
+        self.tablename = tablename
+
+    def onPageContents(self):
+        return self.elementExists(link_text='Add Variable') and \
+            self.elementExists(css='h3', contains_text='Tables')
+        
+#    def 
+
     
+
+def css_escape(string, quotes="'"):
+    return string.replace(quotes, '\\'+quotes)
+
 def xpath_string_escape(s):
     if "'" not in s: return "'%s'" % s
     if '"' not in s: return '"%s"' % s
     return "concat('%s')" % s.replace("'", "',\"'\",'")
+
+def not_find_by_label(driver, label, class_='gwt-TextBox'):
+    try:
+        return not find_by_label(driver, label, class_)
+    except NoSuchElementException:
+        return True
+
+def find_by_label(driver, label, class_='gwt-TextBox'):
+    "Find an <input> element with a certain class that is preceded by a <label> containing the given text"
+    # Unfortunately the only way powerful enough seems to be xpath
+    return driver.find_element(xpath="//label[contains(text(), %s)]/following-sibling::input[contains(@class, %s)]" % (
+        xpath_string_escape(label), xpath_string_escape(class_)))
+

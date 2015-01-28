@@ -62,12 +62,16 @@ def test_opal():
     assert browser.loggedIn()
     browser.exploreData()
     assert Projects.onPage(browser.page)
-    import pdb; pdb.set_trace()
     if browser.hasProject(opal_project):
-        print("project '{}' already exists, skipping project creation")
+        #assert False, "project {} must not already exist".format(opal_project)
+        print("project '{}' already exists, skipping project creation".format(opal_project))
     else:
         browser.createProject(opal_project)
     assert browser.hasProject(opal_project)
+    browser.project(opal_project)
+    tables = browser.tables()
+    print(tables)
+    #import pdb; pdb.set_trace()
     
 
 if __name__ == '__main__':

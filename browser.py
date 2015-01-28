@@ -1,6 +1,7 @@
 from functools import partial
 
 from pylenium import Pylenium
+from pylenium import conditions
 
 class Browser(object):
     def __init__(self, driver, url, page, username=None, password=None):
@@ -25,6 +26,9 @@ class Browser(object):
             self.page = retval
             retval.browser = self.browser
         return retval
+
+    def __dir__(self):
+        return self.__dict__.keys() + dir(self.page)
         
 
 
@@ -65,3 +69,8 @@ class Page (object):
         self.driver.wait_until(lambda _: self.onPage(), timeout=timeout)
         return self
 
+    def elementExists(self, *args, **kwargs):
+        return conditions.element_present(*args, **kwargs).test(self.driver)
+
+    def findElement(self, *args, **kwargs):
+        return self.driver.find_element(*args, **kwargs)
