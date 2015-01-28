@@ -242,6 +242,9 @@ ensure_mod project_community
 # og admin role
 ensure_mod og_admin_role 
 
+# og prepopulate
+ensure_mod prepopulate_group_ref
+
 # Filter search result
 ensure_mod og_filter_search
 ensure_feat sesi_filter_search

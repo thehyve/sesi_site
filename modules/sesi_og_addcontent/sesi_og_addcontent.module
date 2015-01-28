@@ -77,11 +77,16 @@ function sesi_og_addcontent_block_view($delta = '') {
             $ogroles = array();
             if (_check_user_is_adminmember_of_group($user->uid, $gid) || _check_user_is_admin_of_group($user->uid, $gid)) {
               // user is admin-member of the group or creator of the group
-              $block['content'] = t("<li><a href='?q=node/add/article'>Article</a></li><li><a href='?q=node/add/community-document'>Community document</a></li><li><a href='?q=node/add/dataset'>Dataset</a></li><li><a href='?q=node/add/event'>Event</a></li><li><a href='?q=node/add/study'>Study</a></li>");
+              $tblock =  "<li><a href='?q=node/add/article&og_group_ref=".$gid."'>Article</a></li>";
+              $tblock .= "<li><a href='?q=node/add/community-document&og_group_ref=".$gid."'>Community document</a></li>";
+              $tblock .= "<li><a href='?q=node/add/dataset&og_group_ref=".$gid."'>Dataset</a></li>";
+              $tblock .= "<li><a href='?q=node/add/event&og_group_ref=".$gid."'>Event</a></li>";
+              $tblock .= "<li><a href='?q=node/add/study&og_group_ref=".$gid."'>Study</a></li>";
+              $block['content'] = $tblock;
             }
             else {
               // member but not admin
-              $block['content'] = t("<li><a href='?q=node/add/community-document'>Community document</a></li>");
+              $block['content'] = "<li><a href='?q=node/add/community-document&og_group_ref=".$gid."'>Community document</a></li>";
             }
           }
           else {

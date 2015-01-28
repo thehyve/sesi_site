@@ -1,0 +1,5 @@
+name = Prepopulate and hide group reference field
+description = Facilitate group reference autocomplete
+package = Sesi
+core = 7.x
+#files[] = 

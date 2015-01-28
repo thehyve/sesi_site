@@ -280,6 +280,19 @@ class Drush(SeleniumBase):
 
 if __name__ == "__main__":
 
+    print '''
+                    (                 )
+          (   (     )\ )           ( /(
+     (    )\  )\ ) (()/(   (       )\())
+ (   )\  ((_)(()/(  /(_)) ))\  (  ((_)\\
+ )\ ((_)  _   ((_))(_))  /((_) )\  _((_)
+((_)| __|| |  _| | | _ \(_))( ((_)| || |
+(_-<| _| | |/ _` | |   /| || |(_-<| __ |
+/__/|___||_|\__,_| |_|_\ \_,_|/__/|_||_|
+
+
+    '''
+
     try:
        if len(sys.argv) == 4:
            print sys.argv[1]
@@ -299,5 +312,5 @@ if __name__ == "__main__":
            suite.disablePromoteToFrontPage()
 
     finally:
-        suite.destroy();
+        suite.destroy()
 
