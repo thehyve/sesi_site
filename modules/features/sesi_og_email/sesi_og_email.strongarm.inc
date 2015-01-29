@@ -15,34 +15,24 @@ function sesi_og_email_strongarm() {
   $strongarm->api_version = 1;
   $strongarm->name = 'og_email_admin_active_body';
   $strongarm->value = array(
-    'value' => '<p>Dear group:author:name],</p>
+    'value' => '<p>Dear [group:author:name],</p>
 
 <p>User \'[account:name]\' joined [group:title] in [group:url]</p>
-
-    	============<br>
-    	User Details<br>
-    	============<br>
-    	User ID: [account:id]<br>
-        User Unique ID: [account:uuid]<br>
-    	User Name: [account:name]<br>
-	Account Status: [account:status]<br>
-	First Name: [account:profile-main:field_profile_first_name]<br>
-	Last Name: [account:profile-main:field-profile-last-name]<br>
-	Institution: [account:profile-main:field-profile-institution]<br>
-	Departement: [account:profile-main:field-profile-department]<br>
-	Telephone: [account:profile-main:field-profile-telephone]<br>
-    	Real Name: [account:realname]<br>
-    	Email: [account:mail]<br>
-    </p>
-    <br>
-    <p>
-        Membership will expire in : [og-membership:field-expiration-date]
-     </p>
-    <hr> 
+<p>
+============<br>
+User Details<br>
+============<br>
+User ID: [account:uid]<br>
+User Unique ID: [account:uuid]<br>
+User Name: [account:name]<br>
+Account Status: [account:status]<br>
+Email: [account:mail]<br>
+</p>
+<hr> 
 Edit account: [account:edit-url]
-
-<p>&nbsp;</p>
-
+<hr>
+Team [site:name]<br>
+[site:url]
 
 
 ',
@@ -54,7 +44,7 @@ Edit account: [account:edit-url]
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
   $strongarm->name = 'og_email_admin_active_subject';
-  $strongarm->value = '[account:name] joined [group:title]';
+  $strongarm->value = 'User [account:name] joined community [group:title]';
   $export['og_email_admin_active_subject'] = $strongarm;
 
   $strongarm = new stdClass();
@@ -64,30 +54,31 @@ Edit account: [account:edit-url]
   $strongarm->value = array(
     'value' => '<p>Dear [group:author:name],</p>
     
-    <p>User \'[account:name]\' requests membership for group \'[group:title]\' in [group:url].</p>
-    <p>
-    	============<br>
-    	User Details<br>
-    	============<br>
-    	User ID: [account:id]<br>
-        User Unique ID: [account:uuid]<br>
-    	User Name: [account:name]<br>
-		Account Status: [account:status]<br>
-		First Name: [account:profile-main:field_profile_first_name]<br>
-		Last Name: [account:profile-main:field-profile-last-name]<br>
-		Institution: [account:profile-main:field-profile-institution]<br>
-		Departement: [account:profile-main:field-profile-department]<br>
-		Telephone: [account:profile-main:field-profile-telephone]<br>
-    	Real Name: [account:realname]<br>
-    	Email: [account:mail]<br>
-    </p>
-    <hr>    
-    <p>Please check:
-    People in group page:<br>
-    [site:url]?q=group/node/[group:nid]/admin/people</p>
-    <p>Edit membership in group page: <br>
-    [site:url]?q=group/node/[group:nid]/admin/people/edit-membership/[og-membership:id]&destination=group/node/[group:nid]/admin/people</p>
-    ',
+<p>User \'[account:name]\' requests membership for group \'[group:title]\' in [group:url].</p>
+<p>
+============<br>
+User Details<br>
+============<br>
+User ID: [account:uid]<br>
+User Unique ID: [account:uuid]<br>
+User Name: [account:name]<br>
+Account Status: [account:status]<br>
+First Name: [account:profile-main:field_profile_first_name]<br>
+Last Name: [account:profile-main:field_profile_last_name]<br>
+Institution: [account:profile-main:field_profile_institution]<br>
+Department: [account:profile-main:field_profile_department]<br>
+Telephone: [account:profile-main:field_profile_telephone]<br>
+Email: [account:mail]<br>
+</p>
+<p>Please check:
+People in group page:<br>
+[site:url]?q=group/node/[group:nid]/admin/people</p>
+<p>Edit membership in group page: <br>
+[site:url]?q=group/node/[group:nid]/admin/people/edit-membership/[og-membership:id]&destination=group/node/[group:nid]/admin/people</p>
+<br>
+<hr>
+Team [site:name]<br>
+[site:url]',
     'format' => 'filtered_html',
   );
   $export['og_email_admin_pending_body'] = $strongarm;
@@ -96,7 +87,7 @@ Edit account: [account:edit-url]
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
   $strongarm->name = 'og_email_admin_pending_subject';
-  $strongarm->value = '[account:name] membership request [group:title]';
+  $strongarm->value = 'User [account:name] requests membership for [group:title]';
   $export['og_email_admin_pending_subject'] = $strongarm;
 
   $strongarm = new stdClass();
@@ -108,12 +99,11 @@ Edit account: [account:edit-url]
 
 <p>
 You are now a member in the group \'[group:title]\' located at [group:url]<br>
-Your membership will be expired at [og-membership:field-expiration-date].
+Your membership will expire on [og-membership:field_expiration_date] (if applicable).
 </p>
 
 <hr>
-[site:name]<br>
-[site:slogan]<br>
+Team [site:name]<br>
 [site:url]',
     'format' => 'filtered_html',
   );
@@ -135,8 +125,7 @@ Your membership will be expired at [og-membership:field-expiration-date].
 <p>Your membership to group \'[group:title]\' located at [group:url] is pending approval.</p>
 
 <hr>
-[site:name]<br>
-[site:slogan]<br>
+Team [site:name]<br>
 [site:url]',
     'format' => 'filtered_html',
   );
@@ -146,7 +135,7 @@ Your membership will be expired at [og-membership:field-expiration-date].
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
   $strongarm->name = 'og_email_member_pending_subject';
-  $strongarm->value = 'Your membership request for \'[group:title]\'';
+  $strongarm->value = 'Your membership request for community \'[group:title]\'';
   $export['og_email_member_pending_subject'] = $strongarm;
 
   $strongarm = new stdClass();
@@ -158,8 +147,9 @@ Your membership will be expired at [og-membership:field-expiration-date].
 
 <p>There is a new post called [node:title] that belongs to one of the groups you are subscribed to.</p>
 
-<p>[site:name]</p>
-',
+<hr>
+Team [site:name]<br>
+[site:url]',
     'format' => 'filtered_html',
   );
   $export['og_email_new_content_body'] = $strongarm;
