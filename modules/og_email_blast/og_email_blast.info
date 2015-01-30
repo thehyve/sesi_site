@@ -1,0 +1,14 @@
+name = Organic groups e-mail blast
+description = Enables group admins to send e-mail blasts to group members.
+core = 7.x
+package = Organic groups
+dependencies[] = og_ui
+files[] = og_email_blast.module
+files[] = og_email_blast.admin.inc
+
+; Information added by drupal.org packaging script on 2013-10-01
+version = "7.x-2.x-dev"
+core = "7.x"
+project = "og_email_blast"
+datestamp = "1380595403"
+

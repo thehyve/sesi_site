@@ -1,0 +1,16 @@
+name = SESI Default comm
+core = 7.x
+package = SESI
+version = 7.x-1.0-beta1
+project = sesi_default_comm
+__drupal_alter_by_ref[][node][default_community] = default_community
+features[ctools][] = strongarm:strongarm:1
+features[features_api][] = api:2
+features[og_features_permission][] = node:community:create community_document content
+features[uuid_node][] = 36aa942a-6f7e-40e3-b95b-7a11a2e919c4
+features_exclude[dependencies][ctools] = ctools
+features_exclude[dependencies][features] = features
+features_exclude[dependencies][og] = og
+features_exclude[dependencies][sesi_default_community] = sesi_default_community
+features_exclude[dependencies][strongarm] = strongarm
+features_exclude[dependencies][uuid_features] = uuid_features
