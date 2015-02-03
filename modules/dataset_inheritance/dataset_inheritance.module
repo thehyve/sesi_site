@@ -80,14 +80,10 @@ function dataset_inheritance_node_insert($node) {
         return;
     }
 
-    // i only want new registers
-    // (if you don't put this, when you import from csv, this is triggered also)
     if (isset($_REQUEST['ignore_inheritance'])) {
         return;
     }
     
-    // i only want new registers
-    // (if you don't put this, when you import from csv, this is triggered also)    
     $wrapper = entity_metadata_wrapper( 'node', $node );
 
     // check if has a parent field defined
