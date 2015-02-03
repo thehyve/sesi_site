@@ -197,7 +197,7 @@ function dataset_inheritance_node_presave($node) {
  * @param entity_metadata_wrapper $wrapper_from entity_metadata_wrapper
  * @param entity_metadata_wrapper $wrapper_to 
  */
-function _dataset_inheritance_synchronize_og_groups($wrapper_from, $wrapper_to ) {
+function _dataset_inheritance_synchronize_og_groups( $wrapper_from, $wrapper_to ) {
     $from_groups = $wrapper_from->og_group_ref->value();
     $to_groups = $wrapper_to->og_group_ref->value();
 
