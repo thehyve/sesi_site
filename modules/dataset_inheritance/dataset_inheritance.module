@@ -126,44 +126,75 @@ function dataset_inheritance_node_update($node) {
 }
 
 /**
- * This hook is called before saving a new variable, and is used to reset
+ * This hook is called before saving a new node, and is used to reset
  * the variable_inherited flag
  * @param type $node
  * @return void 
  */
 function dataset_inheritance_node_presave($node) {
+    
+    
     // Mark variable as not inherited as it has been changed
-    if( $node->type == 'variable' && !$node->is_new ) {
-        $wrapper = entity_metadata_wrapper( 'node', $node );
-        _dataset_inheritance_mark_variable_as_not_inherited( $wrapper );
+    if ($node->type == 'variable' && !$node->is_new) {        
+        // Get entity wrapper
+        $wrapper = entity_metadata_wrapper('node', $node);
+        // Mark as not inherited
+        _dataset_inheritance_mark_variable_as_not_inherited($wrapper);
     }
+    
+    // Associate the variables with the same og_groups as the dataset
+    // that it belongs to
+    if ($node->type == 'dataset') {
+        // Get entity wrapper
+        $dataset_wrapper = entity_metadata_wrapper('node', $node);        
+        // Check if dataset has variables
+        if (isset($dataset_wrapper->field_dataset_variables)) {
+            // get variables
+            $arr_variables = $dataset_wrapper->field_dataset_variables->value();
+            // if there're some variables
+            // synchronize OG permissions for each variables
+            if (sizeof($arr_variables) > 0) {
+                foreach ($arr_variables as $dataset_variable) {
+                    // get variable wrapper
+                    $variable_wrapper = entity_metadata_wrapper('node',
+                            $dataset_variable);
+                    // Make sure that all og_groups within the dataset are also
+                    // available in the variable.
+                    _dataset_inheritance_synchronize_og_groups($dataset_wrapper,
+                            $variable_wrapper);
+                    // Save the variable
+                    $variable_wrapper->save();
+                }
+            }         
+        }         
+    }    
     
     // Associate the variable with the same og_groups as the dataset
     // that it belongs to
-    if( $node->type == 'variable' ) {
-        $variable_wrapper = entity_metadata_wrapper( 'node', $node );
-        
-        // Retrieve the dataset
-        $dataset = $variable_wrapper->field_dataset->value();
-        $dataset_wrapper = entity_metadata_wrapper( 'node', $dataset );
-        
+    if ($node->type == 'variable') {
+        // Get entity wrapper
+        $variable_wrapper = entity_metadata_wrapper('node', $node);                
+        // Retrieve the dataset wrapper
+        $dataset_node = $variable_wrapper->field_dataset->value();
+        $dataset_wrapper = entity_metadata_wrapper('node', $dataset_node);
+
         // Make sure that all og_groups within the dataset are also
         // available in the variable.
-        _dataset_inheritance_synchronize_og_groups( $dataset_wrapper, $variable_wrapper );
+        _dataset_inheritance_synchronize_og_groups($dataset_wrapper, $variable_wrapper);
     }
-    
+        
     // Associate the variable with the same og_groups as the dataset
     // that it belongs to
-    if( $node->type == 'study_variable_attributes' ) {
-        $sva_wrapper = entity_metadata_wrapper( 'node', $node );
-        
-        // Retrieve the dataset
+    if ($node->type == 'study_variable_attributes') {
+        // Get entity wrapper
+        $sva_wrapper = entity_metadata_wrapper('node', $node);                
+        // Retrieve the variable
         $variable_node = $sva_wrapper->field_sva_variable->value();
-        $variable_wrapper = entity_metadata_wrapper( 'node', $variable_node );
-        
-        // Make sure that all og_groups within the dataset are also
-        // available in the variable.
-        _dataset_inheritance_synchronize_og_groups( $variable_wrapper, $sva_wrapper );
+        $variable_wrapper = entity_metadata_wrapper('node', $variable_node);     
+
+        // Make sure that all og_groups within the variable are also
+        // available in the study variable attributes.
+        _dataset_inheritance_synchronize_og_groups($variable_wrapper, $sva_wrapper);
     }    
 }
 
