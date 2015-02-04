@@ -1011,7 +1011,7 @@ function _mica_query_result_table($dataset_node, $query, $cross_variable, $add_l
                 'title' => $label,
               );
             }
-            $value = isset($result[$impl->getName()][$name]) ?: 0;
+            $value = isset($result[$impl->getName()][$name]) ? $result[$impl->getName()][$name] : 0;
             $row[] = array(
               'data' => _mica_query_count_str($value, $total),
               'count' => $value,
