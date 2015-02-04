@@ -70,7 +70,7 @@ function sesi_autologout_strongarm() {
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
   $strongarm->name = 'autologout_role_10_timeout';
-  $strongarm->value = '1800';
+  $strongarm->value = '1200';
   $export['autologout_role_10_timeout'] = $strongarm;
 
   $strongarm = new stdClass();
@@ -84,7 +84,7 @@ function sesi_autologout_strongarm() {
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
   $strongarm->name = 'autologout_role_2_timeout';
-  $strongarm->value = '1800';
+  $strongarm->value = '1200';
   $export['autologout_role_2_timeout'] = $strongarm;
 
   $strongarm = new stdClass();
@@ -98,7 +98,7 @@ function sesi_autologout_strongarm() {
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
   $strongarm->name = 'autologout_role_3_timeout';
-  $strongarm->value = '1800';
+  $strongarm->value = '1200';
   $export['autologout_role_3_timeout'] = $strongarm;
 
   $strongarm = new stdClass();
@@ -112,7 +112,7 @@ function sesi_autologout_strongarm() {
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
   $strongarm->name = 'autologout_role_4_timeout';
-  $strongarm->value = '1800';
+  $strongarm->value = '1200';
   $export['autologout_role_4_timeout'] = $strongarm;
 
   $strongarm = new stdClass();
@@ -126,7 +126,7 @@ function sesi_autologout_strongarm() {
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
   $strongarm->name = 'autologout_role_5_timeout';
-  $strongarm->value = '1800';
+  $strongarm->value = '1200';
   $export['autologout_role_5_timeout'] = $strongarm;
 
   $strongarm = new stdClass();
@@ -140,7 +140,7 @@ function sesi_autologout_strongarm() {
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
   $strongarm->name = 'autologout_role_6_timeout';
-  $strongarm->value = '1800';
+  $strongarm->value = '1200';
   $export['autologout_role_6_timeout'] = $strongarm;
 
   $strongarm = new stdClass();
@@ -154,7 +154,7 @@ function sesi_autologout_strongarm() {
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
   $strongarm->name = 'autologout_role_7_timeout';
-  $strongarm->value = '1800';
+  $strongarm->value = '1200';
   $export['autologout_role_7_timeout'] = $strongarm;
 
   $strongarm = new stdClass();
@@ -168,7 +168,7 @@ function sesi_autologout_strongarm() {
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
   $strongarm->name = 'autologout_role_8_timeout';
-  $strongarm->value = '1800';
+  $strongarm->value = '1200';
   $export['autologout_role_8_timeout'] = $strongarm;
 
   $strongarm = new stdClass();
@@ -182,7 +182,7 @@ function sesi_autologout_strongarm() {
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
   $strongarm->name = 'autologout_role_9_timeout';
-  $strongarm->value = '1800';
+  $strongarm->value = '1200';
   $export['autologout_role_9_timeout'] = $strongarm;
 
   $strongarm = new stdClass();
@@ -196,7 +196,7 @@ function sesi_autologout_strongarm() {
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
   $strongarm->name = 'autologout_timeout';
-  $strongarm->value = '1800';
+  $strongarm->value = '1200';
   $export['autologout_timeout'] = $strongarm;
 
   $strongarm = new stdClass();
