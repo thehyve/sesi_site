@@ -148,10 +148,13 @@ function sesi_my_queries_screen_views_default_views() {
   $handler->display->display_options['fields']['title_field']['alter']['make_link'] = TRUE;
   $handler->display->display_options['fields']['title_field']['alter']['path'] = '/node/[dataset]';
   $handler->display->display_options['fields']['title_field']['link_to_entity'] = 1;
-  /* Field: Dataset query: Description */
+  /* Field: Dataset query: Description*/
   $handler->display->display_options['fields']['description']['id'] = 'description';
   $handler->display->display_options['fields']['description']['table'] = 'mica_query';
   $handler->display->display_options['fields']['description']['field'] = 'description';
+  $handler->display->display_options['fields']['description']['exclude'] = TRUE;  
+  
+  
   /* Field: Query subscription: ID */
   $handler->display->display_options['fields']['id_1']['id'] = 'id_1';
   $handler->display->display_options['fields']['id_1']['table'] = 'query_subscription';
@@ -161,6 +164,8 @@ function sesi_my_queries_screen_views_default_views() {
   $handler->display->display_options['fields']['id_1']['alter']['alter_text'] = TRUE;
   $handler->display->display_options['fields']['id_1']['alter']['text'] = 'yes';
   $handler->display->display_options['fields']['id_1']['hide_empty'] = TRUE;
+  
+  
   /* Field: Global: Custom text */
   $handler->display->display_options['fields']['nothing_1']['id'] = 'nothing_1';
   $handler->display->display_options['fields']['nothing_1']['table'] = 'views';
