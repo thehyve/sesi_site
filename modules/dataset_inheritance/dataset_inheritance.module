@@ -17,6 +17,8 @@
  * 
  *   dataset_inheritance_node_update
  *      update inherited variables when changing the parent dataset
+ *      also when updating a dataset, its group_ref is synchronized with all variables
+ *      also when updating a variable, its group_ref is synchronized with all SVA
  * 
  *   dataset_inheritance_node_presave
  *      resetting the variable_inherited flag when editing a variable
@@ -120,8 +122,21 @@ function dataset_inheritance_node_insert($node) {
  */
 function dataset_inheritance_node_update($node) {
     if( $node->type == 'dataset' ) {
-        $wrapper = entity_metadata_wrapper( 'node', $node );
-        _dataset_inheritance_update_inheritance_for_updated_dataset( $wrapper );
+        $dataset_wrapper = entity_metadata_wrapper( 'node', $node );
+        _dataset_inheritance_update_inheritance_for_updated_dataset( $dataset_wrapper );
+        
+        // Update the og_group reference in all associated variables
+        // Please note that these variables may be deleted due to inheritance
+        $query = new EntityFieldQuery();
+        $query->entityCondition('entity_type', 'node')
+                ->entityCondition('bundle', 'variable')
+                ->fieldCondition('field_dataset', 'nid', $dataset_wrapper->getIdentifier(), '=');
+        $result = $query->execute();
+        
+        if (array_key_exists( 'node', $result ) && is_array( $result[ 'node' ] )) {
+            // Delete all nodes found 
+            $inherited_variable_nids = array_keys($result['node']);
+            node_delete_multiple( $inherited_variable_nids );        
     }
 }
 
@@ -415,6 +430,9 @@ function _dataset_inheritance_clone_variables_from_parent($child_dataset, $paren
             // Remove ids to clone the field
             unset($variable_node->nid);
             unset($variable_node->vid);
+            
+            // Make sure that the og_group_ref is the same as the dataset
+            $variable_wrapper->og_group_ref->set( $child_dataset->og_group_ref->value() );
             
             // Store the new variable with the new child dataset
             $variable_wrapper->field_dataset->set( $child_dataset->getIdentifier() );
