@@ -937,10 +937,14 @@ function _mica_query_result_table($dataset_node, $query, $cross_variable, $add_l
             );
           }
           $value = isset($result['_matched'][$name]) ? $result['_matched'][$name] : 0;
-          $row[] = array(
+          $cell = array(
             'data' => _mica_query_count_str($value, $total),
             'class' => array('active'),
           );
+          if(count($mica_connectors) == 1) {
+            $cell['class'][] = 'only-matched';
+          }
+          $row[] = $cell;
         }
 
         if (!$headers_initialized) {
@@ -950,10 +954,14 @@ function _mica_query_result_table($dataset_node, $query, $cross_variable, $add_l
             'class' => 'border-right',
           );
         }
-        $row[] = array(
+        $cell = array(
           'data' => _mica_query_count_str($result['_matched']['_all'], $total),
           'class' => array('active', 'border-right'),
         );
+        if(count($mica_connectors) === 1) {
+          $cell['class'][] = 'only-matched';
+        }
+        $row[] = $cell;
 
       }
       else {
@@ -970,6 +978,9 @@ function _mica_query_result_table($dataset_node, $query, $cross_variable, $add_l
           'class' => array('active', 'matched')
         );
         if($use_donors) $matched['donors'] = $donors;
+        if(count($mica_connectors) === 1) {
+          $matched['class'][] = 'only-matched';
+        }
         $row[] = $matched;
       }
 
@@ -1000,7 +1011,7 @@ function _mica_query_result_table($dataset_node, $query, $cross_variable, $add_l
                 'title' => $label,
               );
             }
-            $value = isset($result[$impl->getName()][$name]) ?: 0;
+            $value = isset($result[$impl->getName()][$name]) ? $result[$impl->getName()][$name] : 0;
             $row[] = array(
               'data' => _mica_query_count_str($value, $total),
               'count' => $value,
@@ -1058,7 +1069,7 @@ function _mica_query_result_table($dataset_node, $query, $cross_variable, $add_l
             );
           }
           $row[] = array(
-            'data' => isset($result['_all'][$name]) ? $result['_all'][$name] : 0,
+            'data' => _mica_query_count_str(isset($result['_all'][$name]) ? $result['_all'][$name] : 0, $total),
           );
         }
         if (!$headers_initialized) {
@@ -1069,7 +1080,7 @@ function _mica_query_result_table($dataset_node, $query, $cross_variable, $add_l
           );
         }
         $row[] = array(
-          'data' => $result['_all']['_all'],
+          'data' => _mica_query_count_str($result['_all']['_all'], $total),
           'class' => 'border-right',
         );
       }
