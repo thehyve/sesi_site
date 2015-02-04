@@ -1,0 +1,11 @@
+name = Custom Field JS
+description = To change state of a field based on other field's state
+package = Sesi
+core = 7.x
+;files[] = custom_field_js.test
+
+; Information added by Drupal.org packaging script on 2014-11-20
+version = "7.x-1.0"
+core = "7.x"
+project = "sesi"
+datestamp = "1407030771"
