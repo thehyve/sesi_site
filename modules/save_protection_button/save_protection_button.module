@@ -1,0 +1,18 @@
+<?php
+
+/**
+ * if the page has a form, adds save protection javascript (disable multiple clicks to save, to avoid multiple submit)
+ * @param $form
+ * @param $form_state
+ * @param $form_id
+ */
+function save_protection_button_form_alter(&$form, &$form_state, $form_id) {
+
+    global $save_protection_include_once;
+    if($save_protection_include_once!=TRUE) {
+        $js = 'jQuery("#edit-submit").click( function() { if(document.spb !== undefined && document.spb==true) { return false; }; setTimeout(function() { document.spb=false },9000); document.spb=true; return true; });';
+        drupal_add_js('jQuery(document).ready(function () { '.$js. ' });', 'inline');
+        $save_protection_include_once=TRUE;
+    }
+
+}

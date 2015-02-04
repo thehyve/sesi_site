@@ -1,0 +1,5 @@
+name = Save protection button
+description = Add JS to avoid user pushing button twice on form_submit
+package = Sesi
+core = 7.x
+#files[] = 
