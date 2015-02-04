@@ -1069,7 +1069,7 @@ function _mica_query_result_table($dataset_node, $query, $cross_variable, $add_l
             );
           }
           $row[] = array(
-            'data' => isset($result['_all'][$name]) ? $result['_all'][$name] : 0,
+            'data' => _mica_query_count_str(isset($result['_all'][$name]) ? $result['_all'][$name] : 0, $total),
           );
         }
         if (!$headers_initialized) {
@@ -1080,7 +1080,7 @@ function _mica_query_result_table($dataset_node, $query, $cross_variable, $add_l
           );
         }
         $row[] = array(
-          'data' => $result['_all']['_all'],
+          'data' => _mica_query_count_str($result['_all']['_all'], $total),
           'class' => 'border-right',
         );
       }
