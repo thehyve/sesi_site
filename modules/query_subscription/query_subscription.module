@@ -180,7 +180,7 @@ function query_subscription_form_mica_query_edit_form_alter(&$form, &$form_state
       '#field_suffix' => '%',
       '#size' => 2,
       '#element_validate' => array('query_subscription_validate_percentage'),
-      '#description' => t("You will only receive a notification if at least one of the result values differs from its previous value with at least this percentage"),
+      '#description' => t("Receive notification if the number of matched items or patients differs from its old value with at least this percentage."),
       '#states' => array(
         // Only show this field when the notify_enabled checkbox is checked.
         'visible' => array(':input[name="notify_enabled"]' => array('checked' => true)),
@@ -339,9 +339,11 @@ function query_subscription_poll($arg) {
       try {
         $subscription = QuerySubscription::get($id);
         if (is_null($subscription)) continue;
+        $dataset_id = $subscription->query()->dataset_id;
 
-        if (query_access_rights_is_expired($subscription->query()->dataset_id)) {
-          $changes[] = array(
+        if (query_access_rights_is_expired($dataset_id)) {
+          if(!isset($changes[$dataset_id])) {$changes[$dataset_id] = array();}
+          $changes[$dataset_id][] = array(
             'subscription' => $subscription,
             'expired' => true,
           );
@@ -354,7 +356,8 @@ function query_subscription_poll($arg) {
         $differences = $subscription->significantDifferences();
 
         if (!empty($differences)) {
-          $changes[] = array(
+          if(!isset($changes[$dataset_id])) {$changes[$dataset_id] = array();}
+          $changes[$dataset_id][] = array(
             'subscription' => $subscription,
             'expired' => false,
             'differences' => $differences,
@@ -383,9 +386,11 @@ function query_subscription_poll($arg) {
         array('user' => $user, 'changes' => $changes));
     }
 
-    foreach($changes as $change) {
-      if ($change['expired']) {
-        entity_delete('query_subscription', $change['subscription']->id);
+    foreach($changes as $dataset => $dschanges) {
+      foreach($dschanges as $change) {
+        if ($change['expired']) {
+          entity_delete('query_subscription', $change['subscription']->id);
+        }
       }
     }
 
@@ -405,6 +410,7 @@ function query_subscription_query_result($query) {
   $connectors = mica_connector_query_multiple($query->dataset_id);
 
   $fullresult = array();
+  $totals = array();
   foreach($connectors as $connector) {
 
     $variable_names = array_map(function($var) {return $var->title;}, mica_dataset_dataset_variables($query->dataset_id));
@@ -417,15 +423,24 @@ function query_subscription_query_result($query) {
         $cardinality_var = 'donorID';
       }
       $result = $connector->query($terms, $cardinality_var);
-      unset($result['_all']);
+      $result['_all'] = $result['total'];
     } else {
       $result = $connector->queryBy($terms, array($cross_variable->title));
       // Depending on if it is a cross query use '_all' or 'total', unset the other.
       // I'm not sure why this difference exists, but this is what the display code uses.
-      unset($result['total']);
+    }
+    unset($result['total']);
+
+    foreach($result as $variable => $terms) {
+      if(!isset($totals[$variable])) $totals[$variable] = array();
+      foreach($terms as $term => $value) {
+        if(!isset($totals[$variable][$term])) $totals[$variable][$term] = 0;
+        $totals[$variable][$term] += $value;
+      }
     }
 
     $fullresult[$connector->id] = $result;
+    $fullresult['_all'] = $totals;
   }
   return $fullresult;
 }
