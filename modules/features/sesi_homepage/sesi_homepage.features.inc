@@ -38,6 +38,7 @@ function sesi_homepage_views_default_views_alter(&$data) {
         'dataset' => 'dataset',
         'event' => 'event',
         'study' => 'study',
+          'community' => 'community',
       ),
     ); /* WAS: '' */
   }
