@@ -187,11 +187,12 @@ class Drush(SeleniumBase):
         self.setcheckbox(chkbox, True)
  
         #disable permissions
-        entities=['page','forum','data-access-review','documents']
+        entities=['page','forum','data-access-review','documents','teleconference','blog']
         actions =['create','edit-own','edit-any','delete-own','delete-any']
         for ent in entities:
             for act in actions:
-                self.setcheckbox(self.css("#edit-4-%s-%s-content" % (act,ent)), False)                
+                self.setcheckbox(self.css("#edit-4-%s-%s-content" % (act,ent)), False)
+
         #activate permissions
         entities=['contact']
         actions =['create','edit-own','edit-any','delete-own','delete-any']
