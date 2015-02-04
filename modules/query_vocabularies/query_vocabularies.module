@@ -7,6 +7,17 @@ module_load_include('inc', 'query_vocabularies', 'query_ontologies.taxonomy_tree
  */
 function query_vocabularies_menu() {
     $items = array();
+
+    // This URL is used to retrieve a set of suggestions in the 
+    // autocomplete when searching a variable with vocabulary
+    $items['sesi/variable/%node/suggest'] = array(
+        'title' => 'Suggest',
+        'access callback' => '_mica_datasets_node_access',
+        'access arguments' => array(2, 'variable', 'view'),
+        'page callback' => 'query_vocabularies_suggest_terms', 
+        'page arguments' => array(2, 4),
+        'delivery callback' => 'drupal_json_output',
+    );
     
     // This URL is used to retrieve a set of suggestions in the 
     // autocomplete when searching a variable with vocabulary
@@ -106,6 +117,10 @@ function _query_vocabularies_parse_vocabulary( $url ) {
             continue;
         
         $cells = str_getcsv( $line, "," );
+        
+        // Skip the line if it doesn't contain at least two columns
+        if( count( $cells ) < 2 )
+            continue;
         
         $vocabulary[ $cells[0] ] = $cells[1];
     }
