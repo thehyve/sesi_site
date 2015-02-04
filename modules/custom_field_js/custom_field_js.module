@@ -1,0 +1,21 @@
+<?php
+
+/**
+ * Implement hook_form_alter to attach custom javascript
+ * @param type &$form
+ * @param type &$form_state
+ * @param type &$form_id
+ */
+function custom_field_js_form_alter(&$form, &$form_state, $form_id) {
+    
+    // Only interested in create/edit Variable form and then attach 
+    // custom javascript to this form.
+    if ($form_id == "variable_node_form") {        
+        $form['#attached']['js'] = array (
+            drupal_get_path('module', 'custom_field_js') . 
+                '/custom_field_js.js',
+        );        
+    }
+
+  return $form;
+}
