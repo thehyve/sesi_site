@@ -71,8 +71,8 @@ class ServicesOpalFormatter implements ServicesFormatterInterface {
           }
         }
       }
-
-      drupal_add_http_header('Content-Disposition', "attachment; filename=$filename.xml");
+      $filename = str_replace(' ', '_', $filename);
+      drupal_add_http_header('Content-Disposition', "attachment; filename=$filename.xmlX");
       $this->doc->formatOutput = TRUE;
       return $this->doc->saveXml();
     } catch (Exception $e) {
