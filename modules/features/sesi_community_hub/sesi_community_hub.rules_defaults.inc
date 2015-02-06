@@ -31,5 +31,26 @@ function sesi_community_hub_default_rules_configuration() {
       ]
     }
   }');
+  $items['rules_test'] = entity_import('rules_config', '{ "rules_test" : {
+      "LABEL" : "OG membership mail to group admins",
+      "PLUGIN" : "reaction rule",
+      "OWNER" : "rules",
+      "TAGS" : [ "custom rule action" ],
+      "REQUIRES" : [ "rules", "sesi_rules", "og" ],
+      "ON" : { "og_user_insert" : [] },
+      "DO" : [
+        { "variable_add" : {
+            "USING" : { "type" : "og_membership", "value" : [ "og-membership" ] },
+            "PROVIDE" : { "variable_added" : { "ogm" : "OG Membership" } }
+          }
+        },
+        { "sesi_rules_action_send_email_to_group_admins" : {
+            "USING" : { "organic_group" : [ "ogm" ] },
+            "PROVIDE" : { "membership" : { "membership" : "The membership record for the user and the group" } }
+          }
+        }
+      ]
+    }
+  }');
   return $items;
 }
