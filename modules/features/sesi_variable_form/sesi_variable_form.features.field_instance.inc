@@ -77,7 +77,7 @@ function sesi_variable_form_field_default_field_instances() {
       'module' => 'number',
       'settings' => array(),
       'type' => 'number',
-      'weight' => 71,
+      'weight' => 103,
     ),
   );
 
@@ -148,7 +148,7 @@ function sesi_variable_form_field_default_field_instances() {
       'module' => 'number',
       'settings' => array(),
       'type' => 'number',
-      'weight' => 70,
+      'weight' => 102,
     ),
   );
 
@@ -214,7 +214,7 @@ function sesi_variable_form_field_default_field_instances() {
       'module' => 'options',
       'settings' => array(),
       'type' => 'options_buttons',
-      'weight' => 73,
+      'weight' => 104,
     ),
   );
 
