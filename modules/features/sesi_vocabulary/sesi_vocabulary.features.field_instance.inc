@@ -71,7 +71,7 @@ function sesi_vocabulary_field_default_field_instances() {
         'size' => 60,
       ),
       'type' => 'text_textfield',
-      'weight' => 62,
+      'weight' => 106,
     ),
   );
 
