@@ -1,0 +1,8 @@
+name = Rules for Sesi project
+description = Create custom rules for Sesi project: mail admin members
+core = 7.x
+version = "7.0"
+package = sesi
+project = "sesi_rules"
+dependencies[] = og
+dependencies[] = rules
