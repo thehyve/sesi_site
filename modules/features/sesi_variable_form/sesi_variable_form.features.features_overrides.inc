@@ -17,8 +17,6 @@ function sesi_variable_form_features_override_default_overrides() {
   $overrides["field_instance.node-variable-field_repeatable.widget|weight"] = 75;
   $overrides["field_instance.node-variable-field_taxonomy.widget|weight"] = 75;
   $overrides["field_instance.node-variable-field_unit.widget|weight"] = 75;
-  $overrides["field_instance.node-variable-field_validate_categories.description"] = '<br>Validate all the values against categories list';
-  $overrides["field_instance.node-variable-field_validate_categories.widget|weight"] = 75;
   $overrides["field_instance.node-variable-field_vocabulary_url.widget|weight"] = 75;
   $overrides["field_instance.node-variable-og_group_ref.widget|weight"] = 80;
 

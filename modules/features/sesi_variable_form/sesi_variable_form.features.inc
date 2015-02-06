@@ -30,10 +30,6 @@ function sesi_variable_form_field_default_field_instances_alter(&$data) {
   if (isset($data['node-variable-field_unit'])) {
     $data['node-variable-field_unit']['widget']['weight'] = 75; /* WAS: 0 */
   }
-  if (isset($data['node-variable-field_validate_categories'])) {
-    $data['node-variable-field_validate_categories']['description'] = '<br>Validate all the values against categories list'; /* WAS: 'Validate all the values against categories list' */
-    $data['node-variable-field_validate_categories']['widget']['weight'] = 75; /* WAS: 6 */
-  }
   if (isset($data['node-variable-field_vocabulary_url'])) {
     $data['node-variable-field_vocabulary_url']['widget']['weight'] = 75; /* WAS: 62 */
   }
