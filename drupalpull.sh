@@ -162,7 +162,6 @@ fi
 
 ensure_feat sesi_user_registration
 ensure_feat sesi_dataset_inheritance 
-ensure_feat sesi_inherit_variable_permissions
 ensure_feat sesi_dataset_versioning
 ensure_feat sesi_dataset_access_form
 ensure_feat sesi_vocabulary
@@ -243,6 +242,20 @@ ensure_mod project_community
 
 # og admin role
 ensure_mod og_admin_role 
+
+# og prepopulate
+ensure_mod prepopulate_group_ref
+
+# Filter search result
+ensure_mod og_filter_search
+ensure_feat sesi_filter_search
+
+# Custom Field JS 
+ensure_mod custom_field_js
+
+# Save protection button
+ensure_mod save_protection_button
+
 # Remove an old content type and some fields.
 #drush --yes php-eval "node_type_delete('page');"
 #drush field-delete field_news_tags --bundle=news

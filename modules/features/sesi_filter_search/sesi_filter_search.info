@@ -1,0 +1,13 @@
+name = Sesi Filter Search
+description = To customize search filter
+core = 7.x
+package = Sesi
+version = 7.x-1.0
+project = sesi_filter_search
+dependencies[] = og_filter_search
+features[ctools][] = strongarm:strongarm:1
+features[features_api][] = api:2
+features[variable][] = search_active_modules
+features[variable][] = search_default_module
+features_exclude[dependencies][ctools] = ctools
+features_exclude[dependencies][strongarm] = strongarm

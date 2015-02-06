@@ -28,7 +28,7 @@ function query_interface_form_mica_query_edit_form_alter(&$form, $form_state, $f
     // Make sure the name field is filled
     // This is needed because the name field is required
     if (!$form["general"]["name"]["#default_value"])
-        $form["general"]["name"]["#default_value"] = "Query " . mktime() . "." . rand(0, 10000);
+        $form["general"]["name"]["#default_value"] = "Query " . time() . "." . rand(0, 10000);
     
     
     // Hide the description and publish checkbox from the screen
@@ -294,7 +294,7 @@ function _query_interface_new_query($form_state) {
 
     // Create a set of values to store the query
     $values = array();
-    $values['name'] = "Query " . mktime() . "." . rand(0, 10000);
+    $values['name'] = "Query " . time() . "." . rand(0, 10000);
     $values['description'] = "";
     $values['dataset_id'] = $dataset_node->nid;
     $values['cross_variable_id'] = null;

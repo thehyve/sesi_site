@@ -71,7 +71,7 @@ class ServicesOpalFormatter implements ServicesFormatterInterface {
           }
         }
       }
-
+      $filename = str_replace(' ', '_', $filename);
       drupal_add_http_header('Content-Disposition', "attachment; filename=$filename.xml");
       $this->doc->formatOutput = TRUE;
       return $this->doc->saveXml();
@@ -256,16 +256,21 @@ class ServicesOpalFormatter implements ServicesFormatterInterface {
   }
 
   private function addAttribute($attributes, $name, $valueType, $lang, $value, $namespace = NULL, $use_cdata = FALSE) {
+    
+    // List of attributes that must have no 'namespace' and 'locale'
+    // since it will cause issues in Opal.
+    $no_namespace_attributes = array("strict_categories", "script", "vocabulary_url");
+    
     if (empty($value)) {
       return;
     }
     $attribute = $attributes->appendChild($this->doc->createElement('attribute'));
     $attribute->setAttribute('name', $name);
     $attribute->setAttribute('valueType', $valueType);
-    if (!empty($lang)) {
+    if (!empty($lang) && !in_array($name, $no_namespace_attributes)) {
       $attribute->setAttribute('locale', $lang);
     }
-    if (!empty($namespace)) {
+    if (!empty($namespace) && !in_array($name, $no_namespace_attributes)) {
       $attribute->setAttribute('namespace', $namespace);
     }
     $attribute->appendChild($use_cdata ? $this->doc->createCDATASection($value) : $this->doc->createTextNode($value));

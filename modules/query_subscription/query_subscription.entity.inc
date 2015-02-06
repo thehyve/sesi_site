@@ -119,8 +119,8 @@ class QuerySubscription extends Entity {
   }
 
   /**
-   * This method finds any significant differences for this subscription if a check is due. If this subscription is not
-   * yet due to be checked returns silently. If differences are found the subscription's timestamp is updated and the
+   * This method returns the differences for this subscription if a check is due and they are significant.. If this subscription is not
+   * yet due to be checked returns NULL silently. If differences are found the subscription's timestamp is updated and the
    * new result is stored. If the structure of the query was changed since the last run, the stored result and timestamp
    * is updated but no changes are reported.
    *
@@ -132,72 +132,75 @@ class QuerySubscription extends Entity {
     $new_result = $this->results();
 
     if(is_null($this->updated) || is_null($this->last_result)) {
-      $this->update($new_result);
-      return array();
+      $this->update();
+      return NULL;
     }
 
     $old_result = $this->old_results();
 
-    $changes = array();
-    $structurechanged = ! $this->recursiveCompare($old_result, $new_result, array('connection', 'term', 'category'), $changes);
-
-    $over_threshold = false;
-    foreach($changes as $change) {
-      $max_diff = $change['old_value'] * $this->threshold;
-      if (abs($change['new_value'] - $change['old_value']) > $max_diff) {
-        $over_threshold = true;
-        break;
-      }
-    }
-    if (!$over_threshold) {
-      $changes = array();
-    }
-
-    $changes = array_filter($changes, function($c) {return $c['connection'] != '_matched_sum';});
-
-    if($structurechanged || !empty($changes)) {
+    if(count(array_filter($old_result, function($a) {return !is_array($a);})) !== 0) {
+      // stored result is in an older format
       $this->update();
+      return NULL;
     }
 
-    if($structurechanged) {
-      return array();
-    } else {
-      return $changes;
+    if($this->resultStructureChanged($old_result['_all'], $new_result['_all'])) {
+      $this->update();
+      return NULL;
     }
+
+    $change = array();
+
+    $change['studies_removed'] = array_diff_key($old_result, $new_result);
+    $change['studies_added'] = array_diff_key($new_result, $old_result);
+    $significant = !empty($change['studies_added']) or !empty($change['studies_removed']);
+
+    foreach(array_keys($old_result['_all']['_matched']) as $term) {
+      $old = $old_result['_all']['_matched'][$term];
+      $new = $new_result['_all']['_matched'][$term];
+      $significant |= abs($old - $new) > $old * $this->threshold;
+      if($significant) break;
+    }
+
+    $change['old_matched'] = $old_matched = $old_result['_all']['_matched']['_all'];
+    $change['new_matched'] = $new_matched = $new_result['_all']['_matched']['_all'];
+
+    if(isset($old_result['_all']['_matched']['_cardinality'])) {
+      $change['old_cardinality'] = $old_cardinality = $old_result['_all']['_matched']['_cardinality'];
+      $change['new_cardinality'] = $new_cardinality = $new_result['_all']['_matched']['_cardinality'];
+    }
+
+    if(!$significant) {
+      // Don't update the stored result, we want to compare against it again the next time.
+      return NULL;
+    }
+
+    $this->update();
+    return $change;
   }
 
   /**
-   * Recursively compare two arrays. Any differences are reported in &$changed. $names must contain a list of names that
-   * are used as keys in &$changed elements to indicate each level of the array. Recursion will stop if the end of
-   * $names is reached.
-   *
-   * The return value (boolean) indicates if the structure of the two arrays matches. If the structure does not match,
-   * the function returns FALSE immediately without looking for further differences. If the structure matches returns
-   * TRUE. To match, every node in the array tree must have the same set of keys in $old and $new.
-   *
-   * @param array $old The old values
-   * @param array $new The new values
-   * @param array $names A list of names for each level of the compared values
-   * @param array $changed Array reference that will be filled with arrays describing changes. Each member array has as
-   *   keys the names from $names plus 'old_value' and 'new_value'.
-   * @param array $path Used internally, do not specify
-   * @return bool Whether the structure of $old and $new is the same
+   * Helper function to tell if both argument arrays have the same keys
+   * @param $first
+   * @param $second
+   * @return bool
    */
-  private function recursiveCompare($old, $new, $names, &$changed, $path = array()) {
-    if (!is_array($old) || !is_array($new) || count($names) == 0) {
-      if ($new != $old) {
-        $changed[] = $path + array('old_value' => $old, 'new_value' => $new);
-      }
-    } else {
-      $keyname = array_shift($names);
-      if (count($old) != count($new)) return false;
-      foreach ($old as $key => $old_value) {
-        if (!isset($new[$key])) return false;
-        $ret = $this->recursiveCompare($old_value, $new[$key], $names, $changed, $path + array($keyname => $key));
-        if (!$ret) return false;
+  function sameKeys($first, $second) {
+    return is_array($first) and is_array($second) and
+      count(array_diff_key($first, $second)) === 0 and
+      count(array_diff_key($second, $first)) === 0;
+  }
+
+  function resultStructureChanged($old, $new) {
+    if(!$this->sameKeys($old, $new)) {
+      return TRUE;
+    }
+    foreach($old as $variable => $terms) {
+      if(!$this->sameKeys($old[$variable], $new[$variable])) {
+        return TRUE;
       }
     }
-    return true;
+    return FALSE;
   }
 
   /**
@@ -211,26 +214,26 @@ class QuerySubscription extends Entity {
 
     $ret = array();
     $ret['dataset'] = node_load($query->dataset_id);
-    $ret['dataset_expiration_date'] = null;
-    try {
-      $expiration_date = $ret['dataset']->field_expiration_date['und'][0]['value'];
-      if(!empty($expiration_date)) {
-        $ret['dataset_expiration_date'] = new DateTime($expiration_date);
-      }
-    } catch(Exception $e) {
-      // leave dataset_expiration_date null
+    if(isset($ret['dataset']->field_expiration_date['und'][0]['value'])) {
+      $ret['dataset_expiration_date'] = new DateTime($ret['dataset']->field_expiration_date['und'][0]['value']);
+      //$ret['connectors'] = $ret['terms'] = array();
+    } else {
+      $ret['dataset_expiration_date'] = null;
+      // Accessing this on an expired dataset generates an error message
+      //$ret['connectors'] = self::id_map(mica_connector_query_multiple($query->dataset_id));
+      $ret['terms'] = mica_query_term_query($query);
     }
-    $ret['connectors'] = $ret['terms'] = array();
+    /*$ret['connectors'] =*/ $ret['terms'] = array();
     if (is_null($ret['dataset_expiration_date'])) {
       // Accessing this on an expired dataset generates an error message
-      $ret['connectors'] = self::id_map(mica_connector_query_multiple($query->dataset_id));
+      //$ret['connectors'] = self::id_map(mica_connector_query_multiple($query->dataset_id));
       $ret['terms'] = mica_query_term_query($query);
     }
 
-    $ret['studies'] = array();
-    foreach($ret['connectors'] as $connid => $conn) {
-      $ret['studies'][$connid] = node_load($conn->study_id);
-    }
+    //$ret['studies'] = array();
+    //foreach($ret['connectors'] as $connid => $conn) {
+    //  $ret['studies'][$connid] = node_load($conn->study_id);
+    //}
 
     $ret['term_variables'] = array();
     foreach ($ret['terms'] as $tid => $term) {
@@ -238,7 +241,6 @@ class QuerySubscription extends Entity {
     }
     $ret['cross_variable'] = node_load($query->cross_variable_id);
 
-//    $categories = array('_all' => 'total', 'total' => 'total', '_matched' => 'matched');
     $ret['categories'] = array();
     if ($ret['cross_variable']) {
       foreach (entity_metadata_wrapper('node', $ret['cross_variable'])->field_variable_categories->value() as $cat) {
@@ -247,6 +249,11 @@ class QuerySubscription extends Entity {
     }
 
     return $ret;
+  }
+
+  static function study_for_connection_id($connId) {
+    $connection = node_load($connId);
+    return node_load($connection->study_id);
   }
 
   /**
@@ -263,7 +270,6 @@ class QuerySubscription extends Entity {
 
     if(is_null($this->cached_results)) {
       $res = query_subscription_query_result($this->query());
-      $res['_matched_sum'] = array_sum(array_map(function($a) {return $a['_matched']['_all'];}, $res));
       $this->cached_results = $res;
     }
     return $this->cached_results;

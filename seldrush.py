@@ -182,13 +182,17 @@ class Drush(SeleniumBase):
 
         chkbox = self.css("#edit-4-access-user-contact-forms")
         self.setcheckbox(chkbox, True)
+
+        chkbox = self.css("#edit-4-access-user-profiles")
+        self.setcheckbox(chkbox, True)
  
         #disable permissions
-        entities=['page','forum','data-access-review','documents']
+        entities=['page','forum','data-access-review','documents','teleconference','blog']
         actions =['create','edit-own','edit-any','delete-own','delete-any']
         for ent in entities:
             for act in actions:
-                self.setcheckbox(self.css("#edit-4-%s-%s-content" % (act,ent)), False)                
+                self.setcheckbox(self.css("#edit-4-%s-%s-content" % (act,ent)), False)
+
         #activate permissions
         entities=['contact']
         actions =['create','edit-own','edit-any','delete-own','delete-any']
@@ -253,7 +257,42 @@ class Drush(SeleniumBase):
         self.setcheckbox(chkbox, True)
         self.clickon('#edit-submit')
 
+
+    def changeCommunityProjectVisibilityDefault(self):
+        self.sd.get(self.base_url + "/mica/?q=admin/structure/types/manage/community/fields/field_project_visibility")
+        radio = self.sd.find_element_by_css_selector("#edit-field-project-visibility-und-0")
+        radio.click()
+        self.clickon('#edit-submit')
+
+    def disablePromoteToFrontPage(self):
+        self.sd.get(self.base_url + "/mica/?q=admin/structure/types/manage/community")
+
+        elems = self.sd.find_elements_by_xpath("//strong[contains(., 'Publishing options')]")
+        if len(elems)==0:
+            raise NoSuchElementException("Cannot find tab")
+        tab = elems[0]
+        tab.click()
+
+        chkbox = self.css("#edit-node-options-promote")
+        self.setcheckbox(chkbox, False)
+
+        self.clickon('#edit-submit')
+
+
 if __name__ == "__main__":
+
+    print '''
+                    (                 )
+          (   (     )\ )           ( /(
+     (    )\  )\ ) (()/(   (       )\())
+ (   )\  ((_)(()/(  /(_)) ))\  (  ((_)\\
+ )\ ((_)  _   ((_))(_))  /((_) )\  _((_)
+((_)| __|| |  _| | | _ \(_))( ((_)| || |
+(_-<| _| | |/ _` | |   /| || |(_-<| __ |
+/__/|___||_|\__,_| |_|_\ \_,_|/__/|_||_|
+
+
+    '''
 
     try:
        if len(sys.argv) == 4:
@@ -270,9 +309,9 @@ if __name__ == "__main__":
            suite.changePermCommunity()
            suite.changeEnableContactForm()
            suite.selectCaptchaContactForm()
-           #this still needs test, there is a bug on selenium
-           #suite.createLinksOnCommunityHome()
+           suite.changeCommunityProjectVisibilityDefault()
+           suite.disablePromoteToFrontPage()
 
     finally:
-        suite.destroy();
+        suite.destroy()
 

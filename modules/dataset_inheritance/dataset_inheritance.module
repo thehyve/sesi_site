@@ -20,6 +20,8 @@
  * 
  *   dataset_inheritance_node_presave
  *      resetting the variable_inherited flag when editing a variable
+ *      also associating variables and study variable attributes to the same 
+ *          communities as the datasets and variables they belong to
  * 
  *   dataset_inheritance_form_alter
  *      Adds a button 'update inherited fields' to the edit dataset form. When
@@ -91,7 +93,7 @@ function dataset_inheritance_node_insert($node) {
         return;
     }
 
-    $added_variable_ids = _dataset_inheritance_clone_variables_from_parent($wrapper, $parent_nid, $wrapper->field_inherit_permissions->value());
+    $added_variable_ids = _dataset_inheritance_clone_variables_from_parent($wrapper, $parent_nid);
     $num_variables = count( $added_variable_ids );
     if ( $num_variables > 0 ) {
         drupal_set_message(t("Added @entries variables.", array('@entries' => $num_variables)), 'status');
@@ -124,16 +126,104 @@ function dataset_inheritance_node_update($node) {
 }
 
 /**
- * This hook is called before saving a new variable, and is used to reset
+ * This hook is called before saving a new node, and is used to reset
  * the variable_inherited flag
  * @param type $node
  * @return void 
  */
 function dataset_inheritance_node_presave($node) {
-    if( $node->type == 'variable' && !$node->is_new ) {
-        $wrapper = entity_metadata_wrapper( 'node', $node );
-        _dataset_inheritance_mark_variable_as_not_inherited( $wrapper );
+    
+    
+    // Mark variable as not inherited as it has been changed
+    if ($node->type == 'variable' && !$node->is_new) {        
+        // Get entity wrapper
+        $wrapper = entity_metadata_wrapper('node', $node);
+        // Mark as not inherited
+        _dataset_inheritance_mark_variable_as_not_inherited($wrapper);
     }
+    
+    // Associate the variables with the same og_groups as the dataset
+    // that it belongs to
+    if ($node->type == 'dataset') {
+        // Get entity wrapper
+        $dataset_wrapper = entity_metadata_wrapper('node', $node);        
+        // Check if dataset has variables
+        if (isset($dataset_wrapper->field_dataset_variables)) {
+            // get variables
+            $arr_variables = $dataset_wrapper->field_dataset_variables->value();
+            // if there're some variables
+            // synchronize OG permissions for each variables
+            if (sizeof($arr_variables) > 0) {
+                foreach ($arr_variables as $dataset_variable) {
+                    // get variable wrapper
+                    $variable_wrapper = entity_metadata_wrapper('node',
+                            $dataset_variable);
+                    // Make sure that all og_groups within the dataset are also
+                    // available in the variable.
+                    _dataset_inheritance_synchronize_og_groups($dataset_wrapper,
+                            $variable_wrapper);
+                    // Save the variable
+                    $variable_wrapper->save();
+                }
+            }         
+        }         
+    }    
+    
+    // Associate the variable with the same og_groups as the dataset
+    // that it belongs to
+    if ($node->type == 'variable') {
+        // Get entity wrapper
+        $variable_wrapper = entity_metadata_wrapper('node', $node);                
+        // Retrieve the dataset wrapper
+        $dataset_node = $variable_wrapper->field_dataset->value();
+        $dataset_wrapper = entity_metadata_wrapper('node', $dataset_node);
+
+        // Make sure that all og_groups within the dataset are also
+        // available in the variable.
+        _dataset_inheritance_synchronize_og_groups($dataset_wrapper, $variable_wrapper);
+    }
+        
+    // Associate the variable with the same og_groups as the dataset
+    // that it belongs to
+    if ($node->type == 'study_variable_attributes') {
+        // Get entity wrapper
+        $sva_wrapper = entity_metadata_wrapper('node', $node);                
+        // Retrieve the variable
+        $variable_node = $sva_wrapper->field_sva_variable->value();
+        $variable_wrapper = entity_metadata_wrapper('node', $variable_node);     
+
+        // Make sure that all og_groups within the variable are also
+        // available in the study variable attributes.
+        _dataset_inheritance_synchronize_og_groups($variable_wrapper, $sva_wrapper);
+    }    
+}
+
+/**
+ * Synchronize the og_group_ref for two nodes. The latter one will be associated 
+ * with at least those groups that the former one is associated with.
+ * @param entity_metadata_wrapper $wrapper_from entity_metadata_wrapper
+ * @param entity_metadata_wrapper $wrapper_to 
+ */
+function _dataset_inheritance_synchronize_og_groups( $wrapper_from, $wrapper_to ) {
+    $from_groups = $wrapper_from->og_group_ref->value();
+    $to_groups = $wrapper_to->og_group_ref->value();
+
+    foreach( $from_groups as $group ) {
+        // See if this group was already selected. If not, add it
+        $found = false;
+        foreach( $to_groups as $group_selected ) {
+            if( $group->vid == $group_selected->vid ) {
+                $found = true;
+                break;
+            }
+        }
+        if( !$found ) {
+            $to_groups[] = $group;
+        }
+    }
+
+    // Update the og_groups ref
+    $wrapper_to->og_group_ref->set( $to_groups );
 }
 
 /**
@@ -153,7 +243,7 @@ function dataset_inheritance_form_alter(&$form, $form_state, $form_id) {
         $newbutton = array(
             '#type' => 'submit',
             '#value' => 'Update inherited fields',
-            '#weight' => $form['field_inherit_permissions']['#weight'] + 1,
+            '#weight' => $form['field_dataset_parent']['#weight'] + 1,
             '#submit' => array( 'node_form_submit', 'dataset_inheritance_update_inherited_fields' )
         );
 
@@ -272,7 +362,7 @@ function _dataset_inheritance_update_inheritance($child_dataset, $parent_dataset
     
     // Only clone variables from the parent, if one is given
     if( $parent_dataset_id ) 
-        _dataset_inheritance_clone_variables_from_parent($child_dataset, $parent_dataset_id, $child_dataset->field_inherit_permissions->value());
+        _dataset_inheritance_clone_variables_from_parent($child_dataset, $parent_dataset_id);
 }
 
 /**
@@ -314,7 +404,7 @@ function _dataset_inheritance_delete_inherited_variables($child_dataset) {
  * @param boolean $inherit_permissions
  * @return Number of variables cloned
  */
-function _dataset_inheritance_clone_variables_from_parent($child_dataset, $parent_dataset_id, $inherit_permissions) {
+function _dataset_inheritance_clone_variables_from_parent($child_dataset, $parent_dataset_id) {
     //get all variables corresponding to parent_nid
     $query = new EntityFieldQuery();
     $query->entityCondition('entity_type', 'node')
@@ -356,12 +446,6 @@ function _dataset_inheritance_clone_variables_from_parent($child_dataset, $paren
             // Remove ids to clone the field
             unset($variable_node->nid);
             unset($variable_node->vid);
-            
-            // Remove group reference if the permissions are not to be inherited
-            // By default, the group reference is copied
-            if( !$inherit_permissions ) {
-                $variable_wrapper->og_group_ref->set( array() );
-            }
             
             // Store the new variable with the new child dataset
             $variable_wrapper->field_dataset->set( $child_dataset->getIdentifier() );

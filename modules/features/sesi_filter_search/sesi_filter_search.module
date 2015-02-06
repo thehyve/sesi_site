@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Sesi Filter Search feature.
+ */
+
+include_once 'sesi_filter_search.features.inc';

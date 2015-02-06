@@ -1,0 +1,64 @@
+<?php
+
+/**
+ * Change default values and hide fields related to og_group
+ * when user is creating new content. This facilitates og content creation.
+ *
+ * @param $form
+ * @param $form_state
+ * @param $form_id
+ */
+function prepopulate_group_ref_form_alter(&$form, &$form_state, $form_id) {
+
+    watchdog(WATCHDOG_DEBUG, 'prepopulate_group_ref_form_alter '.$form);
+    if ($form_id != 'variable_node_form' &&
+        $form_id != 'dataset_node_form' &&
+        $form_id != 'article_node_form' &&
+        $form_id != 'event_node_form' &&
+        $form_id != 'study_node_form' &&
+        $form_id != 'community_document_node_form' ) {
+
+        return;
+    }
+
+    // if it's a new node, don't do anything
+    $node = $form_state['node'];
+    if (isset($node->nid) && !isset($node->is_new)) {
+        return;
+    }
+
+    // Check to see if $user has the administrator role, and skip hiding fields..
+    global $user;
+    $isadmin = (in_array('administrator', array_values($user->roles)));
+
+
+    //specific exception for variables, when dataset is specified..
+    if( $form_id == 'variable_node_form' ) {
+
+        if(isset($_GET['dataset']) && is_numeric($_GET['dataset']) && !$isadmin) {
+            $form['og_group_ref']['#access'] = FALSE;
+            //attention: prepopulation is done in dataset_inheritance_node_presave function
+        }
+
+    }
+
+    // if we came from community homepage, then the og_group_ref is specified and
+    // we can add it as default value
+    if(isset($_GET['og_group_ref']) && is_numeric($_GET['og_group_ref'])) {
+        //set default value
+        $form['og_group_ref'][LANGUAGE_NONE][0]['default']['#default_value'] = array($_GET['og_group_ref']);
+
+        if(!$isadmin) {
+            $form['og_group_ref']['#access'] = FALSE;
+        }
+
+    }
+
+    if(!$isadmin) {
+        //try to hide always group_content_access
+        //(user will use always the default)
+        if (isset($form['group_content_access'])) {
+            $form['group_content_access']['#access'] = FALSE;
+        }
+    }
+}
