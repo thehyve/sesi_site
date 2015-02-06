@@ -35,9 +35,9 @@ function sesi_variable_content_type_field_default_field_bases() {
       ),
       'allowed_values_function' => '',
       'field_description_infos' => array(
-        'field_description' => 1,
-        'field_description_body' => 'Validate categories',
-        'field_description_label' => 'Validate categories',
+        'field_description' => 0,
+        'field_description_body' => '',
+        'field_description_label' => '',
         'field_description_value_type' => 'boolean',
       ),
       'profile2_private' => FALSE,
