@@ -170,7 +170,6 @@ ensure_mod sesi_addtogroup
 ensure_mod sesi_notifyexpiration
 ensure_mod sesi_membership_fields
 ensure_mod sesi_og_addcontent
-ensure_mod sesi_rules
 
 # Download Autologout module dependencies and enable it
 drush --yes dl autologout
@@ -252,6 +251,9 @@ ensure_feat sesi_filter_search
 
 # Custom Field JS 
 ensure_mod custom_field_js
+
+# Variable form settings
+ensure_mod sesi_variable_form
 
 # Save protection button
 ensure_mod save_protection_button
