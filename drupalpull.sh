@@ -253,7 +253,7 @@ ensure_feat sesi_filter_search
 ensure_mod custom_field_js
 
 # Variable form settings
-ensure_mod sesi_variable_form
+ensure_feat sesi_variable_form
 
 # Save protection button
 ensure_mod save_protection_button
