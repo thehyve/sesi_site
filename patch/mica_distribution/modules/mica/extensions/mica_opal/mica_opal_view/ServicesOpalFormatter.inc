@@ -71,7 +71,7 @@ class ServicesOpalFormatter implements ServicesFormatterInterface {
           }
         }
       }
-      $filename = str_replace(' ', '_', $filename);
+
       drupal_add_http_header('Content-Disposition', "attachment; filename=$filename.xml");
       $this->doc->formatOutput = TRUE;
       return $this->doc->saveXml();
@@ -128,7 +128,8 @@ class ServicesOpalFormatter implements ServicesFormatterInterface {
     if (isset($wrapper->unit)) {
       $variable_element->setAttribute('unit', $wrapper->unit->value());
     }
-
+    
+    
     // repeatable
     if ($wrapper->field_repeatable->value() == '1') {
       $variable_element->setAttribute('repeatable', 'true');
@@ -139,7 +140,23 @@ class ServicesOpalFormatter implements ServicesFormatterInterface {
     }
     $attributes = $variable_element->appendChild($this->doc->createElement('attributes'));
     $this->addAttribute($attributes, 'uuid', 'text', '', $wrapper->uuid->value(), self::MAELSTROM_NS);
-
+    
+    // min & max
+    if ($wrapper->field_validate_min->value()) {
+        $this->addAttribute($attributes, 'min_value', 'text', '', 
+                $wrapper->field_validate_min->value());
+    }
+    if ($wrapper->field_validate_max->value()) {
+        $this->addAttribute($attributes, 'max_value', 'text', '', 
+                $wrapper->field_validate_max->value());
+    }    
+    // past date
+    if ($wrapper->field_validate_past_date->value()) {
+        $this->addAttribute($attributes, 'past_date', 'text', '', 
+                $wrapper->field_validate_past_date->value());         
+    }
+    
+    
     $script = "$('{$wrapper->title->value()}')";
     $this->addAttribute($attributes, 'script', 'text', '', $script);
 
@@ -259,11 +276,14 @@ class ServicesOpalFormatter implements ServicesFormatterInterface {
     
     // List of attributes that must have no 'namespace' and 'locale'
     // since it will cause issues in Opal.
-    $no_namespace_attributes = array("strict_categories", "script", "vocabulary_url");
+    $no_namespace_attributes = array("strict_categories", "script", 
+        "vocabulary_url", "max_value", "min_value", "past_date");
     
+    // return empty if value is empty
     if (empty($value)) {
       return;
     }
+    
     $attribute = $attributes->appendChild($this->doc->createElement('attribute'));
     $attribute->setAttribute('name', $name);
     $attribute->setAttribute('valueType', $valueType);
