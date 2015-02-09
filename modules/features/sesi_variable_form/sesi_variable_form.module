@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Sesi Variable Form feature.
+ */
+
+include_once 'sesi_variable_form.features.inc';

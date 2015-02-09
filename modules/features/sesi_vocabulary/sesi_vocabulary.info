@@ -1,11 +1,14 @@
 name = Sesi Vocabulary
 core = 7.x
 package = Sesi
-version = 7.x-1.0-beta1
+version = 7.x-1.1
 project = sesi_vocabulary
 dependencies[] = text
 dependencies[] = variable
 features[features_api][] = api:2
+features[features_override_items][] = field_instance.node-variable-field_vocabulary_url
+features[features_overrides][] = field_instance.node-variable-field_vocabulary_url.widget|weight
 features[field_base][] = field_vocabulary_url
 features[field_instance][] = node-variable-field_vocabulary_url
 features_exclude[dependencies][features] = features
+features_exclude[dependencies][sesi_vocabulary] = sesi_vocabulary

@@ -19,7 +19,7 @@ function sesi_variable_content_type_field_default_field_instances() {
       ),
     ),
     'deleted' => 0,
-    'description' => 'Validate all the values against categories list',
+    'description' => '<br>Validate all the values against categories list',
     'display' => array(
       'banner_area' => array(
         'label' => 'above',
@@ -59,7 +59,7 @@ function sesi_variable_content_type_field_default_field_instances() {
         'weight' => 0,
       ),
     ),
-    'display_label' => '',
+    'display_label' => 'Validate categories',
     'entity_type' => 'node',
     'field_name' => 'field_validate_categories',
     'label' => 'Validate categories',
@@ -72,13 +72,13 @@ function sesi_variable_content_type_field_default_field_instances() {
       'module' => 'options',
       'settings' => array(),
       'type' => 'options_buttons',
-      'weight' => 6,
+      'weight' => 105,
     ),
   );
 
   // Translatables
   // Included for use with string extractors like potx.
-  t('Validate all the values against categories list');
+  t('<br>Validate all the values against categories list');
   t('Validate categories');
 
   return $field_instances;

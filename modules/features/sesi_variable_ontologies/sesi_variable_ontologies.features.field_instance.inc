@@ -70,13 +70,13 @@ function sesi_variable_ontologies_field_default_field_instances() {
         'content_taxonomy_opt_groups' => FALSE,
       ),
       'type' => 'options_select',
-      'weight' => 64,
+      'weight' => 109,
     ),
   );
 
   // Translatables
   // Included for use with string extractors like potx.
-  t('taxonomy');
+  t('Taxonomy');
 
   return $field_instances;
 }
