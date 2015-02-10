@@ -222,7 +222,7 @@ class MicaDatasetOpalConnectionClass extends MicaDatasetAbstractConnection imple
       CURLOPT_SSLCERT => $this->realpath(PUBLIC_KEY_FILE),
       CURLOPT_SSLKEY => $this->realpath(PRIVATE_KEY_FILE),
       CURLOPT_CONNECTTIMEOUT => 10,
-      CURLOPT_TIMEOUT => 60,
+      CURLOPT_TIMEOUT => 15,
     );
 
     return $client;
