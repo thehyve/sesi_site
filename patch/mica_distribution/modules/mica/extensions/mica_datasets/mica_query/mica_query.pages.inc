@@ -223,10 +223,12 @@ function mica_query_edit_form($form, &$form_state) {
 
   _mica_query_edit_form_remove_term($form_state, $data);
 
+  $cardinality_var = variable_get_value('mica_query_patients_cardinality_variable');
+
   // Add a query term by selecting a variable
   $variable_options = array();
   foreach (mica_dataset_dataset_variables($dataset_node->nid) as $variable) {
-    if (node_access('view', $variable)) {
+    if (node_access('view', $variable) and $variable->title !== $cardinality_var) {
       $variable_options[$variable->nid] = $variable->title;
     }
   }
@@ -287,7 +289,7 @@ function mica_query_edit_form($form, &$form_state) {
   $categorical_variables = mica_datasets_find_categorical_variables($dataset_node->nid);
   $cross_options = array();
   foreach ($categorical_variables as $variable) {
-    if (node_access('view', $variable)) {
+    if (node_access('view', $variable) and $variable->title !== $cardinality_var) {
       $cross_options[$variable->nid] = $variable->title;
     }
   }
@@ -568,7 +570,12 @@ function _mica_query_terms_submit($query, &$form_state) {
     if ($datum['id'] == 0) {
       // new query term
       $values = _mica_query_extract_new_query_term_values($query, $datum);
-      mica_query_term_insert($values);
+      $variable = node_load($values['variable_id']);
+      if($variable->title === variable_get_value('mica_query_patients_cardinality_variable')) {
+        form_set_error('variables', t('Invalid variable, variable \'%title\' cannot be queried on.', array('%title' => $variable->title)));
+      } else {
+        mica_query_term_insert($values);
+      }
     }
     else {
       $term = mica_query_term_load($datum['id']);
@@ -870,12 +877,13 @@ function _mica_query_result_table($dataset_node, $query, $cross_variable, $add_l
   $mica_connectors = mica_connector_query_multiple($dataset_node->nid, TRUE);
   $terms = mica_query_term_query($query);
 
-  $cardinality_var = NULL;
-  $use_donors = FALSE;
+  $cardinality_var = variable_get_value('mica_query_patients_cardinality_variable');
   $variable_names = array_map(function($var) {return $var->title;}, mica_dataset_dataset_variables($dataset_node->nid));
-  if(!$is_cross && in_array('donorID', $variable_names)) {
-    $cardinality_var = 'donorID';
+  if(!$is_cross && in_array($cardinality_var, $variable_names)) {
     $use_donors = TRUE;
+  } else {
+    $use_donors = FALSE;
+    $cardinality_var = NULL;
   }
 
   $headers = array();
