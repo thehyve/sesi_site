@@ -44,6 +44,7 @@ HIGHER LEVEL FUNCTIONS
 
 def disable_critical():
     force_disable_module("og_moderation")
+    force_disable_module("og_context")
     force_disable_module("entityreference")
 
 
