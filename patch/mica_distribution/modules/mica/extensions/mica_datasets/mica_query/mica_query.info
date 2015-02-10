@@ -4,6 +4,7 @@ core = 7.x
 package = Mica
 dependencies[] = features
 dependencies[] = mica_connector
+dependencies[] = variable
 features[features_api][] = api:2
 features[user_permission][] = create edit delete own dataset query
 features[user_permission][] = edit delete any dataset query

@@ -418,9 +418,9 @@ function query_subscription_query_result($query) {
     $cross_variable = node_load($query->cross_variable_id);
 
     if(empty($cross_variable)) {
-      $cardinality_var = NULL;
-      if(in_array('donorID', $variable_names)) {
-        $cardinality_var = 'donorID';
+      $cardinality_var = variable_get_value('mica_query_patients_cardinality_variable');
+      if(!in_array($cardinality_var, $variable_names)) {
+        $cardinality_var = NULL;
       }
       $result = $connector->query($terms, $cardinality_var);
       $result['_all'] = $result['total'];

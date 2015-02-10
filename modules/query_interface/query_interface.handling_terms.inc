@@ -91,7 +91,15 @@ function query_interface_query_term_edit_page($node, $query, $term, $cross_varia
 function query_interface_add_query_term_modal_page($js, $node, $query, $variable, $cross_variable = NULL) {
     // Create a term based on the variable
     $values = _query_interface_extract_new_query_term_values($query, $variable);
-    
+
+    if($variable->title === variable_get_value('mica_query_patients_cardinality_variable')) {
+        // This variable may not be queried on.
+        form_set_error('variables', t('Invalid variable, the specified variable cannot be queried on.'));
+        $cmd = array(ctools_modal_command_dismiss(), ctools_ajax_command_submit("#mica-query-edit-form"));
+        print ajax_render($cmd);
+        return NULL;
+    }
+
     // Mark the term as being added but not yet saved. We will delete 
     // this term again when it is shown on screen without being saved.
     // That could happen if the user clicks 'cancel' or closes the screen

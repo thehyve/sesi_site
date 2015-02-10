@@ -82,7 +82,6 @@ function mica_datasets_query_term_edit_form_submit($form, &$form_state) {
   $dataset_node = $form_state['build_info']['args'][0];
   $query = $form_state['build_info']['args'][1];
   $term = $form_state['build_info']['args'][2];
-  $cross_variable = $form_state['build_info']['args'][4];
 
   $impl = $term->termImpl();
   $impl->submit($form, $form_state);

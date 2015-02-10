@@ -7,6 +7,23 @@
 include_once('mica_query.features.inc');
 
 /**
+ * Implements hook_variable_info().
+ */
+function mica_query_variable_info() {
+  $var = array();
+  $var['mica_query_patients_cardinality_variable'] = array(
+    'title' => t('Patient ID query variable'),
+    'description' => t("A variable in a query that has this name won't be directly query-able, but it will be used to calculate the number of matching patients in a query."),
+    'type' => 'string',
+    'default' => 'donorID',
+    'group' => 'mica_configuration',
+    'localize' => FALSE,
+    'token' => TRUE
+  );
+  return $var;
+}
+
+/**
  * Implements hook_entity_info().
  */
 function mica_query_entity_info() {
