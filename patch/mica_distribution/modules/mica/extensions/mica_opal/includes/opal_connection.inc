@@ -183,6 +183,8 @@ class MicaDatasetOpalConnectionClass extends MicaDatasetAbstractConnection imple
       $body = $e->getResponse()->body;
     }
 
+    watchdog('mica_opal', 'Sucessfully queried %url', array('%url' => $url), WATCHDOG_INFO);
+
     return $body;
   }
 
