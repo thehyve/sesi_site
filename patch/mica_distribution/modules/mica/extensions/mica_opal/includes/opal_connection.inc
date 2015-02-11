@@ -237,9 +237,9 @@ class MicaDatasetOpalConnectionClass extends MicaDatasetAbstractConnection imple
       $result = $this->esQueryApi->query($terms, $cardinality);
     } catch (HttpClientException $e) {
       if(!is_null($cardinality)) {
-        watchdog('mica_opal', "Error connecting to Opal and cardinality queries are not supported in the fallback query service. @e",
+        watchdog('mica_opal', "Error connecting to Opal (and cardinality queries are not supported in the fallback query service). @e",
           array('@e' => $e), WATCHDOG_ERROR);
-        drupal_set_message("Error connecting to Opal and cardinality queries are not supported in the fallback query service. $e", 'error');
+        throw $e;
       }
       $result = $this->esQueryDefault->query($terms);
     }

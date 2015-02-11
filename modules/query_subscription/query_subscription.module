@@ -374,7 +374,7 @@ function query_subscription_poll($arg) {
             array('@uid' => $uid, '@id' => $id, '@ex' => $msg), WATCHDOG_NOTICE);
         } else {
           watchdog('query_subscription',
-            'Caught exception while looking for updates on subscribed query. Subscription id @id, uid @uid, exception:\n@ex',
+            "Caught exception while looking for updates on subscribed query. Subscription id @id, uid @uid, exception:\n@ex",
             array('@uid' => $uid, '@id' => $id, '@ex' => $e), WATCHDOG_ERROR);
         }
         continue;
