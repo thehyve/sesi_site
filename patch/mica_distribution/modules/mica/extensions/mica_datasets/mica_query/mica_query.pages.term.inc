@@ -73,6 +73,9 @@ function mica_datasets_query_term_edit_form($form, &$form_state) {
 }
 
 function mica_datasets_query_term_edit_form_validate($form, &$form_state) {
+  if($form_state['triggering_element']['#parents'][0] === 'cancel') {
+    return;
+  }
   $term_entity = $form_state['build_info']['args'][2];
   $impl = $term_entity->termImpl();
   $impl->validate($form, $form_state);
@@ -83,37 +86,40 @@ function mica_datasets_query_term_edit_form_submit($form, &$form_state) {
   $query = $form_state['build_info']['args'][1];
   $term = $form_state['build_info']['args'][2];
 
-  $impl = $term->termImpl();
-  $impl->submit($form, $form_state);
+  switch ($form_state['triggering_element']['#parents'][0]) {
+    case 'save':
+      $impl = $term->termImpl();
+      $impl->submit($form, $form_state);
 
-  // Mark the term as being saved by the user. 
-  if( $term->options && array_key_exists( "isSavedByUser", $term->options ) )
-    $term->options[ "isSavedByUser" ] = true;
-    
-  $errors = form_get_errors();
-  if (empty($errors)) {
-    switch ($form_state['triggering_element']['#parents'][0]) {
-      case 'save':
-        if (is_numeric($term->id)) {
-          $term->save();
-        }
-        else {
-          // cached term
-          MicaDatasetQueryManager::getCache($query)->updateTerm($term);
-        }
-        $form_state['complete'] = TRUE;
-        break;
-      case 'cancel':
-        $form_state['cancel'] = TRUE;
-        break;
-    }
-    
-    $origin = $form_state['input']['origin'];
-    if( $origin == "edit" ) {
-        $form_state['submit_parent_form'] = "#mica-query-edit-form";
-    } else {
-        $form_state['redirect'] = _mica_query_url($dataset_node, $query);    
-    }
+      // Mark the term as being saved by the user.
+      if( $term->options && array_key_exists( "isSavedByUser", $term->options ) ) {
+        $term->options["isSavedByUser"] = true;
+      }
+
+      $errors = form_get_errors();
+      if (!empty($errors)) {
+        // bail
+        return;
+      }
+
+      if (is_numeric($term->id)) {
+        $term->save();
+      } else {
+        // cached term
+        MicaDatasetQueryManager::getCache($query)->updateTerm($term);
+      }
+      $form_state['complete'] = TRUE;
+      break;
+    case 'cancel':
+      $form_state['cancel'] = TRUE;
+      break;
+  }
+
+  $origin = $form_state['input']['origin'];
+  if( $origin == "edit" ) {
+      $form_state['submit_parent_form'] = "#mica-query-edit-form";
+  } else {
+    $form_state['redirect'] = _mica_query_url($dataset_node, $query);
   }
 }
 
