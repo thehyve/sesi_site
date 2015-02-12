@@ -152,6 +152,7 @@ function sesi_my_queries_screen_views_default_views() {
   $handler->display->display_options['fields']['description']['id'] = 'description';
   $handler->display->display_options['fields']['description']['table'] = 'mica_query';
   $handler->display->display_options['fields']['description']['field'] = 'description';
+  $handler->display->display_options['fields']['description']['exclude'] = TRUE;  
   /* Field: Query subscription: ID */
   $handler->display->display_options['fields']['id_1']['id'] = 'id_1';
   $handler->display->display_options['fields']['id_1']['table'] = 'query_subscription';
