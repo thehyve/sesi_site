@@ -43,7 +43,7 @@ function query_interface_form_mica_datasets_query_term_edit_form_alter(&$form, $
 function query_interface_query_term_edit_modal_page($js = NULL, $node, $query, $term, $cross_variable = NULL) {
   if ($js) {
     $impl = $term->termImpl();
-    $title = t('Edit !term', array('!term' => $impl->getFieldName()));
+    $title = t('Edit !term term', array('!term' => $impl->getFieldName()));
     $origin = "edit";
     query_interface_modal_form_term_render($title, 'mica_datasets_query_term_edit_form', $node, $query, $term, $origin, $cross_variable);
   }
