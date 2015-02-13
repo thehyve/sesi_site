@@ -381,7 +381,7 @@ function beididp_authentication($response) {
 
     $userinfo = array(
       'name' => $nick,
-      'pass' => user_password(),
+      'pass' => $pass,
       'init' => $nick,
       'status' => 1,
       'access' => REQUEST_TIME
