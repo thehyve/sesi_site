@@ -12,7 +12,6 @@ function sesi_dataset_redirect_features_override_default_overrides() {
   $overrides = array();
 
   // Exported overrides for: views_view
-  $overrides["views_view.community_by_dataset.display|page|display_options|path"] = 'community_by_dataset';
   $overrides["views_view.datasets.display|page|display_options|defaults|fields"] = FALSE;
   $overrides["views_view.datasets.display|page|display_options|fields"] = array(
     'nid' => array(
@@ -20,6 +19,7 @@ function sesi_dataset_redirect_features_override_default_overrides() {
       'table' => 'search_api_index_dataset_index',
       'field' => 'nid',
       'exclude' => TRUE,
+      'separator' => '',
       'link_to_entity' => 0,
     ),
     'title' => array(
