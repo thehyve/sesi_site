@@ -1,0 +1,5 @@
+name = Users profile
+description = Hides some fields from users profile if user is not admin
+package = Sesi
+core = 7.x
+#files[] = 

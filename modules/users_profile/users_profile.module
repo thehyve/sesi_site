@@ -1,0 +1,14 @@
+<?php
+function users_profile_preprocess_user_profile(&$vars) {
+    if (user_access('administer site configuration')) {
+        return;
+    }
+
+    global $user;
+    $requser = $vars['elements']['#account']->name;
+    if($user->name !== $requser) {
+        unset($vars['user_profile']['og_user_node']);
+    }
+    
+
+}

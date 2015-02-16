@@ -259,6 +259,9 @@ ensure_feat sesi_variable_form
 # Save protection button
 ensure_mod save_protection_button
 
+# Users profile
+ensure_mod users_profile
+
 # Remove an old content type and some fields.
 #drush --yes php-eval "node_type_delete('page');"
 #drush field-delete field_news_tags --bundle=news
