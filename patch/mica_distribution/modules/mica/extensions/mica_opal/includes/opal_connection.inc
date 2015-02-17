@@ -212,6 +212,7 @@ class MicaDatasetOpalConnectionClass extends MicaDatasetAbstractConnection imple
   }
 
   public function client() {
+    global $conf;
     $client = new HttpClient($formatter = FALSE);
 
     if (!isset($client->options['curlopts'])) {
@@ -219,13 +220,18 @@ class MicaDatasetOpalConnectionClass extends MicaDatasetAbstractConnection imple
     }
 
     $client->options['curlopts'] += array(
-      CURLOPT_SSL_VERIFYHOST => FALSE,
-      CURLOPT_SSL_VERIFYPEER => FALSE,
       CURLOPT_SSLCERT => $this->realpath(PUBLIC_KEY_FILE),
       CURLOPT_SSLKEY => $this->realpath(PRIVATE_KEY_FILE),
       CURLOPT_CONNECTTIMEOUT => 10,
       CURLOPT_TIMEOUT => 15,
     );
+
+    if(isset($conf['DEVELOPMENT_MODE']) && $conf['DEVELOPMENT_MODE']) {
+      $client->options['curlopts'] += array(
+        CURLOPT_SSL_VERIFYHOST => FALSE,
+        CURLOPT_SSL_VERIFYPEER => FALSE
+      );
+    }
 
     return $client;
   }
