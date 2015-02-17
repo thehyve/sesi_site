@@ -230,12 +230,14 @@ function dataset_access_form_form_alter(&$form, $form_state, $form_id) {
     }
   }
 
-  $form['group']['redirect_target'] = array(
-    '#type' => 'hidden',
-    '#title' => 'redirect_target',
-    '#value' => $query_path,
-  );
-  $form['actions']['submit']['#submit'][] = '_dataset_access_form_redirect_callback';
+  if(isset($query_path)) {
+    $form['group']['redirect_target'] = array(
+      '#type' => 'hidden',
+      '#title' => 'redirect_target',
+      '#value' => $query_path,
+    );
+    $form['actions']['submit']['#submit'][] = '_dataset_access_form_redirect_callback';
+  }
 }
 
 function _dataset_access_form_redirect_callback($form, &$form_state) {
