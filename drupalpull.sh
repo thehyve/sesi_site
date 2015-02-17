@@ -79,6 +79,8 @@ cd $DRUPAL_ROOT
 TABLEFOUND=`drush sqlq "SELECT count(*) FROM information_schema.TABLES WHERE (TABLE_SCHEMA = 'mica') AND (TABLE_NAME = 'contact');"|sed '1d'`
 if [ $TABLEFOUND -eq 0 ]; then
    echo "No contact table found; creating..."
+   drush --y dis sesi_contact_form
+   drush --y pm-uninstall sesi_contact_form
    drush --y dre contact
    drush en --y sesi_contact_form
 else
