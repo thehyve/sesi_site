@@ -33,7 +33,10 @@ if( typeof Sesi.QueryInterface == 'undefined' )
         
         // If no selection has been made, return immediately for performance reasons
         var fullTextSearchUsed = ( val != "" );
-        var treeSearchUsed = ( allItems.length != selectedTerms.length );
+        
+        // Check if tree search is used, indicated by when there're
+        // terms selected.
+        var treeSearchUsed = ( selectedTerms.length > 0 );
 
         // Retrieve IDs for those selected terms
         var selectedTermIds = $.map( selectedTerms, function(el,idx) { 

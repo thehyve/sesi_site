@@ -173,7 +173,7 @@ function _query_interface_create_aciTree_node( $node, $tree ) {
         "open" => false,
         "inode" => $hasChildren,
         "checkbox" => true,
-        "checked" => true,
+        "checked" => false,
         "branch" => $hasChildren ? $children : null,
     );
 }
