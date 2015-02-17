@@ -41,7 +41,15 @@ if( typeof Sesi.QueryOntologies.TaxonomyTree == 'undefined' )
                             }
 
                             // match the item
-                            return regexp.test(String(this.getLabel(item)));
+                            if( regexp.test(String(this.getLabel(item))) ) {
+                                // If this item matches, but none of the ancestors, 
+                                // expand the tree up to this item
+                                this.openPath(item);
+                                
+                                return true;
+                            } else {
+                                return false;
+                            }
                         } else {
                             // empty search, all matches
                             return true;
@@ -131,6 +139,11 @@ if( typeof Sesi.QueryOntologies.TaxonomyTree == 'undefined' )
                     }
                     searchTimer = setTimeout(function(){
                         lastSearchTerm = currentSearchTerm;
+
+                        // Close all nodes in the tree
+                        var firstItem = treeApi.first(null, true);
+                        treeApi.closeOthers( firstItem, { unanimated: true } );
+                        treeApi.close( firstItem );
 
                         // Start filtering
                         treeApi.filter(null, {
