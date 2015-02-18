@@ -459,6 +459,9 @@ function _dataset_inheritance_clone_variables_from_parent($child_dataset, $paren
 
             node_save($variable_node);
             
+            // Set moderation state to published
+            workbench_moderation_moderate( $variable_node, workbench_moderation_state_published() );
+            
             $variable_ids[] = $variable_node->nid;
         }
     }
