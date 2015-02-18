@@ -22,37 +22,34 @@
  * @param $root_path
  *   The path to the root item for this set of tabs.
  */
- function dataset_access_form_menu_local_tasks_alter(&$data, $router_item, $root_path) {
-    $links = array();
-    
-    if (node_access('create', 'data_access_request') && $root_path === 'node/%/queries/%') {
-        
-            $href = 'node/add/data-access-request-form';
-            $links['add-data-access-request-form'] = array( 
-              '#theme' => 'menu_local_action',
-              '#link' => array(
-                'title' => t('Request for Data Access Form'),
-                'href' => $href,
-              ),          
-            );       
-        
-            $dataset_node = $router_item['page_arguments'][1];
-                        
-            $links['add-data-access-request-form']['#link']['localized_options'] = array(
-              'query' => array (
-                  'field_dataset_access' => $dataset_node->nid,
-               )
-            );          
-    
-            // delete the unecessary original request data access link
-            if (array_key_exists( 'add-data-access-request', $data['actions']['output'] )) {
-                unset($data['actions']['output']['add-data-access-request']);
-            }
-            
-    }
-    
-    $data['actions']['output'] = array_merge($data['actions']['output'], $links);
-}   
+function dataset_access_form_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+  if (!node_access('create', 'data_access_request') || $root_path !== 'node/%/queries/%') {
+    return;
+  }
+
+  $dataset_node = $router_item['page_arguments'][1];
+  $query = $router_item['page_arguments'][2];
+
+  $href = 'node/add/data-access-request-form';
+  $data['actions']['output']['add-data-access-request-form'] = array(
+    '#theme' => 'menu_local_action',
+    '#link' => array(
+      'title' => t('Request for Data Access Form'),
+      'href' => $href,
+      'localized_options' => array(
+        'query' => array(
+          'field_dataset_access' => $dataset_node->nid,
+          'query_id' => $query->id,
+        )
+      )
+    ),
+  );
+
+  // delete the unecessary original request data access link
+  if (array_key_exists( 'add-data-access-request', $data['actions']['output'] )) {
+    unset($data['actions']['output']['add-data-access-request']);
+  }
+}
 
 
 /**
@@ -147,6 +144,10 @@ function dataset_access_form_node_insert($node) {
     $gids = _dataset_access_form_get_intersect_groups($user, $dataset_id);
     if ($gids) {
         $admin_mails = _dataset_access_form_get_group_admin_mails($gids);  
+    } else {
+        drupal_set_message('Unable to find your community. Verify that you are a member of the community to which this dataset belongs.', 'error');
+        Database::getConnection()->rollback();
+        return FALSE;
     }
 
     $recipients = $admin_mails; 
@@ -193,46 +194,55 @@ function dataset_access_form_node_insert($node) {
  *   name of the function that generated the form.
  */
 function dataset_access_form_form_alter(&$form, $form_state, $form_id) {
-    global $user;
-    
-    if($form_id != 'data_access_request_form_node_form' ) {
-        return;
-    } 
-    
-    $referrer = '#';
-    
-    if (isset($_SESSION['referrer'])) { 
-        // Get existing referrer 
-        $referrer = $_SESSION['referrer']; 
-        
-    } elseif (isset($_SERVER['HTTP_REFERER'])) { 
-        // Use given referrer 
-        $referrer = $_SERVER['HTTP_REFERER']; 
-        
-    } else { 
-        // No referrer 
-    } 
-    
-    // Get group(s) where this dataset and user belong to.
-    $gids = _dataset_access_form_get_intersect_groups($user, $_GET['field_dataset_access']);
-    
-    // Pre-populate values
-    if (array_key_exists('field_dataset_access', $_GET)) {
-      // set title 
-      $form['title_field']['und'][0]['value']['#default_value'] = 'New Dataset Access Request for Dataset ID:' . $_GET['field_dataset_access'] . ' From: ' . $user->name;  
-      // set dataset id
-      $form['field_dataset_id']['und'][0]['value']['#default_value'] = $_GET['field_dataset_access'];  
-      // set query path
-      $form['field_query_path']['und'][0]['value']['#default_value'] = $referrer; 
-      // set og group
-      $form['og_group_ref']['und'][0]['default']['#default_value'] = $gids;
-      if (!user_access('administer nodes')) {
-          // hide it from normal users
-           $form['og_group_ref']['und']['#prefix'] = '<div id="og-group-ref-add-more-wrapper" style="display:none;">';
-      }     
-    }    
-    
- }
+  global $user;
+
+  if($form_id != 'data_access_request_form_node_form' ) {
+    return;
+  }
+
+  $query = entity_load('mica_query', array((int) $_GET['query_id']));
+  $query = array_pop($query);
+  // if no query found, we received faulty _GET parameters, so just let the error happen.
+  if($query) {
+    $query_path = entity_uri('mica_query', $query);
+    $query_path = $query_path['path'];
+    $query_full_path = url($query_path, array('absolute' => TRUE));
+  }
+
+  $dataset_id = isset($_GET['field_dataset_access']) ? (int) $_GET['field_dataset_access'] : NULL;
+
+  // Get group(s) where this dataset and user belong to.
+  $gids = _dataset_access_form_get_intersect_groups($user, $dataset_id);
+
+  // Pre-populate values
+  if (array_key_exists('field_dataset_access', $_GET)) {
+    // set title
+    $form['title_field']['und'][0]['value']['#default_value'] = "New Dataset Access Request for Dataset ID: $dataset_id From: {$user->name}";
+    // set dataset id
+    $form['field_dataset_id']['und'][0]['value']['#default_value'] = $dataset_id;
+    // set query path
+    $form['field_query_path']['und'][0]['value']['#default_value'] = $query_full_path;
+    // set og group
+    $form['og_group_ref']['und'][0]['default']['#default_value'] = $gids;
+    if (!user_access('administer nodes')) {
+      // hide it from normal users
+       $form['og_group_ref']['und']['#prefix'] = '<div id="og-group-ref-add-more-wrapper" style="display:none;">';
+    }
+  }
+
+  if(isset($query_path)) {
+    $form['group']['redirect_target'] = array(
+      '#type' => 'hidden',
+      '#title' => 'redirect_target',
+      '#value' => $query_path,
+    );
+    $form['actions']['submit']['#submit'][] = '_dataset_access_form_redirect_callback';
+  }
+}
+
+function _dataset_access_form_redirect_callback($form, &$form_state) {
+  $form_state['redirect'] = $form_state['values']['redirect_target'];
+}
 
  /**
  * Send tokenized email to a list of recipients.
