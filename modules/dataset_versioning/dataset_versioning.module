@@ -96,6 +96,9 @@ function dataset_versioning_custom_form_submit($form, &$form_state) {
         $iternode->status=1;
         
         node_save($iternode);
+        
+        // Set moderation state to published
+        workbench_moderation_moderate( $iternode, workbench_moderation_state_published() );
       }  
       
     }
