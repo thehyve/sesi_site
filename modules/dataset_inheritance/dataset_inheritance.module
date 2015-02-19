@@ -200,26 +200,16 @@ function dataset_inheritance_node_presave($node) {
 
 /**
  * Synchronize the og_group_ref for two nodes. The latter one will be associated 
- * with at least those groups that the former one is associated with.
+ * with those groups that the former one is associated with.
  * @param entity_metadata_wrapper $wrapper_from entity_metadata_wrapper
  * @param entity_metadata_wrapper $wrapper_to 
  */
 function _dataset_inheritance_synchronize_og_groups( $wrapper_from, $wrapper_to ) {
     $from_groups = $wrapper_from->og_group_ref->value();
-    $to_groups = $wrapper_to->og_group_ref->value();
+    $to_groups = array();
 
     foreach( $from_groups as $group ) {
-        // See if this group was already selected. If not, add it
-        $found = false;
-        foreach( $to_groups as $group_selected ) {
-            if( $group->vid == $group_selected->vid ) {
-                $found = true;
-                break;
-            }
-        }
-        if( !$found ) {
-            $to_groups[] = $group;
-        }
+        $to_groups[] = $group;
     }
 
     // Update the og_groups ref
