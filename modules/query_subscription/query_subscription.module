@@ -289,6 +289,8 @@ function query_subscription_subscribe($form, &$form_state) {
 
   $subscription = query_subscription_new($query, $form_state);
   $subscription->save();
+
+  drupal_set_message("Subscribed to query <em>" . htmlspecialchars($query->name, ENT_QUOTES) . "</em>");
 }
 
 function query_subscription_unsubscribe($form, &$form_state) {
@@ -296,6 +298,7 @@ function query_subscription_unsubscribe($form, &$form_state) {
   $subscription = QuerySubscription::getForQuery($query);
   if($subscription) {
     $subscription->delete();
+    drupal_set_message("Unsubscribed from query <em>" . htmlspecialchars($query->name, ENT_QUOTES) . "</em>");
   }
 }
 
