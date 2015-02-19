@@ -133,7 +133,7 @@ function sesi_community_hub_default_page_manager_handlers() {
     $pane->pid = 'new-2';
     $pane->panel = 'center';
     $pane->type = 'views_panes';
-    $pane->subtype = 'og_nodes-panel_pane_1';
+    $pane->subtype = 'og_content_main-panel_pane_1';
     $pane->shown = TRUE;
     $pane->access = array();
     $pane->configuration = array(
