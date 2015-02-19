@@ -137,6 +137,9 @@ abstract class AbstractTerm implements QueryTermInterface {
     if ($type == 'integer' || $type == 'decimal') {
       return 'RangeTerm';
     }
+    if ($type == 'date') {
+      return 'DateTerm';
+    }
     return 'TodoTerm';
   }
 
@@ -698,7 +701,7 @@ class RangeTerm extends AbstractTerm {
       $first_range = $ranges['0'];
       if (isset($first_range['from']) || isset($first_range['to'])) {
         $from = isset($first_range['from']) ? '[' . $first_range['from'] : '*'; // can't print infinity symbol: &#8734;
-        $to = isset($first_range['to']) ? $first_range['to'] . '[' : '*';
+        $to = isset($first_range['to']) ? $first_range['to'] . ']' : '*';
         $str_range .= ": $from, $to";
       }
       elseif (isset($first_range['value'])) {
@@ -751,6 +754,89 @@ class RangeTerm extends AbstractTerm {
 
     return $dtoFilter;
   }
+}
+
+class DateTerm extends RangeTerm {
+
+  function __construct(MicaDatasetQueryTerm $qt) {
+    AbstractTerm::__construct('DateTerm', $qt);
+  }
+
+  function view() {
+    /* Ignore. Used by RangeTerm->form() to draw the statistics, but we don't have those currently. */
+  }
+
+  function form($form, &$form_state) {
+    $form = parent::form($form, $form_state);
+    unset($form['view']);
+    return $form;
+  }
+
+  function validate($form, &$form_state) {
+    if($form_state['values']['exact-radio'] === 'range') {
+      $min = $this->parseOpalDate($form_state['values']['min']);
+      $max = $this->parseOpalDate($form_state['values']['max']);
+      if($min === NULL and $max === NULL) {
+        form_set_error('exact-radio', t('At least one value (min or max) must be specified'));
+      }
+      if($min === FALSE) {
+        form_set_error('min', t("Value for min must be a valid date in yyyy-mm-dd format"));
+      }
+      if($max === FALSE) {
+        form_set_error('max', t("Value for max must be a valid date in yyyy-mm-dd format"));
+      }
+      elseif (is_a($min, 'DateTime') and is_a($max, 'DateTime') and $min > $max) {
+        form_set_error('max', t('Max must be later than min'));
+      }
+    }
+    elseif ($form_state['values']['exact-radio'] === 'exact') {
+      $value = $this->parseOpalDate($form_state['values']['value']);
+      if ($value === NULL or $value === FALSE) {
+        form_set_error('value', t('Valid date required in yyyy-mm-dd format'));
+      }
+    }
+  }
+
+  /**
+   * Parse a date string the way Opal does. Return a DateTime. Return NULL for the empty string, and FALSE for a wrongly
+   * formatted string.
+   *
+   * @param $datestring
+   * @return bool|DateTime|null
+   */
+  private function parseOpalDate($datestring) {
+    if($datestring === '') {
+      return NULL;
+    }
+
+    $matches = array();
+    preg_match('/^(\d{4})-(\d{1,2})-(\d{1,2})$/', $datestring, $matches);
+    if(empty($matches)) {
+      return FALSE;
+    }
+
+    $year = (int) $matches[1];
+    $month = (int) $matches[2];
+    $day = (int) $matches[3];
+
+    if($month == 0 or $day == 0 or $month > 12 or $day > 31) {
+      return FALSE;
+    }
+
+    $date = DateTime::createFromFormat('Y-m-d', $datestring, new DateTimeZone('UTC'));
+    // PHP DateTime silently accepts dates like february 31st, and does a $day % $max_days_for_month conversion.
+    if($date->format('Y') != $year or $date->format('m') != $month or $date->format('d') != $day) {
+      //drupal_set_message('PHP is being stupid!', 'warning');
+      return FALSE;
+    }
+
+    return $date;
+  }
+
+  function checkStats() {
+    return FALSE;
+  }
+
 }
 
 class TodoTerm extends AbstractTerm {
