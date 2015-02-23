@@ -178,10 +178,9 @@ function _query_interface_convert_to_aciTree_format($tree) {
     // scaffold the aciTree with vocabularies
     if (count ($tree[QUERY_INTERFACE_TAXONOMY_ROOT_NODE]->vocabularies) > 0) {
         $arr = $tree[QUERY_INTERFACE_TAXONOMY_ROOT_NODE]->vocabularies;
-        while ($vocabulary = current($arr)) {
-            $key = key($arr);
-            $aciTree[] =_query_interface_create_aciTree_vocabs($key, $arr[$key]);
-            next($arr);
+        
+        foreach( $arr as $key => $vocabulary ) {
+            $aciTree[] =_query_interface_create_aciTree_vocabs($key, $vocabulary);
         }
     }
     
