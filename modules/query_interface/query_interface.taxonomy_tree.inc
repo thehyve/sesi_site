@@ -74,6 +74,7 @@ function _query_interface_initialize_tree() {
     $root = new stdClass();
     $root->tid = QUERY_INTERFACE_TAXONOMY_ROOT_NODE;
     $root->name = "Root";
+    $root->vocabularies = array();
     
     return array( QUERY_INTERFACE_TAXONOMY_ROOT_NODE => $root );
 }
@@ -84,12 +85,21 @@ function _query_interface_initialize_tree() {
  * @param type $tree 
  */
 function _query_interface_add_taxonomy_node_to_tree( $taxonomyNode, &$tree ) {
-    // Make sure that all parants of the node are added to the 
+    
+    // Make sure that all parents of the node are added to the 
     // tree already.
     $parents = taxonomy_get_parents( $taxonomyNode->tid );
     
+    // Collect taxonomy's vocabulary
+    
+    if( !array_key_exists( $taxonomyNode->vocabulary_machine_name, $tree[ QUERY_INTERFACE_TAXONOMY_ROOT_NODE ]->vocabularies ) ) {
+        $key = $taxonomyNode->vocabulary_machine_name;
+        $vocabulary_node = taxonomy_vocabulary_load($taxonomyNode->vid);
+        $tree[ QUERY_INTERFACE_TAXONOMY_ROOT_NODE ]->vocabularies[$key] = $vocabulary_node->name;
+    }
+        
     // Add the parents of this node first
-    if( count( $parents ) > 0 ) {
+    if ( count( $parents ) > 0 ) {
         foreach( $parents as $parent ) {
             if( !array_key_exists( $parent->tid, $tree ) ) {
                 _query_interface_add_taxonomy_node_to_tree($parent, $tree);
@@ -116,6 +126,22 @@ function _query_interface_add_taxonomy_node_to_tree( $taxonomyNode, &$tree ) {
     return $tree;
 }
 
+function _query_interface_add_node ($taxonomyNode, &$tree) {
+    
+    if( !array_key_exists( $taxonomyNode->vocabulary_machine_name, $tree ) )
+        throw new Exception( "Vocabulary does not exist in the tree!" );
+    
+    if( !property_exists( $tree[ $taxonomyNode->vocabulary_machine_name ], "contents" ) ) {
+        $tree[ $tid ]->contents = array();
+    }
+    
+    if( !in_array( $taxonomyNode->vocabulary_machine_name, $tree[ $taxonomyNode->vocabulary_machine_name ]->contents ) ) {
+        $tree[ $taxonomyNode->vocabulary_machine_name ]->contents[] = $taxonomyNode->vocabulary_machine_name;
+    }
+    
+    return $tree;
+}
+
 /**
  * Add a node to a parent
  * @param type $taxonomyNode    Node to be added
@@ -137,6 +163,7 @@ function _query_interface_add_node_as_child( $taxonomyNode, $tid, &$tree ) {
     return $tree;
 }
 
+
 /**
  * Converts a taxonomy tree to the format that the aciTree component expects
  * @param array $tree    Array with all taxonomy nodes
@@ -145,18 +172,68 @@ function _query_interface_add_node_as_child( $taxonomyNode, $tid, &$tree ) {
  * @see http://acoderinsights.ro/en/aciTree-tree-view-with-jQuery
  */
 function _query_interface_convert_to_aciTree_format($tree) {
-    // Start with the root node
-    $aciTree = array();
     
+    $aciTree = array(); // init aciTree
+    
+    // scaffold the aciTree with vocabularies
+    if (count ($tree[QUERY_INTERFACE_TAXONOMY_ROOT_NODE]->vocabularies) > 0) {
+        $arr = $tree[QUERY_INTERFACE_TAXONOMY_ROOT_NODE]->vocabularies;
+        
+        foreach( $arr as $key => $vocabulary ) {
+            $aciTree[] =_query_interface_create_aciTree_vocabs($key, $vocabulary);
+        }
+    }
+    
+    // finally insert the node
     if( count( $tree ) > 0 ) {
+        // start with the root node
         foreach( $tree[ QUERY_INTERFACE_TAXONOMY_ROOT_NODE ]->children as $child_tid ) {
-            $aciTree[] = _query_interface_create_aciTree_node( $tree[ $child_tid ], $tree );
+            // get vocabulary of the current taxonomy node
+            $current_vocab = $tree[ $child_tid ]->vocabulary_machine_name;
+            // get the matching node from the aciTree
+            $matching = array_filter($aciTree, function ($el) use ($current_vocab) { 
+                return $el['id'] === $current_vocab; 
+            });
+            
+            // place current node to aciTree when it matches the aciTree vocab
+            if (count($matching) == 1) {                
+                foreach(array_keys($matching) as $key){
+                    $aciTree[$key]["branch"][] = 
+                        _query_interface_create_aciTree_node( 
+                                $tree[ $child_tid ], $tree );                                                
+                }                
+            }
         }
     }
     
     return $aciTree;
 }
 
+/**
+ * Create aciTree vocabularies as the tree's scaffolds
+ * @param type $key
+ * @param type $value
+ * @return type
+ */
+function _query_interface_create_aciTree_vocabs( $key, $value ) {    
+    $branch = array();
+    return array (
+        "id" => $key,
+        "label" => $value,
+        "open" => true,
+        "inode" =>true,
+        "checkbox" => false,
+        "checked" => false,
+        "branch" => $branch,
+    );
+}
+
+/**
+ * Create the tree branch
+ * @param type $node
+ * @param type $tree
+ * @return type
+ */
 function _query_interface_create_aciTree_node( $node, $tree ) {
     $hasChildren = property_exists( $node, "children" ) && count( $node->children ) > 0;
     $children = array();
@@ -167,10 +244,10 @@ function _query_interface_create_aciTree_node( $node, $tree ) {
         }
     }
     
-    return array(
+    return array (
         "id" => $node->tid,
         "label" => $node->name,
-        "open" => false,
+        "open" => true,
         "inode" => $hasChildren,
         "checkbox" => true,
         "checked" => false,
