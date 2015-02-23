@@ -17,7 +17,7 @@ if( typeof Sesi.QueryInterface == 'undefined' )
                     ajax: {
                         url: tree.data( 'url' )
                     },
-                    checkbox: true
+                    checkbox: true,
                 });
 
                 // Enable filtering on selected terms
@@ -48,6 +48,9 @@ if( typeof Sesi.QueryInterface == 'undefined' )
         var allItems = treeApi.children( null, true );
 
         for( i = 0; i < allItems.length; i++ ) {
+            // To expand all the branches when user select/deselect all items
+            treeApi.open( allItems.eq(i) );
+            // Check/uncheck all items
             if( checked ) 
                 treeApi.check( allItems.eq(i) );
             else
