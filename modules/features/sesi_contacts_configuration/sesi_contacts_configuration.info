@@ -1,0 +1,15 @@
+name = Sesi Contacts Configuration
+description = Custom configuration settings for contacts
+core = 7.x
+package = Sesi
+version = 7.x-1.0
+project = sesi_contacts_configuration
+features[features_api][] = api:2
+features[features_override_items][] = field_base.field_daco
+features[features_override_items][] = field_instance.node-contact-field_daco
+features[features_overrides][] = field_base.field_daco.field_permissions|type
+features[features_overrides][] = field_base.field_daco.settings|field_description_infos|field_description_label
+features[features_overrides][] = field_base.field_daco.settings|field_description_infos|field_description_value_type
+features[features_overrides][] = field_base.field_daco.settings|profile2_private
+features[features_overrides][] = field_instance.node-contact-field_daco.display_label
+features_exclude[dependencies][mica_studies] = mica_studies

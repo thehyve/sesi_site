@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Sesi Contacts Configuration feature.
+ */
+
+include_once 'sesi_contacts_configuration.features.inc';
