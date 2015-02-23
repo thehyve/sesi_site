@@ -92,10 +92,10 @@ function _query_interface_add_taxonomy_node_to_tree( $taxonomyNode, &$tree ) {
     
     // Collect taxonomy's vocabulary
     
-    if( !array_key_exists( $taxonomyNode->vocabulary_machine_name, $tree[ -1 ]->vocabularies ) ) {
+    if( !array_key_exists( $taxonomyNode->vocabulary_machine_name, $tree[ QUERY_INTERFACE_TAXONOMY_ROOT_NODE ]->vocabularies ) ) {
         $key = $taxonomyNode->vocabulary_machine_name;
         $vocabulary_node = taxonomy_vocabulary_load($taxonomyNode->vid);
-        $tree[ -1 ]->vocabularies[$key] = $vocabulary_node->name;
+        $tree[ QUERY_INTERFACE_TAXONOMY_ROOT_NODE ]->vocabularies[$key] = $vocabulary_node->name;
     }
         
     // Add the parents of this node first
@@ -176,8 +176,8 @@ function _query_interface_convert_to_aciTree_format($tree) {
     $aciTree = array(); // init aciTree
     
     // scaffold the aciTree with vocabularies
-    if (count ($tree[-1]->vocabularies) > 0) {
-        $arr = $tree[-1]->vocabularies;
+    if (count ($tree[QUERY_INTERFACE_TAXONOMY_ROOT_NODE]->vocabularies) > 0) {
+        $arr = $tree[QUERY_INTERFACE_TAXONOMY_ROOT_NODE]->vocabularies;
         while ($vocabulary = current($arr)) {
             $key = key($arr);
             $aciTree[] =_query_interface_create_aciTree_vocabs($key, $arr[$key]);
