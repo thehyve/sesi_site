@@ -10,12 +10,55 @@ function custom_field_js_form_alter(&$form, &$form_state, $form_id) {
     
     // Only interested in create/edit Variable form and then attach 
     // custom javascript to this form.
-    if ($form_id == "variable_node_form") {        
+    if (strcmp($form_id, "variable_node_form")  == 0) {        
+        
         $form['#attached']['js'] = array (
             drupal_get_path('module', 'custom_field_js') . 
                 '/custom_field_js.js',
         );        
+        
+        // add validation on categories
+        $form['#validate'][] = 'custom_field_js_validate_categories';
     }
 
   return $form;
+}
+
+/**
+ * Validate duplicate categories
+ * @param $form 
+ * @param $form_state
+ */
+function custom_field_js_validate_categories($form, &$form_state) {
+    $is_contain_duplicates = 
+            _custom_field_js_check_duplicates(
+                    $form_state['values']['field_variable_categories']['und'])
+            ;
+    
+    if ($is_contain_duplicates) {
+        form_set_error('field_variable_categories', t('Categories name must be unique.'));
+    } else {
+        return;        
+    }
+    
+}
+
+/**
+ * Check duplicates in array of categories
+ * @param $categories
+ * @return true if there's duplicate
+ * @return false if there's no duplicate
+ */
+function _custom_field_js_check_duplicates ($categories) {
+    $array_temp = array();
+    foreach ($categories as $key=>$val) {        
+        if ( is_int($key) ) {
+            if ( !in_array($val["name"], $array_temp) ) {
+              $array_temp[] = $val["name"];
+            } else {
+              return true;
+            }            
+        }
+    }
+    return false;
 }
