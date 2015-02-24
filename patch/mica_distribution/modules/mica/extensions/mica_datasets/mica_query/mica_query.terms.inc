@@ -140,6 +140,9 @@ abstract class AbstractTerm implements QueryTermInterface {
     if ($type == 'date') {
       return 'DateTerm';
     }
+    if ($type == 'datetime') {
+      return 'DateTimeTerm';
+    }
     return 'TodoTerm';
   }
 
@@ -756,10 +759,27 @@ class RangeTerm extends AbstractTerm {
   }
 }
 
-class DateTerm extends RangeTerm {
+class DateTimeTerm extends RangeTerm {
+
+  protected $formats = array( /* ISO-8601 formats*/
+    // php does not support milliseconds, only microseconds but Opal doesn't accept that.
+    'Y-m-d\TH:i:sO',
+    'Y-m-d\TH:i:sP',
+    'Y-m-d\TH:i:s',
+    'Y-m-d\TH:iO',
+    'Y-m-d\TH:iP',
+    'Y-m-d\TH:i',
+    'Y-m-d\TO',
+    'Y-m-d\TP',
+    'Y-m-d',
+  );
+  protected $description = "enter a date in an ISO-8601 format (e.g. 2015-02-23T15:12:17+01:00)";
+  protected $rangeerror = "Value for %var must be a valid date in an ISO-8601 format (e.g. 2015-02-23T15:12:17+01:00)";
+  protected $valueerror = "Valid date required in an ISO-8601 format (e.g. 2015-02-23T15:12:17+01:00)";
+
 
   function __construct(MicaDatasetQueryTerm $qt) {
-    AbstractTerm::__construct('DateTerm', $qt);
+    AbstractTerm::__construct('DateTimeTerm', $qt);
   }
 
   function view() {
@@ -769,30 +789,32 @@ class DateTerm extends RangeTerm {
   function form($form, &$form_state) {
     $form = parent::form($form, $form_state);
     unset($form['view']);
+    $description = t($this->description);
+    $form['valuecontainer']['fieldset']['max']['#description'] = $description;
+    $form['valuecontainer']['fieldset']['value']['#description'] = $description;
     return $form;
   }
 
   function validate($form, &$form_state) {
     if($form_state['values']['exact-radio'] === 'range') {
-      $min = $this->parseOpalDate($form_state['values']['min']);
-      $max = $this->parseOpalDate($form_state['values']['max']);
+      $min = $this->parseOpalDateTime($form_state['values']['min']);
+      $max = $this->parseOpalDateTime($form_state['values']['max']);
       if($min === NULL and $max === NULL) {
         form_set_error('exact-radio', t('At least one value (min or max) must be specified'));
       }
       if($min === FALSE) {
-        form_set_error('min', t("Value for min must be a valid date in yyyy-mm-dd format"));
+        form_set_error('min', t($this->rangeerror, array('%var' => 'min')));
       }
       if($max === FALSE) {
-        form_set_error('max', t("Value for max must be a valid date in yyyy-mm-dd format"));
+        form_set_error('max', t($this->rangeerror, array('%var' => 'max')));
       }
       elseif (is_a($min, 'DateTime') and is_a($max, 'DateTime') and $min > $max) {
         form_set_error('max', t('Max must be later than min'));
       }
-    }
-    elseif ($form_state['values']['exact-radio'] === 'exact') {
-      $value = $this->parseOpalDate($form_state['values']['value']);
+    } elseif ($form_state['values']['exact-radio'] === 'exact') {
+      $value = $this->parseOpalDateTime($form_state['values']['value']);
       if ($value === NULL or $value === FALSE) {
-        form_set_error('value', t('Valid date required in yyyy-mm-dd format'));
+        form_set_error('value', t($this->valueerror));
       }
     }
   }
@@ -801,36 +823,25 @@ class DateTerm extends RangeTerm {
    * Parse a date string the way Opal does. Return a DateTime. Return NULL for the empty string, and FALSE for a wrongly
    * formatted string.
    *
-   * @param $datestring
-   * @return bool|DateTime|null
+   * @param $dtstring
+   * @return DateTime|bool|null
    */
-  private function parseOpalDate($datestring) {
-    if($datestring === '') {
+  protected function parseOpalDateTime($dtstring) {
+    if($dtstring === '') {
       return NULL;
     }
 
-    $matches = array();
-    preg_match('/^(\d{4})-(\d{1,2})-(\d{1,2})$/', $datestring, $matches);
-    if(empty($matches)) {
-      return FALSE;
+    foreach($this->formats as $format) {
+      // Note: PHP should be configured with the right time zone, Europe/Brussels for CMI
+      $datetime = DateTime::createFromFormat('!'.$format, $dtstring);
+      // PHP DateTime silently accepts dates like february 31st, and does a $day % $max_days_for_month conversion, so
+      // check that the date string correctly round-trips.
+      if ($datetime === FALSE or $datetime->format($format) !== $dtstring) {
+        continue;
+      }
+      return $datetime;
     }
-
-    $year = (int) $matches[1];
-    $month = (int) $matches[2];
-    $day = (int) $matches[3];
-
-    if($month == 0 or $day == 0 or $month > 12 or $day > 31) {
-      return FALSE;
-    }
-
-    $date = DateTime::createFromFormat('Y-m-d', $datestring, new DateTimeZone('UTC'));
-    // PHP DateTime silently accepts dates like february 31st, and does a $day % $max_days_for_month conversion.
-    if($date->format('Y') != $year or $date->format('m') != $month or $date->format('d') != $day) {
-      //drupal_set_message('PHP is being stupid!', 'warning');
-      return FALSE;
-    }
-
-    return $date;
+    return FALSE;
   }
 
   function checkStats() {
@@ -838,6 +849,25 @@ class DateTerm extends RangeTerm {
   }
 
 }
+
+
+class DateTerm extends DateTimeTerm {
+
+  protected $formats = array(
+    'Y-m-d',
+    'Y-n-d',
+    'Y-m-j',
+    'Y-n-j',
+  );
+  protected $description = "enter a date in yyyy-mm-dd format";
+  protected $rangeerror = "Value for %var must be a valid date in yyyy-mm-dd format";
+  protected $valueerror = "Valid date required in yyyy-mm-dd format";
+
+  function __construct(MicaDatasetQueryTerm $qt) {
+    AbstractTerm::__construct('DateTerm', $qt);
+  }
+}
+
 
 class TodoTerm extends AbstractTerm {
 
@@ -881,13 +911,14 @@ class TodoTerm extends AbstractTerm {
 
     $form['valuecontainer']['fieldset'] = array(
       '#type' => 'fieldset',
-      '#title' => 'Values',
+      '#title' => t('Values'),
     );
 
     $default_value = implode(" ", $this->match());
     $form['valuecontainer']['fieldset']['value'] = array(
       '#type' => 'textfield',
       '#default_value' => $default_value,
+      '#description' => t('This will match words in this variable. Word order does not matter. Letter case and punctuation will be ignored.'),
     );
 
     return $form;
