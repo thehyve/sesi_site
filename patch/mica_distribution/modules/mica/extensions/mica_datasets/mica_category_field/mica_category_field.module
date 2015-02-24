@@ -199,9 +199,8 @@ function mica_category_field_field_validate($entity_type, $entity, $field, $inst
  */
 function _check_duplicates ($categories, $name) {
     $dup_count = 0;
-    $trimmed_name = trim($name);
     foreach ($categories as $key=>$val) {                
-        if (strcasecmp($trimmed_name, $val["name"]) == 0) {
+        if (strcasecmp(trim($name), trim($val["name"])) == 0) {
             $dup_count+=1;         
         }        
         if ($dup_count > 1) {
