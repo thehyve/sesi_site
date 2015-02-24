@@ -163,6 +163,7 @@ function mica_category_field_field_validate($entity_type, $entity, $field, $inst
   foreach ($items as $delta => $item) {
       
     if (!mica_category_field_field_is_empty($item, $field)) {        
+      // start patched 24/2/2015
       // first check duplicates  
       if (_check_duplicates($items, $item['name'])) {
         $errors[$field['field_name']][$langcode][$delta][] = array(
@@ -170,6 +171,7 @@ function mica_category_field_field_validate($entity_type, $entity, $field, $inst
         'message' => t('%title: Name must be unique', array('%title' => $instance['label'])),
         );        
       } 
+      // end patched 24/2/2015 
       // check for empty fields
       if (drupal_strlen($item['name']) === 0) {
         $errors[$field['field_name']][$langcode][$delta][] = array(
@@ -187,6 +189,7 @@ function mica_category_field_field_validate($entity_type, $entity, $field, $inst
   }
 }
 
+// start patched 24/2/2015
 /**
  * Check duplicates in array of categories. Checking is done only to the name, 
  * and if it's string it's an case-insensitive checking.
@@ -207,6 +210,7 @@ function _check_duplicates ($categories, $name) {
     }
     return false;
 }
+// end patched 24/2/2015
 
 /**
  * Implements hook_field_widget_error().
@@ -219,7 +223,9 @@ function _check_duplicates ($categories, $name) {
 function mica_category_field_field_widget_error($element, $error, $form, &$form_state) {
   switch ($error['error']) {
     // Handle the error that was set in mica_category_field_field_validate()
-    case 'mica_category_field_name_must_be_unique':    
+// start patched 24/2/2015
+      case 'mica_category_field_name_must_be_unique':  
+// end patched 24/2/2015        
     case 'mica_category_field_invalid_name_required':
     case 'mica_category_field_invalid_label_required':
       form_error($element, $error['message']);
