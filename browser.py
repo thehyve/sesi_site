@@ -1,7 +1,7 @@
 from functools import partial
 
 from pylenium import Pylenium
-from pylenium import conditions
+from pylenium import conditions as C
 
 class Browser(object):
     def __init__(self, driver, url, page, username=None, password=None):
@@ -12,10 +12,17 @@ class Browser(object):
         self.page = page(driver, browser=self)
         self.page.waitFor()
 
+    def close(self):
+        self.driver.close()
+
     def logIn(self, username, password):
         self.username = username
         self.password = password
         return self._callPageMethod('logIn', username, password)
+
+    @property
+    def title(self):
+        return self.page.title
 
     def __getattr__(self, attr):
         return partial(self._callPageMethod, attr)
@@ -26,6 +33,9 @@ class Browser(object):
             self.page = retval
             retval.browser = self.browser
         return retval
+
+    def onPage(self, page):
+        return page.onPage(self.page)
 
     def __dir__(self):
         return self.__dict__.keys() + dir(self.page)
@@ -69,8 +79,15 @@ class Page (object):
         self.driver.wait_until(lambda _: self.onPage(), timeout=timeout)
         return self
 
+    def waitForCondition(self, *conditions, **kwargs):
+        conds = (c.test if isinstance(c, C.Condition) else lambda _, c=c: c() for c in conditions)
+        return self.driver.wait_until(*conds, **kwargs)
+
     def elementExists(self, *args, **kwargs):
-        return conditions.element_present(*args, **kwargs).test(self.driver)
+        return C.element_present(*args, **kwargs).test(self.driver)
 
     def findElement(self, *args, **kwargs):
         return self.driver.find_element(*args, **kwargs)
+
+    def clickLink(self, text):
+        self.findElement(link_text=text).click()

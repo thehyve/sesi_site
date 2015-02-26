@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+from __future__ import unicode_literals
+
+import os
 from urlparse import urlparse
 import time
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
@@ -10,6 +13,7 @@ from pylenium import Pylenium
 import pylenium.conditions as C
 
 from browser import Page
+from helpers import *
 
 class OpalPage (Page):
     @property
@@ -23,9 +27,6 @@ class OpalPage (Page):
         self.waitForCondition(self.onPageContents, **kwargs)
         return self
 
-    def waitForCondition(self, *conditions, **kwargs):
-        return self.driver.wait_until(*(lambda _: c() for c in conditions), **kwargs)
-
     def loggedIn(self):
         if LoginPage(self.driver).onPage():
             return False
@@ -37,12 +38,14 @@ class OpalPage (Page):
         time.sleep(1)
         return not LoginPage(self.driver).onPage()
 
-    # def ensureLoggedIn(self, username, password):
-    #     if not self.loggedIn():
-    #         loginpage = LoginPage(self.driver)
-    #         assert loginpage.onPage()
-    #         loginpage.logIn(username, password)
-    #     assert self.loggedIn()
+    def ensureLoggedIn(self, username, password):
+        if self.loggedIn():
+            return
+        loginpage = LoginPage(self.driver)
+        loginpage.waitFor()
+        newpage = loginpage.logIn(username, password)
+        assert self.loggedIn()
+        return newpage
 
     def findCurrentPage(self):
         loc = self.location
@@ -65,8 +68,19 @@ class OpalPage (Page):
             self.driver.find_element(link_text='Logout').click()
         return LoginPage(self.driver).waitFor()
 
-    def findByLabel(self, label, class_='gwt-TextBox'):
-        return find_by_label(self.driver, label, class_)
+    def findByLabel(self, label, class_='gwt-TextBox', label_element='label', target_element='input'):
+        return self.findElement(xpath=find_by_label(label, 
+                                                    class_=class_, 
+                                                    label_element=label_element, 
+                                                    target_element=target_element))
+
+    def gotoDashboard(self):
+        self.findElement(link_text='Dashboard').click()
+        return Dashboard(self.driver).waitFor()
+
+    def gotoProjects(self):
+        self.findElement(link_text='Projects').click()
+        return Projects(self.driver).waitFor()
 
 
 class LoginPage (OpalPage):
@@ -93,9 +107,8 @@ class Dashboard (OpalPage):
     def onPageContents(self):
         return self.elementExists(tag='h1', contains_text='Dashboard')
 
-    def exploreData(self):
-        self.driver.find_element(link_text='Explore Data').click()
-        return Projects(self.driver).waitFor()
+    def gotoExploreData(self):
+        return self.gotoProjects()
         
 
 class Projects (OpalPage):
@@ -107,7 +120,7 @@ class Projects (OpalPage):
     def _projectlinks(self, contains=''):
         return self.driver.find_elements(css="tr div a[href^='#!project;name=']", contains_text=contains)
 
-    def project(self, name):
+    def gotoProject(self, name):
         projects = self._projectlinks(name)
         assert projects
         projects[0].click()
@@ -120,7 +133,7 @@ class Projects (OpalPage):
         self.findByLabel('Name').send_keys(name)
         self.findByLabel('Title').send_keys(name)
         self.driver.find_element(link_text='Save').click()
-        self.waitForCondition(lambda: not_find_by_label(self.driver, 'Name'))
+        self.waitForCondition(C.not_or_gone(C.element_present(xpath=find_by_label('Name'))))
 
     def hasProject(self, name):
         return bool(self._projectlinks(name))
@@ -133,19 +146,41 @@ class Project (OpalPage):
         self.selector = "tr div a[href^='#!project;name=%s;tab=TABLES;path=']" % css_escape(name)
 
     def onPageContents(self):
-        # global debug
-        # debug = self.driver.find_elements(css=self.selector)
-        # return debug
-        # return C.element_present(css=self.selector)
-
-        # FIXME: There is a strange race condition in which something matches the self.selector that 
-        # shouldn't (The <a> that containing 'Dashboard' in the left top corner matches). Sleep as a workaround
-        # time.sleep(0.1) 
-        return self.elementExists(css='tr div span.gwt-InlineLabel', contains_text='No tables') or \
+        # The 'No tables' message is visible before the tables are loaded
+        time.sleep(.5)
+        return self.elementExists(xpath=contains('span', 'No tables', class_='gwt-InlineLabel')) or \
             self.elementExists(css=self.selector)
 
+    def removeProject(self):
+        self.findElement(css='li[title=Administration] a').click()
+        self.findElement(link_text='Remove Project').click()
+        self.waitForCondition(C.element_present(xpath=contains('h3', 'Remove Project')))
+        self.findElement(link_text='Yes').click()
+        return Projects(self.driver).waitFor()
+
     def tables(self):
-        return self.driver.find_elements(css=self.selector)
+        # Link text is table name prepended with space
+        return [e.text[1:] for e in self.driver.find_elements(css=self.selector)]
+
+    def hasTable(self, name):
+        return any(e == name for e in self.tables())
+
+    def removeTable(self, name):
+        self.findElement(xpath=contains('td', name)+'/preceding-sibling::td//input').click()
+        self.findElement(link_text='Remove').click()
+        # confirm removal
+        self.findElement(link_text='Yes').click()
+        self.waitFor()
+
+    def removeAllTables(self):
+        self.findElement(xpath=contains('th', 'Name')+'/preceding-sibling::th//input').click()
+        if not self.elementExists(link_text='Remove'):
+            # If no tables exist, the remove button does not appear
+            return
+        self.findElement(link_text='Remove').click()
+        # confirm removal
+        self.findElement(link_text='Yes').click()
+        self.waitFor()
 
     def addTable(self, name):
         self.findElement(link_text='Add Table').click()
@@ -155,39 +190,171 @@ class Project (OpalPage):
         self.findByLabel('Name').send_keys(name)
         self.findElement(link_text='Save').click()
         return Table(self.driver, self.name, name).waitFor()
+
+    def gotoTable(self, name):
+        for e in self.driver.find_elements(css=self.selector):
+            if e.text == ' '+name:
+                e.click()
+                break
+        return Table.detect(self.driver, self.name, name)
+
+    def uploadAndSelect(self, filepath):
+        assert os.path.isabs(filepath)
+        assert os.path.isfile(filepath)
+        filename = os.path.basename(filepath)
+
+        # upload file from local system
+        self.findElement(link_text='Upload').click()
+        # upload dialog
+        self.findElement(name='fileToUpload').send_keys(filepath)
+        self.findElement(link_text='Upload').click()
+        self.waitForCondition(C.any(C.element_present(xpath=contains('h3', 'Replace File')),
+                                    C.element_present(xpath=contains('h3', 'File Selector'))))
+        # replace file dialog
+        if self.elementExists(xpath=contains('h3', 'Replace File')):
+            self.findElement(link_text='Yes').click()
+        # file selection dialog
+        selector = contains('td', filename)+'/preceding-sibling::td//input'
+        time.sleep(1)
+        self.waitForCondition(C.element_visible(xpath=selector))
+        self.findElement(xpath=selector).click()
+        self.findElement(link_text='Select').click()
+
+    def importTable(self, filepath, tablename):
+        self.findElement(link_text='Import').click()
+        self.waitForCondition(lambda: self.elementExists(css='div.gwt-Label', contains_text='Data Format'))
+
+        # Import dialog - select data format
+        # The default selected format in the dialog is CSV. If this fails, implement better code to find the select box.
+        self.findElement(link_text='CSV').click()
+        finder = contains('li', 'Opal Archive')
+        self.waitForCondition(lambda: self.elementExists(xpath=finder))
+        self.findElement(xpath=finder).click()
+        self.findElement(link_text='Next >').click()
+
+        # select data file
+        self.findElement(link_text='Browse').click()
+        self.uploadAndSelect(filepath)
+
+        # back in import dialog
+        self.findElement(link_text='Next >').click()
+        self.findElement(link_text='Next >').click()
+        # select our table
+        finder = (contains('td', tablename, 
+                          prefix='//div[%s]//' % xpath_class('modal'))
+                  + '/preceding-sibling::td//input')
+        self.waitForCondition(C.element_present(xpath=finder))
+        self.findElement(xpath=finder).click()
+        self.findElement(link_text='Next >').click()
+        self.findElement(link_text='Next >').click()
+        self.findElement(link_text='Finish').click()
         
+        # Back at the main screen, wait for the import job to finish
+        while not self.hasTable(tablename):
+            self.driver.refresh()
+            self.waitFor()
+            time.sleep(1)
+
+    def importView(self, name, tables, filepath):
+        #import pdb; pdb.set_trace()
+        self.findElement(link_text='Add Table').click()
+        self.findElement(link_text='Add view...').click()
+
+        self.findByLabel('Name').send_keys(name)
+        for table in tables:
+            self.findByLabel('Table References', class_=None).send_keys(' ')
+            # the first element is from the current project, which is listed first
+            target = self.driver.find_elements(xpath=
+                contains('li', table, prefix=
+                         find_by_label('Table References', class_=None, target_element='li')
+                             +'/self::')
+                )[0]
+            self.waitForCondition(C.element_visible(element=target))
+            target.click()
+        self.findElement(link_text='Browse').click()
+        self.uploadAndSelect(filepath)
+        self.findElement(link_text='Save').click()
+        return Table.detect(self.driver, self.name, name)
+
 
 class Table (OpalPage):
+    @classmethod
+    def detect(cls, driver, *args):
+        subclasses = [Table, TableSummary, TablePermissions]
+        driver.wait_until(C.any(*((lambda _, T=T: T(driver, *args).onPageContents()) for T in subclasses)))
+        for T in subclasses:
+            p = T(driver, *args)
+            if p.onPageContents():
+                if T is Table:
+                    return p
+                return p.gotoDictionary()
+
     def __init__(self, driver, projectname, tablename):
         super(Table, self).__init__(driver)
         self.projectname = projectname
         self.tablename = tablename
 
     def onPageContents(self):
-        return self.elementExists(link_text='Add Variable') and \
-            self.elementExists(css='h3', contains_text='Tables')
+        return (self.elementExists(link_text='Add Variable') or 
+                self.elementExists(link_text='Add Variables')) \
+            and self.elementExists(css='h3', contains_text='Tables')
+
+    def gotoProject(self):
+        self.findElement(link_text=self.projectname).click()
+        return Project(self.driver, self.projectname).waitFor()
+
+    def gotoSummary(self):
+        self.findElement(link_text='Summary').click()
+        return TableSummary(self.driver, self.projectname, self.tablename).waitFor()
+
+    def gotoDictionary(self):
+        self.findElement(link_text='Dictionary').click()
+        return Table(self.driver, self.projectname, self.tablename).waitFor()
+
+    def gotoPermissions(self):
+        self.findElement(link_text='Permissions').click()
+        return TablePermissions(self.driver, self.projectname, self.tablename).waitFor()        
+
+class TableSummary (Table):
+    def onPageContents(self):
+        return self.elementExists(xpath=contains('div', 'Table values index', class_='gwt-Label'))
+
+    def index(self):
+        if self.elementExists(link_text='Index Now'):
+            self.findElement(link_text='Index Now').click()
+        self.waitForCondition(C.element_present(link_text='Remove Index'))
+
+class TablePermissions (Table):
+    def onPageContents(self):
+        return self.elementExists(link_text='Add Permission')
+
+    def addUserPermission(self, user, level):
+        if level != 'View dictionary and summaries':
+            raise NotImplementedError("Only the default level of 'View dictionary and summaries' is implemented")
+        self.findElement(link_text='Add Permission').click()
+        self.findElement(link_text='Add user permission...').click()
+        self.findByLabel('Name').send_keys(user)
+        self.findElement(link_text='Save').click()
+        self.waitForCondition(C.element_present(xpath=contains('td', user)))
+
+    def getPermission(self, name):
+        tablerow = self.driver.find_elements(xpath=contains('td', name)+'/following-sibling::td')
+        if not tablerow:
+            return None
+        return tablerow[1].text
         
-#    def 
 
-    
-
-def css_escape(string, quotes="'"):
-    return string.replace(quotes, '\\'+quotes)
-
-def xpath_string_escape(s):
-    if "'" not in s: return "'%s'" % s
-    if '"' not in s: return '"%s"' % s
-    return "concat('%s')" % s.replace("'", "',\"'\",'")
 
 def not_find_by_label(driver, label, class_='gwt-TextBox'):
     try:
-        return not find_by_label(driver, label, class_)
+        return not driver.find_element(xpath=find_by_label(label, class_))
     except NoSuchElementException:
         return True
 
-def find_by_label(driver, label, class_='gwt-TextBox'):
-    "Find an <input> element with a certain class that is preceded by a <label> containing the given text"
-    # Unfortunately the only way powerful enough seems to be xpath
-    return driver.find_element(xpath="//label[contains(text(), %s)]/following-sibling::input[contains(@class, %s)]" % (
-        xpath_string_escape(label), xpath_string_escape(class_)))
-
+def find_by_label(label, class_='gwt-TextBox', label_element='label', target_element='input'):
+    """XPath expression to find an <input> element with a certain class that is preceded by a <label> 
+    containing the given text"""
+    return (contains(label_element, label) +
+            "/following-sibling::*/descendant-or-self::%s[%s]" % (
+                target_element,
+                xpath_class(class_)))
