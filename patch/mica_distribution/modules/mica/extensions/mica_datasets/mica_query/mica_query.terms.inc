@@ -515,8 +515,10 @@ class RangeTerm extends AbstractTerm {
   }
 
   function f($number) {
-    // TODO: figure out how to specify significant digits instead of # of decimals
-    return is_double($number) ? number_format($number, 3) : $number;
+    // return number when it's plain number and format it to two decimals when 
+    // it contains decimal value  
+    return  ( is_numeric( $number ) && floor( $number ) != $number ) ? 
+            number_format($number, 2) : $number;
   }
 
   function form($form, &$form_state) {
