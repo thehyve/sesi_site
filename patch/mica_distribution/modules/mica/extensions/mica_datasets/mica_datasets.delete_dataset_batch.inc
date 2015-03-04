@@ -95,15 +95,21 @@ function _mica_datasets_batch_delete_dataset_delete_queries($dataset_nid, &$cont
   if (!empty($queries)) {
     foreach ($queries as $query) {
       watchdog('mica', 'Delete query %nid', array('%nid' => $query->id), WATCHDOG_DEBUG);
-      mica_query_delete_query($query->id);
+      mica_query_delete_query($query);
     }
   }
   MicaDatasetQueryManager::deleteQueries($dataset_nid);
 }
 
 function _mica_datasets_batch_delete_dataset_delete_variable($variable_wrapper, &$context) {
-  watchdog('mica', 'Delete variable %variable', array('%variable' => $variable_wrapper->title->value()), WATCHDOG_DEBUG);
-  $context['message'] = t('Delete variable %variable', array('%variable' => $variable_wrapper->title->value()));
+  try {
+    watchdog('mica', 'Delete variable %variable', array('%variable' => $variable_wrapper->title->value()), WATCHDOG_DEBUG);
+    $context['message'] = t('Delete variable %variable', array('%variable' => $variable_wrapper->title->value()));
+  } catch (EntityMetadataWrapperException $e) {
+    // This happens if something went wrong while deleting the dataset, and deletion of the dataset is tried again.
+    // Some nodes of the dataset were deleted but there can still be stale references to them.
+    drupal_set_message(t("Variable %var not found, ignoring", array('%var' => (string) $variable_wrapper)), 'warning');
+  }
   if (empty($context['results']) || !isset($context['results']['variable_deleted'])) {
     $context['results']['variable_deleted'] = 0;
   }
