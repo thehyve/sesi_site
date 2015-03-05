@@ -20,30 +20,6 @@ from mica import *
 from opal import *
 from helpers import namespace
 
-class oldconf:
-    class opal:
-        url = 'http://localhost:8080'
-        username = 'administrator'
-        password = 'password'
-        project = 'regression_test_project'
-        tablename = 'diabetes_antwerp'
-        viewname = 'MDS_Diabetes_Antwerp'
-        tablefile = 'Diabetes_Antwerp_export.zip'
-        viewfile = 'MDS_Diabetes_Antwerp.xml'
-        mica_user = 'ssl_mica_diego'
-
-    class mica:
-        url = 'http://localhost:7880/mica'
-        username = 'mica'
-        password = 'mica'
-        dataset = 'regressiontest dataset'
-        study = 'regressiontest study'
-        study_summary = 'A dummy used in automated testing'
-        opal_url = 'https://10.0.2.2:8443/'
-        opal_dataset = 'regression_test_project'
-        opal_table = 'MDS_Diabetes_Antwerp'
-        query_name = 'Query test 1'
-
 
 # Patch yaml to use our modified dict class
 # Note: this will affect yaml process-wide, but for our case that is ok.
@@ -99,7 +75,7 @@ mica:
               - {variable: sample_date, items: 372, donors: 113}
               - {variable: Total, items: 494, donors: 114}
 """)
-        
+
 
 
 timeout = 3
