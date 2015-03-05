@@ -17,3 +17,13 @@ def xpath_class(cls):
     if not cls:
         return '.'
     return '''contains(concat(' ',normalize-space(@class),' '),%s)''' % xpath_string_escape(' '+cls+' ')
+
+class namespace(dict):
+    def __getattr__(self, attr):
+        return self[attr]
+
+    def __setattr__(self, attr, data):
+        self[attr] = data
+
+    def __delattr__(self, attr):
+        del self[attr]

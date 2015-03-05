@@ -80,6 +80,7 @@ class Page (object):
         return self
 
     def waitForCondition(self, *conditions, **kwargs):
+        kwargs.setdefault('timeout', 10)
         conds = (c.test if isinstance(c, C.Condition) else lambda _, c=c: c() for c in conditions)
         return self.driver.wait_until(*conds, **kwargs)
 
