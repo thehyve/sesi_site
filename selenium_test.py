@@ -5,6 +5,8 @@ import os
 import atexit
 from pprint import pprint
 import yaml
+from yaml.nodes import MappingNode
+from yaml.constructor import ConstructorError
 
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
@@ -21,12 +23,24 @@ from opal import *
 from helpers import namespace
 
 
-# Patch yaml to use our modified dict class
+# Configure yaml to use our modified dict class
 # Note: this will affect yaml process-wide, but for our case that is ok.
+
+# Based on yaml.constructor.SafeConstructor.construct_yaml_map 
+# and yaml.loader.BaseConstructor.construct_mapping
 def construct_map(loader, node):
     d = namespace()
     yield d
-    d.update(loader.construct_mapping(node))
+    assert isinstance(node, MappingNode)
+    for key_node, value_node in node.value:
+        key = loader.construct_object(key_node)
+        try:
+            hash(key)
+        except TypeError, exc:
+            raise ConstructorError("while constructing a mapping", node.start_mark,
+                    "found unacceptable key (%s)" % exc, key_node.start_mark)
+        value = loader.construct_object(value_node)
+        d[key] = value
 yaml.add_constructor('tag:yaml.org,2002:map', construct_map)
 
 user_conf = yaml.load(open('config.yaml').read())

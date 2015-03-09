@@ -1,3 +1,4 @@
+from collections import OrderedDict
 
 def css_escape(string, quotes="'"):
     return string.replace(quotes, '\\'+quotes)
@@ -18,7 +19,15 @@ def xpath_class(cls):
         return '.'
     return '''contains(concat(' ',normalize-space(@class),' '),%s)''' % xpath_string_escape(' '+cls+' ')
 
-class namespace(dict):
+class namespace(OrderedDict):
+    def __init__(self, *args, **kwargs):
+        # Set this to prevent recursion with OrderedDict's methods
+        root = []
+        object.__setattr__(self, '_OrderedDict__root', root)
+        root[:] = [root, root, None]
+        object.__setattr__(self, '_OrderedDict__map', {})
+        super(namespace, self).__init__(*args, **kwargs)
+
     def __getattr__(self, attr):
         return self[attr]
 
