@@ -29,27 +29,30 @@ def construct_map(loader, node):
     d.update(loader.construct_mapping(node))
 yaml.add_constructor('tag:yaml.org,2002:map', construct_map)
 
+user_conf = yaml.load(open('config.yaml').read())
+user_conf.setdefault('mica_opal_url', user_conf.opal_url)
+
 conf = yaml.load("""
 opal:
-  url: http://localhost:8080
-  username: administrator
-  password: password
+  url: %(opal_url)s
+  username: %(opal_username)r
+  password: %(opal_password)r
   projects:
     regression_test_project:
       tables:
         diabetes_antwerp:
           file: Diabetes_Antwerp_export.zip
-          user_access: [ssl_mica_diego]
+          user_access: [%(opal_mica_user)r]
       views:
         MDS_Diabetes_Antwerp:
           file: MDS_Diabetes_Antwerp.xml
           tables: [diabetes_antwerp]
-          user_access: [ssl_mica_diego]
+          user_access: [%(opal_mica_user)r]
 
 mica:
-  url: http://localhost:7880/mica
-  username: mica
-  password: mica
+  url: %(mica_url)r
+  username: %(mica_username)r
+  password: %(mica_password)r
   studies:
     regressiontest study:
       summary: A dummy used in automated testing
@@ -57,7 +60,7 @@ mica:
     regressiontest dataset: 
       studies:
         regressiontest study:
-          url: https://10.0.2.2:8443/
+          url: %(mica_opal_url)r
           dataset: regression_test_project
           table: MDS_Diabetes_Antwerp
       queries:
@@ -68,14 +71,12 @@ mica:
             sample_date: {range: ['', 2005-1-1]}
           result:
             regressiontest study:
-              - {study: regressiontest study}
-              - {variable: Matched, items: 101, donors: 37}
-              - {variable: biobank_id, items: 494, donors: 114}
-              - {variable: donor_age_sampling, items: 162, donors: 55}
-              - {variable: sample_date, items: 372, donors: 113}
-              - {variable: Total, items: 494, donors: 114}
-""")
-
+              Matched: {items: 101, donors: 37}
+              biobank_id: {items: 494, donors: 114}
+              donor_age_sampling: {items: 162, donors: 55}
+              sample_date: {items: 372, donors: 113}
+              Total: {items: 494, donors: 114}
+""" % user_conf)
 
 
 timeout = 3

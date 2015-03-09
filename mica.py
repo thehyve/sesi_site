@@ -21,6 +21,7 @@ from helpers import *
 
 class MicaPage (Page):
     def loggedIn(self):
+        # The User Menu link is not visible if the browser window is too narrow
         self.ensureScreenWidth()
         return C.element_present(link_text='User menu').test(self.driver)
 
@@ -516,22 +517,19 @@ class QueryResult (MicaPage):
             if len(data) != len(headers):
                 raise StandardError("Error: Length of data does not match length of header.\nheader: {}\ndata: {}"
                                     .format(', '.join(headers), ', '.join(data)))
-            row = [OrderedDict(study=data[0])]
+            study = data[0]
+            row = OrderedDict()
             for i, d in enumerate(data[1:], 1):
                 match = re.match(r'(?P<items>.*) items( \((?P<percent>.*)%\))?\n(?P<donors>.*) donors', d)
-                cell = OrderedDict(variable=headers[i])
-                cell['items'] = int(match.group('items'))
+                variable = headers[i]
+                cell = OrderedDict(items = int(match.group('items')))
                 cell['donors'] = int(match.group('donors'))
-                row.append(cell)
-            result[data[0]] = row
+                row[variable] = cell
+            result[study] = row
             rowidx += 1
             data = [e.text for e in table.find_elements(css='tr:nth-child({}) td'.format(rowidx))]
         return result
 
-
-            
-            
-        
 
 
 def clear_send(element, keys):
