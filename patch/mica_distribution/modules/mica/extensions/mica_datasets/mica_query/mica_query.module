@@ -421,7 +421,7 @@ function mica_query_url(MicaDatasetQuery $query) {
  *
  * @param MicaDatasetQuery $query
  */
-function mica_query_term_query($query) {
+function mica_query_term_query(MicaDatasetQuery $query) {
   if (MicaDatasetQueryManager::isCached($query)) {
     $terms = MicaDatasetQueryManager::getCache($query)->getTerms();
     return empty($terms) ? FALSE : $terms;
@@ -538,12 +538,12 @@ function _mica_query_term_title($dataset_node, $query, $term) {
   return $variable_node->title;
 }
 
-function mica_query_delete_query($query_id) {
-  $terms = mica_query_term_query($query_id);
+function mica_query_delete_query(MicaDatasetQuery $query) {
+  $terms = mica_query_term_query($query);
   if (!empty($terms)) {
     foreach ($terms as $term) {
       entity_delete('mica_dataset_query_term', $term->id);
     }
   }
-  entity_delete('mica_dataset_query', $query_id);
+  entity_delete('mica_dataset_query', $query);
 }
