@@ -218,6 +218,12 @@ class Dataset (NamedMicaPage):
         if not self.hasMessage('Import finished'):
             raise StandardError('Importing variables failed')
 
+    def gotoVariables(self):
+        self.findElement(xpath=contains('ul[%s]/li/a[%s]' % (xpath_class('action-links'), 
+                                                             xpath_class('highlight')), 
+                                        'Variables')).click()
+        return Variables(self.driver, self.name)
+
     def gotoQueries(self):
         self.clickLink('Queries')
         return Queries(self.driver, self.name).waitFor()
@@ -391,6 +397,65 @@ class StudyEdit (NamedMicaPage, StudyCreate):
         return s
 
 
+class Variables (NamedMicaPage):
+    def onPage(self):
+        if not self.header() == 'Variables':
+            return False
+        for e in self.driver.find_elements(css='ul.breadcrumb li'):
+            if e.text not in ('Home/', 'Resources/', self.name):
+                return False
+        return True
+
+    def gotoVariable(self, var):
+        vars = self.driver.find_elements(css='div.view.view-variable-search table.views-table td.views-field-title',
+                                         text=var)
+        for v in vars:
+            if v.find_element(xpath='following-sibling::td[last()]').text == self.name:
+                v.find_element(css='a').click()
+                return Variable(self.driver, self.name, var).waitFor()
+
+
+class VariableBase (MicaPage):
+    def __init__(self, driver, datasetname, variablename):
+        super(VariableBase, self).__init__(driver)
+        self.datasetname = datasetname
+        self.variablename = variablename
+
+
+class Variable (VariableBase):
+    def onPage(self):
+        label = self.findElement(xpath='//div[%s]/div/div[%s]' % (
+                            xpath_class('field-name-field-label'), 
+                            xpath_class('field-item'))).text
+        return (self.header() == label and
+                self.elementExists(xpath=contains('div[%s]/div' % xpath_class('field-name-field-value-type'), 
+                                                  'Value Type:')) and
+                self.elementExists(css='ul.breadcrumb li', text=self.datasetname))
+
+    def gotoEdit(self):
+        self.clickLink('Edit draft')
+        return VariableEdit(self.driver, self.datasetname, self.variablename).waitFor()
+
+    def gotoDataset(self):
+        self.findElement(css='ul.breadcrumb li a', text=self.datasetname).click()
+        return Dataset(self.driver, self.datasetname)
+
+
+class VariableEdit (VariableBase):
+    def onPage(self):
+        return self.header() == 'Edit Variable '+self.variablename
+
+    def setTaxonomy(self, taxonomy):
+        self.findElement(xpath=contains("div[@id='edit-field-taxonomy']//select/option", "ICD10")).click()
+
+    def save(self):
+        self.clickButton('Save')
+        page = Variable(self.driver, self.datasetname, self.variablename).waitFor()
+        if not self.hasMessage('Variable {} has been updated.'.format(self.variablename)):
+            raise StandardError('Failed to save variable {}'.format(self.variablename))
+        return page
+
+        
 class Queries (NamedMicaPage):
     def onPage(self):
         return (self.header() == self.name + ' -- Queries' and 
@@ -441,27 +506,55 @@ class QueryEdit (MicaPage):
         clear_send(self.findElement(css='input#edit-name'), name)
         self._queryname = name
 
-    def addVariable(self, variable, values=None, any_value=None, exact_value=None, range=None, in_=True):
-        if sum(int(bool(x)) for x in (values, any_value, exact_value, range)) > 1:
-            raise TypeError('Only one of values, any_value, exact_value or range can be specified')
+    def addVariable(self, variable, values=None, any_value=None, exact_value=None, range=None, 
+                    taxonomy=None, categories=None, reversed=False):
+        if sum(int(bool(x)) for x in (values, any_value, exact_value, range, taxonomy, categories)) > 1:
+            raise TypeError('Only one of values, any_value, exact_value, range, taxonomy '
+                            'or categories can be specified')
 
         self.findElement(xpath="//table[@id='variables']"+contains('td', variable)+
                          '/following-sibling::td[last()]//a').click()
         self.waitForCondition(lambda: self.elementExists(css='div#modal-content button'))
-        if in_ == False:
+        if taxonomy:
+            # Wait for the taxonomy tree to finish loading
+            self.waitForCondition(C.all(C.not_(C.element_present(css='div#taxonomy_query_tree.aciTree.aciTreeLoad')),
+                                        C.element_visible(css='div#taxonomy_query_tree.aciTree')),
+                                  timeout=100)
+
+        if reversed:
             self.findElement(css="select#edit-inverted option[value='notin']").click()
         if values is not None:
             clear_send(self.findElement(css='input#edit-values'), values)
 
-        if any_value:
+        elif any_value:
             self.findElement(css='input#edit-exact-radio-exists').click()
-        if exact_value is not None:
+        elif exact_value is not None:
             self.findElement(css='input#edit-exact-radio-exact').click()
             clear_send(self.findElement(css='input#edit-values'), exact_value)
-        if range is not None:
+        elif range is not None:
             self.findElement(css='input#edit-exact-radio-range').click()
             clear_send(self.findElement(css='input#edit-min'), range[0])
             clear_send(self.findElement(css='input#edit-max'), range[1])
+
+        elif taxonomy is not None:
+            for t in taxonomy:
+                clear_send(self.findElement(css='input#edit-filter'), t)
+                checkbox = self.waitForCondition(C.element_visible(
+                    xpath=contains('span[%s]' % xpath_class('aciTreeText'), t, function='starts-with') +
+                    "/preceding-sibling::span[%s]" % xpath_class('aciTreeCheck')))
+                container = checkbox.find_element(xpath="ancestor::div[@role='treeitem']")
+                # Optionally click twice to make sure everything under this node is selected
+                checkbox.click()
+                if container.get_attribute('aria-checked') == 'false':
+                    checkbox.click()
+            
+        elif categories is not None:
+            for cat in categories:
+                checkbox = self.findElement(xpath="//div[@id='modal-content']//table[%s]//td[text()=%s]"
+                                            "/preceding-sibling::td//input[@type='checkbox']" % 
+                                            (xpath_class('table'), xpath_string_escape(cat)))
+                if not checkbox.get_attribute('checked'):
+                    checkbox.click()
 
         self.findElement(css='div.modal-content button', text='Save').click()
         self.waitForCondition(lambda: self.elementExists(xpath="//table[@id='queryterms']"
@@ -502,7 +595,7 @@ class QueryResult (MicaPage):
 
     def result(self):
         table = self.findElement(css='div#result-wrapper table.query-table')
-        headers = [e.text.split('\n')[0].split(' :')[0] 
+        headers = [e.text.split('\n')[0].split(' :')[0].split(' in (')[0]
                    for e in table.find_elements(css='tr:first-child th')]
         num_fixed_headers = 3 # Study, Matched, Total
         if len(headers) <= num_fixed_headers:

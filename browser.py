@@ -25,6 +25,8 @@ class Browser(object):
         return self.page.title
 
     def __getattr__(self, attr):
+        # check if attribute exists
+        getattr(self.page, attr)
         return partial(self._callPageMethod, attr)
 
     def _callPageMethod(self, method, *args, **kwargs):

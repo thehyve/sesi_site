@@ -8,11 +8,11 @@ def xpath_string_escape(s):
     if '"' not in s: return '"%s"' % s
     return "concat('%s')" % s.replace("'", "',\"'\",'")
 
-def contains(tag='*', text=None, prefix='//', class_=None):
+def contains(tag='*', text=None, prefix='//', class_=None, function='contains'):
     c = ''
     if class_ is not None:
         c = xpath_class(class_)+' and '
-    return '''%s%s[%s.//text()[contains(., %s)]]''' % (prefix, tag, c, xpath_string_escape(text))
+    return '''%s%s[%s.//text()[%s(., %s)]]''' % (prefix, tag, c, function, xpath_string_escape(text))
 
 def xpath_class(cls):
     if not cls:

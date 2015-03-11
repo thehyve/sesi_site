@@ -5,8 +5,9 @@ import os
 import atexit
 from pprint import pprint
 import yaml
-from yaml.nodes import MappingNode
+from yaml.nodes import MappingNode, ScalarNode
 from yaml.constructor import ConstructorError
+import argparse
 
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
@@ -17,13 +18,38 @@ from selenium.webdriver.common.by import By
 import pylenium
 import pylenium.conditions as C
 
+argparser = argparse.ArgumentParser(description='Test Opal and Mica')
+argparser.add_argument('--data_dir', default='', help=
+                       'The directory where selenium_test can find needed data files and python libraries')
+argparser.add_argument('--config', '-c', type=argparse.FileType('r'), help=
+                       'The user configuration file, defaults to config.yaml')
+argparser.add_argument('--delete', '-D', action='store_true', help=
+                       'If set, delete test data after testing')
+args = argparser.parse_args()
+if args.data_dir:
+    if not os.path.isdir(args.data_dir):
+        args.error('data_dir is not a directory')
+    os.chdir(args.data_dir)
+
+
+# We need to process the --data_dir flag before importing these
 from browser import Browser
 from mica import *
 from opal import *
 from helpers import namespace
 
 
-# Configure yaml to use our modified dict class
+if not args.config:
+    try:
+        if not os.path.isfile('config.yaml'):
+            args.error("Configuration file not found! "+os.path.join(args.data_dir, 'config.yaml'))
+        args.config = open('config.yaml')
+    except OSError as e:
+        args.error("Unable to open configuration file: "+str(e))
+
+
+# Configure yaml to use our modified dict class so we have attribute access
+# and preserve order.
 # Note: this will affect yaml process-wide, but for our case that is ok.
 
 # Based on yaml.constructor.SafeConstructor.construct_yaml_map 
@@ -43,12 +69,42 @@ def construct_map(loader, node):
         d[key] = value
 yaml.add_constructor('tag:yaml.org,2002:map', construct_map)
 
-user_conf = yaml.load(open('config.yaml').read())
+# for debugging purposes
+# based on yaml.representer.Representer.represent_mapping
+def represent_map(self, mapping):
+    value = []
+    node = MappingNode('tag:yaml.org,2002:map', value)
+    if self.alias_key is not None:
+        self.represented_objects[self.alias_key] = node
+    best_style = True
+    if hasattr(mapping, 'items'):
+        mapping = mapping.items()
+    for item_key, item_value in mapping:
+        node_key = self.represent_data(item_key)
+        node_value = self.represent_data(item_value)
+        if not (isinstance(node_key, ScalarNode) and not node_key.style):
+            best_style = False
+        if not (isinstance(node_value, ScalarNode) and not node_value.style):
+            best_style = False
+        value.append((node_key, node_value))
+    if self.default_flow_style is not None:
+        node.flow_style = self.default_flow_style
+    else:
+        node.flow_style = best_style
+    return node
+yaml.add_representer(namespace, represent_map)
+yaml.add_representer(OrderedDict, represent_map)
+yaml.add_representer(unicode, yaml.representer.SafeRepresenter.represent_unicode)
+
+
+user_conf = yaml.load(args.config.read())
 user_conf.setdefault('mica_opal_url', user_conf.opal_url)
+args.config.close()
+
 
 conf = yaml.load("""
 opal:
-  url: %(opal_url)s
+  url: %(opal_url)r
   username: %(opal_username)r
   password: %(opal_password)r
   projects:
@@ -77,6 +133,8 @@ mica:
           url: %(mica_opal_url)r
           dataset: regression_test_project
           table: MDS_Diabetes_Antwerp
+      variables:
+        donor_diagnosis_sampling: {taxonomy: ICD10}
       queries:
         Query test 1:
           variables:
@@ -90,10 +148,22 @@ mica:
               donor_age_sampling: {items: 162, donors: 55}
               sample_date: {items: 372, donors: 113}
               Total: {items: 494, donors: 114}
+        Query test 2:
+          variables:
+            biobank_id: {}
+            donor_diagnosis_sampling: {taxonomy: [E11_x, E14_x]}
+            type_sample: {categories: [SER]}
+          result:
+            regressiontest study:
+              Matched: {items: 456, donors: 112}
+              biobank_id: {items: 494, donors: 114}
+              donor_diagnosis_sampling: {items: 456, donors: 112}
+              type_sample: {items: 494, donors: 114}
+              Total: {items: 494, donors: 114}
 """ % user_conf)
 
-
 timeout = 3
+
 
 def newdriver():
     # Create a new instance of the Firefox driver
@@ -158,6 +228,15 @@ def test_mica():
         print('Importing variables')
         browser.importVariables()
 
+        print('Configuring variables')
+        for variable, variabledata in datasetdata.variables.items():
+            browser.gotoVariables()
+            browser.gotoVariable(variable)
+            browser.gotoEdit()
+            browser.setTaxonomy(variabledata.taxonomy)
+            browser.save()
+            browser.gotoDataset()
+
         for query, querydata in datasetdata.queries.items():
             print("Creating "+query)
             browser.gotoQueries()
@@ -171,9 +250,10 @@ def test_mica():
             browser.gotoQueries()
 
             print("Running query")
-            browser.gotoQuery('Query test 1')
+            browser.gotoQuery(query)
             result = browser.result()
-            print("result matches: "+ str(result == querydata.result))
+            print("result matches expected: "+ str(result == querydata.result))
+    return browser
 
 
 def create_dataset(browser, name):
@@ -220,7 +300,8 @@ def remove_mica_data(browser):
 def test_opal():
     global opal
     browser = opal = Browser(newdriver(), conf.opal.url, LoginPage)
-    return load_opal_data(browser)
+    load_opal_data(browser)
+    return opal
 
 
 def load_opal_data(browser):
@@ -287,9 +368,17 @@ def remove_opal_data(browser):
         browser.removeProject()
     
 
-if __name__ == '__main__':
+def main():
     print('Testing Opal and loading data')
-    test_opal()
+    opal = test_opal()
     print('Testing Mica')
-    test_mica()
+    mica = test_mica()
+    if args.delete:
+        print('Removing Mica data')
+        remove_mica_data(mica)
+        print('Removing Opal data')
+        remove_opal_data(opal)
 
+
+if __name__ == '__main__':
+    main()

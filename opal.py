@@ -322,7 +322,7 @@ class TableSummary (Table):
     def index(self):
         if self.elementExists(link_text='Index Now'):
             self.findElement(link_text='Index Now').click()
-        self.waitForCondition(C.element_present(link_text='Remove Index'))
+        self.waitForCondition(C.element_present(link_text='Remove Index'), timeout=60)
 
 class TablePermissions (Table):
     def onPageContents(self):
