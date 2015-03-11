@@ -26,7 +26,7 @@ class SeleniumBase(unittest.TestCase):
     def login(self):
         sd = self.sd
         print "login"
-        sd.get(self.base_url + "/mica/")
+        sd.get(self.base_url + "/")
         sd.find_element_by_css_selector("#edit-name").clear()
         sd.find_element_by_css_selector("#edit-name").send_keys(self.username)
         sd.find_element_by_css_selector("#edit-pass").clear()
@@ -98,7 +98,7 @@ class Drush(SeleniumBase):
         self.passwd = passwd
     
     def changePermissions(self):
-        self.sd.get(self.base_url + "/mica/?q=admin/people/permissions/2")
+        self.sd.get(self.base_url + "/?q=admin/people/permissions/2")
 
         #change permissions for authenticated user
         chkbox = self.css("#edit-2-view-any-dataset-query")
@@ -133,7 +133,7 @@ class Drush(SeleniumBase):
         self.clickon('#edit-submit')
 
     def changePermCommunity(self):
-        self.sd.get(self.base_url + "/mica/?q=admin/config/group/permissions/node/community")
+        self.sd.get(self.base_url + "/?q=admin/config/group/permissions/node/community")
 
         chkbox = self.css("#edit-2-create-data-access-request-form-content")
         self.setcheckbox(chkbox, True)
@@ -155,7 +155,7 @@ class Drush(SeleniumBase):
         self.clickon('#edit-submit')
 
     def changePermDefaultCommunity(self):
-        self.sd.get(self.base_url + "/mica/?q=admin/config/group/permissions/node/default_community")
+        self.sd.get(self.base_url + "/?q=admin/config/group/permissions/node/default_community")
 
         chkbox = self.css("#edit-5-create-data-access-request-form-content")
         self.setcheckbox(chkbox, True)
@@ -172,7 +172,7 @@ class Drush(SeleniumBase):
 
  
     def changePermConsAdmin(self):
-        self.sd.get(self.base_url + "/mica/?q=admin/people/permissions/4")
+        self.sd.get(self.base_url + "/?q=admin/people/permissions/4")
 
         chkbox = self.css("#edit-4-administer-taxonomy")
         self.setcheckbox(chkbox, True)
@@ -207,7 +207,7 @@ class Drush(SeleniumBase):
         self.clickon('#edit-submit')
 
     def changeDACF(self):
-        self.sd.get(self.base_url + "/mica/?q=admin/people/permissions/4")
+        self.sd.get(self.base_url + "/?q=admin/people/permissions/4")
 
         chkbox = self.css("#edit-node-preview-0")
         self.setcheckbox(chkbox, True)
@@ -217,7 +217,7 @@ class Drush(SeleniumBase):
     def changeEnableContactForm(self):
         driver=self.sd    
 
-        driver.get(self.base_url + "/mica/?q=admin/structure/menu/manage/main-menu")
+        driver.get(self.base_url + "/?q=admin/structure/menu/manage/main-menu")
         try: 
             driver.find_element_by_link_text('Contact')
             return True
@@ -236,7 +236,7 @@ class Drush(SeleniumBase):
 
     def selectCaptchaContactForm(self):
         driver=self.sd    
-        driver.get(self.base_url + "/mica/?q=admin/config/people/captcha")
+        driver.get(self.base_url + "/?q=admin/config/people/captcha")
         Select(driver.find_element_by_id("edit-captcha-form-id-overview-captcha-captcha-points-contact-site-form-captcha-type")).select_by_visible_text("Image (from module image_captcha)")
         driver.find_element_by_id("edit-submit").click()
 
@@ -244,32 +244,32 @@ class Drush(SeleniumBase):
     def createLinksOnCommunityHome(self):
         
         #article
-        self.sd.get(self.base_url + "/mica/?q=admin/structure/types/manage/article/fields/og_group_ref")
+        self.sd.get(self.base_url + "/?q=admin/structure/types/manage/article/fields/og_group_ref")
         chkbox = self.sd.find_element_by_xpath("//*[@id='edit-instance-settings-behaviors-prepopulate-status']")
         self.setcheckbox(chkbox, True)
         self.clickon('#edit-submit')
         
         #event
-        self.sd.get(self.base_url + "/mica/?q=admin/structure/types/manage/event/fields/og_group_ref")
+        self.sd.get(self.base_url + "/?q=admin/structure/types/manage/event/fields/og_group_ref")
         chkbox = self.sd.find_element_by_xpath("//*[@id='edit-instance-settings-behaviors-prepopulate-status']")
         self.setcheckbox(chkbox, True)  
         self.clickon('#edit-submit')
 
         #study
-        self.sd.get(self.base_url + "/mica/?q=admin/structure/types/manage/study/fields/og_group_ref")
+        self.sd.get(self.base_url + "/?q=admin/structure/types/manage/study/fields/og_group_ref")
         chkbox = self.sd.find_element_by_xpath("//*[@id='edit-instance-settings-behaviors-prepopulate-status']")
         self.setcheckbox(chkbox, True)
         self.clickon('#edit-submit')
 
 
     def changeCommunityProjectVisibilityDefault(self):
-        self.sd.get(self.base_url + "/mica/?q=admin/structure/types/manage/community/fields/field_project_visibility")
+        self.sd.get(self.base_url + "/?q=admin/structure/types/manage/community/fields/field_project_visibility")
         radio = self.sd.find_element_by_css_selector("#edit-field-project-visibility-und-0")
         radio.click()
         self.clickon('#edit-submit')
 
     def disablePromoteToFrontPage(self):
-        self.sd.get(self.base_url + "/mica/?q=admin/structure/types/manage/community")
+        self.sd.get(self.base_url + "/?q=admin/structure/types/manage/community")
 
         elems = self.sd.find_elements_by_xpath("//strong[contains(., 'Publishing options')]")
         if len(elems)==0:

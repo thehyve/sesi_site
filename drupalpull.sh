@@ -36,7 +36,7 @@ fi
 yes | cp -Rfv "$DRUPAL_ROOT/sites/all/patch/mica_distribution" "$DRUPAL_ROOT/profiles/"
 
 # ----------------------------- activate common functions
-drush pm-list --pipe --type=module --status=enabled > /tmp/enabledmods
+#drush pm-list --pipe --type=module --status=enabled > /tmp/enabledmods
 drush pm-list --pipe --type=module --no-core > /tmp/allmods
 function isenabled() { grep -Fxq "$1" /tmp/enabledmods  ;}
 function isdisabled() { ! grep -Fxq "$1" /tmp/enabledmods  ;}
@@ -328,8 +328,17 @@ drush user-create selenium --password="$passwd"
 drush urol administrator selenium
 
 passwd=`cat $DRUPAL_ROOT/selenium.passwd`
+
+if [ -f "$DRUPAL_ROOT/micaurl.ini" ] ; then
+   MICAURL=`cat $DRUPAL_ROOT/micaurl.ini`
+else
+   MICAURL='http://localhost/mica'
+fi
+
+echo $MICAURL
+
 echo "Running seldrush"
-xvfb-run --server-args="-screen 0, 1024x768x24" python $DRUPAL_ROOT/sites/all/seldrush.py http://localhost selenium "$passwd"
+xvfb-run --server-args="-screen 0, 1024x768x24" python $DRUPAL_ROOT/sites/all/seldrush.py "$MICAURL" selenium "$passwd"
 
 #update version
 cd $DRUPAL_ROOT/sites/all
