@@ -479,7 +479,8 @@
                 // success callback
                 if (object && object.success) {
                     options.success = function() {
-                        success.apply(this, arguments);
+                        //performance optimization
+                        //success.apply(this, arguments);
                         object.success.apply(this, arguments);
                     };
                 } else {
@@ -614,12 +615,13 @@
             if (!item || this.isInode(item)) {
                 // add the task to the queue
                 this._instance.queue.push(function(complete) {
+                    // removed for perfomance issues
                     // a way to cancel the operation
-                    if (!this._trigger(item, 'beforeload', options)) {
-                        this._fail(item, options);
-                        complete();
-                        return;
-                    }
+                    //if (!this._trigger(item, 'beforeload', options)) {
+                    //    this._fail(item, options);
+                    //    complete();
+                    //    return;
+                    //}
                     this._loading(item, true);
                     if (this.wasLoad(item)) {
                         // was load already
@@ -1588,10 +1590,10 @@
             if (item) {
                 if (this.isInode(item)) {
                     // a way to cancel the operation
-                    if (!this._trigger(item, 'beforeappend', options)) {
-                        this._fail(item, options);
-                        return;
-                    }
+                    //if (!this._trigger(item, 'beforeappend', options)) {
+                    //    this._fail(item, options);
+                    //    return;
+                    //}
                     var container = this._createContainer(item);
                     var last = this.last(item);
                     this._createItems(container, null, null, options.itemData, this.level(item) + 1, function(list) {
@@ -1606,9 +1608,12 @@
                                 this._setOddEven(list.first());
                             }
                             // trigger `added` for each item
-                            list.each(this.proxy(function(element) {
-                                this._trigger($(element), 'added', options);
-                            }, true));
+                            
+                            //removed for performance issues
+                            //list.each(this.proxy(function(element) {
+                            //    this._trigger($(element), 'added', options);
+                            //}, true));
+                            
                         } else if (!this.hasChildren(item, true)) {
                             container.remove();
                         }
@@ -1632,10 +1637,11 @@
                         this._setFirstLast(null, last);
                         domApi.addListClass(list.toArray(), 'aciTreeVisible');
                         this._setOddEven();
+                        //removed for performance issues
                         // trigger `added` for each item
-                        list.each(this.proxy(function(element) {
-                            this._trigger($(element), 'added', options);
-                        }, true));
+                        //list.each(this.proxy(function(element) {
+                        //    this._trigger($(element), 'added', options);
+                        //}, true));
                         this._animate(null, true, !this._instance.options.animateRoot || options.unanimated);
                     } else if (!this.hasChildren(null, true)) {
                         // remove the children container

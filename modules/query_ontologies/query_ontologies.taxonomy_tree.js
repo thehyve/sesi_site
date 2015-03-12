@@ -20,19 +20,19 @@ if( typeof Sesi.QueryOntologies.TaxonomyTree == 'undefined' )
                 // Initialize the tree
                 tree.aciTree({
                     ajax: {
-                        url: tree.data( 'url' )
+                        url: tree.data('url')
                     },
                     checkbox: true,
 
                     // our custom filter/search
-                    filterHook: function(item, search, regexp) {
+                    filterHook: function (item, search, regexp) {
                         if (search.length) {
                             // try to get the ancestors to match them as well
                             var ancestors = this.path(item);
 
                             if (ancestors.length) {
                                 // If any of the parents match, this item matches as well
-                                for( var i = 0; i < ancestors.length; i++ ) {
+                                for (var i = 0; i < ancestors.length; i++) {
                                     var label = this.getLabel(ancestors.eq(i));
                                     if (regexp.test(String(label))) {
                                         return true;
@@ -41,11 +41,11 @@ if( typeof Sesi.QueryOntologies.TaxonomyTree == 'undefined' )
                             }
 
                             // match the item
-                            if( regexp.test(String(this.getLabel(item))) ) {
+                            if (regexp.test(String(this.getLabel(item)))) {
                                 // If this item matches, but none of the ancestors, 
                                 // expand the tree up to this item
                                 this.openPath(item);
-                                
+
                                 return true;
                             } else {
                                 return false;
@@ -58,8 +58,9 @@ if( typeof Sesi.QueryOntologies.TaxonomyTree == 'undefined' )
                 });
 
                 tree.on( "acitree", function(event, api, item, eventName, options) {
+
                     switch(eventName) {
-                        case "loaded": 
+                        case "init":
                             // Unfortunately, tristate elements can not be set in the 
                             // JSON to generate the tree. For that reason, we reselect
                             // the nodes here, to make sure that the tristate elements
@@ -89,10 +90,12 @@ if( typeof Sesi.QueryOntologies.TaxonomyTree == 'undefined' )
                                         treeApi.check( item );
                                     }
                                 });
+
                             }
+
                     }
                 });
-                
+
                 // Make sure that all selections are taken into account when 
                 // the form is submitted
                 form.on( "submit", function(e) {
@@ -183,5 +186,6 @@ if( typeof Sesi.QueryOntologies.TaxonomyTree == 'undefined' )
         }
     }
 
+    
 }(jQuery)); 
 
