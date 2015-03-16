@@ -25,7 +25,47 @@ function drush_rules_enable() {
   }
 }
 
+/*
+ * Set a default value of 0 ('no') for the required field_validate_past_date on variables. If the field does not
+ * exist for an existing variable that will cause errors.
+ */
+function fix_default_on_variable_past_date_field() {
+
+  $variables = db_query("select n.nid, n.vid from {node} n left join {field_data_field_validate_past_date} f
+                            on n.nid = f.entity_id
+                            where n.type = 'variable'
+                              and f.field_validate_past_date_value is NULL")
+    ->fetchAllKeyed();
+
+  watchdog('sesi_variable_form', "Setting default value of 0 for field_validate_past_date on @c variables",
+    array('@c' => count($variables)), WATCHDOG_INFO);
+
+  foreach ($variables as $nid => $vid) {
+    $fields = array(
+      'entity_type' => 'node',
+      'bundle' => 'variable',
+      'deleted' => 0,
+      'entity_id' => $nid,
+      'revision_id' => $vid,
+      'language' => LANGUAGE_NONE,
+      'delta' => 0,
+      'field_validate_past_date_value' => 0,
+    );
+    db_insert('field_data_field_validate_past_date')
+      ->fields($fields)
+      ->execute();
+    db_insert('field_revision_field_validate_past_date')
+      ->fields($fields)
+      ->execute();
+  }
+}
+
+
 print  "DRUPALPULL.PHP";
+
+// Apply a fix for the validate_past_date field
+
+fix_default_on_variable_past_date_field();
 
 // ACTIVATES DEFAULT RULES
 
