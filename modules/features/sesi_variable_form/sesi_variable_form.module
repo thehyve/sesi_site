@@ -5,3 +5,51 @@
  */
 
 include_once 'sesi_variable_form.features.inc';
+
+/**
+ * implements hook_post_features_enable_feature from the features module.
+ *
+ * Set a default value of 0 ('no') for the new field_validate_past_date on variables, otherwise we will run into errors.
+ * Using the Drupal node api is way too slow for such a bulk update, so we have to access at the SQL
+ * level.
+ *
+ * There is probably a way to do this in a single SQL statement, but this can be optimized if that turns out to be a
+ * problem.
+ */
+function sesi_variable_form_post_features_enable_feature($component) {
+  // This hook is called multiple times for each component that this feature changes (see .info file), and once more
+  // after all changes are completed with $components === NULL. We only need to run this once after all changes are
+  // completed.
+  if($component !== NULL) {
+    return;
+  }
+
+  $variables = db_query("select n.nid, n.vid from {node} n left join {field_data_field_validate_past_date} f
+                            on n.nid = f.entity_id
+                            where n.type = 'variable'
+                              and f.field_validate_past_date_value is NULL")
+    ->fetchAllKeyed();
+
+  watchdog('sesi_variable_form', "Setting default value of 0 for field_validate_past_date on @c variables, nids: \n@nids",
+    array('@c' => count($variables), '@nids' => implode(', ', array_keys($variables))), WATCHDOG_INFO);
+
+  foreach ($variables as $nid => $vid) {
+    $fields = array(
+      'entity_type' => 'node',
+      'bundle' => 'variable',
+      'deleted' => 0,
+      'entity_id' => $nid,
+      'revision_id' => $vid,
+      'language' => LANGUAGE_NONE,
+      'delta' => 0,
+      'field_validate_past_date_value' => 0,
+    );
+    db_insert('field_data_field_validate_past_date')
+      ->fields($fields)
+      ->execute();
+    db_insert('field_revision_field_validate_past_date')
+      ->fields($fields)
+      ->execute();
+  }
+
+}
