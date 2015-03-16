@@ -1,4 +1,3 @@
-<?php
 #!/usr/bin/env drush
 /**
  * Enable a rule on the site.
@@ -37,8 +36,8 @@ function fix_default_on_variable_past_date_field() {
                               and f.field_validate_past_date_value is NULL")
     ->fetchAllKeyed();
 
-  watchdog('sesi_variable_form', "Setting default value of 0 for field_validate_past_date on @c variables",
-    array('@c' => count($variables)), WATCHDOG_INFO);
+  $c = count($variables);
+  print "Setting default value of 0 for field_validate_past_date on $c variables\n";
 
   foreach ($variables as $nid => $vid) {
     $fields = array(
@@ -61,7 +60,7 @@ function fix_default_on_variable_past_date_field() {
 }
 
 
-print  "DRUPALPULL.PHP";
+print  "DRUPALPULL.PHP\n";
 
 // Apply a fix for the validate_past_date field
 
