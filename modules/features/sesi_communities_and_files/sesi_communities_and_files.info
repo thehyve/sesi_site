@@ -53,6 +53,7 @@ features[field_instance][] = node-dataset-group_content_access
 features[field_instance][] = node-dataset-og_group_ref
 features[field_instance][] = node-event-group_content_access
 features[field_instance][] = node-event-og_group_ref
+features[field_instance][] = node-study-group_content_access
 features[field_instance][] = node-study-og_group_ref
 features[field_instance][] = node-study_variable_attributes-og_group_ref
 features[field_instance][] = node-variable-og_group_ref
