@@ -15,7 +15,7 @@ drush sqlq "SELECT * FROM node where type='variable'" | cut -f1,5
 
 3. create script (genreport1.0.sh)
 
-4. sh sites/all/genreport1.0.sh "select name from user" report_users
+4. sh sites/all/manmetrics/genreport1.0.sh "select name from users" report_users
 
 
 5. generate a report
