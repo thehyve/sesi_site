@@ -927,6 +927,59 @@ function sesi_communities_and_files_field_default_field_instances() {
     ),
   );
 
+  // Exported field_instance: 'node-study-group_content_access'
+  $field_instances['node-study-group_content_access'] = array(
+    'bundle' => 'study',
+    'default_value' => array(
+      0 => array(
+        'value' => 0,
+      ),
+    ),
+    'deleted' => 0,
+    'description' => '',
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'module' => 'list',
+        'settings' => array(),
+        'type' => 'list_default',
+        'weight' => 41,
+      ),
+      'teaser' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => 0,
+      ),
+    ),
+    'entity_type' => 'node',
+    'field_name' => 'group_content_access',
+    'label' => 'Group content visibility',
+    'required' => TRUE,
+    'settings' => array(
+      'user_register_form' => FALSE,
+    ),
+    'view modes' => array(
+      'full' => array(
+        'label' => 'above',
+        'type' => 'list_default',
+      ),
+      'teaser' => array(
+        'label' => 'above',
+        'type' => 'list_default',
+      ),
+    ),
+    'widget' => array(
+      'module' => 'options',
+      'settings' => array(
+        'content_taxonomy_opt_groups' => FALSE,
+      ),
+      'type' => 'options_select',
+      'weight' => 14,
+    ),
+    'widget_type' => 'options_select',
+  );
+
   // Exported field_instance: 'node-study-og_group_ref'
   $field_instances['node-study-og_group_ref'] = array(
     'bundle' => 'study',
@@ -1124,7 +1177,7 @@ function sesi_communities_and_files_field_default_field_instances() {
       'module' => 'og',
       'settings' => array(),
       'type' => 'og_complex',
-      'weight' => 63,
+      'weight' => 80,
     ),
   );
 
