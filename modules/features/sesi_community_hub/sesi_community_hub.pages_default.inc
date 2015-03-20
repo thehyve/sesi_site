@@ -205,47 +205,7 @@ function sesi_community_hub_default_page_manager_handlers() {
     $pane->type = 'entity_field';
     $pane->subtype = 'node:group_group';
     $pane->shown = TRUE;
-    $pane->access = array(
-      'plugins' => array(
-        0 => array(
-          'name' => 'entity_field_value:node:community:body',
-          'settings' => array(
-            'body' => array(
-              'und' => array(
-                0 => array(
-                  'summary' => '',
-                  'value' => 'GLOBAL',
-                  'format' => 'filtered_html',
-                ),
-              ),
-            ),
-            'body_value' => array(
-              0 => array(
-                'summary' => '',
-                'value' => 'GLOBAL',
-                'format' => 'filtered_html',
-              ),
-            ),
-            'body_summary' => array(
-              0 => array(
-                'summary' => '',
-                'value' => 'GLOBAL',
-                'format' => 'filtered_html',
-              ),
-            ),
-            'body_format' => array(
-              0 => array(
-                'summary' => '',
-                'value' => 'GLOBAL',
-                'format' => 'filtered_html',
-              ),
-            ),
-          ),
-          'context' => 'argument_entity_id:node_1',
-          'not' => FALSE,
-        ),
-      ),
-    );
+    $pane->access = array();
     $pane->configuration = array(
       'label' => 'title',
       'formatter' => 'og_group_subscribe',
