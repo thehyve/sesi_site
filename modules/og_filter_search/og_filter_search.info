@@ -2,6 +2,7 @@ name = OG Filter Search
 description = To filter search result when the result items are should not be visible to certain users.
 package = Sesi
 core = 7.x
+dependencies[] = views_access_restrictions
 
 ; Information added by Drupal.org packaging script on 2014-11-20
 version = "7.x-1.0a"

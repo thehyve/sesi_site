@@ -63,6 +63,8 @@ function ensure_feat() {
 isenabled seven && drush --yes pm-disable seven
 isenabled bartik && drush --yes pm-disable bartik
 isenabled locale && drush --yes dis locale
+isenabled project_community && drush --yes dis project_community
+isenabled project_dataset && drush --yes dis project_dataset
 
 # Enable some modules that must be enabled.
 isdisabled features && drush --yes pm-enable features
@@ -237,11 +239,8 @@ ensure_mod text_hierarchical
 ensure_mod better_statistics
 ensure_mod userflow
 
-# project datasets
-ensure_mod project_dataset
-
-# project community
-ensure_mod project_community
+# Views restrictions
+ensure_mod views_access_restrictions
 
 # og admin role
 ensure_mod og_admin_role 
