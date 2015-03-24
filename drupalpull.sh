@@ -240,7 +240,8 @@ ensure_mod better_statistics
 ensure_mod userflow
 
 # Views restrictions
-ensure_mod views_access_restrictions
+isenabled views_access_restrictions || drush --yes en views_access_restrictions
+ensure_feat sesi_studies
 
 # og admin role
 ensure_mod og_admin_role 
