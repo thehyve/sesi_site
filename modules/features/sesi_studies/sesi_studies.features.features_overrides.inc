@@ -14,5 +14,8 @@ function sesi_studies_features_override_default_overrides() {
   // Exported overrides for: variable
   $overrides["variable.content_access_study.value|priority"] = -1;
 
+  // Exported overrides for: views_view
+  $overrides["views_view.studies_search.display|default|display_options|query|options|search_api_bypass_access"] = 1;
+
  return $overrides;
 }
