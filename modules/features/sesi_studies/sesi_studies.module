@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Sesi Studies feature.
+ */
+
+include_once 'sesi_studies.features.inc';

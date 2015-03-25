@@ -1,0 +1,12 @@
+name = Sesi Studies
+description = Configure Study access and views
+core = 7.x
+package = Sesi
+version = 7.x-1.7
+project = sesi_studies
+dependencies[] = mica_studies
+dependencies[] = views_access_restrictions
+features[features_api][] = api:2
+features[features_override_items][] = variable.content_access_study
+features[features_overrides][] = variable.content_access_study.value|priority
+features[features_overrides][] = views_view.studies_search.display|default|display_options|query|options|search_api_bypass_access

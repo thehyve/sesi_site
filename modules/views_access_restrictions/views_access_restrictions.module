@@ -1,0 +1,122 @@
+<?php
+
+function views_access_restrictions_views_post_execute(&$view) {
+
+    switch ($view->name) {
+        case 'community_by_dataset':
+            _views_access_restrictions_filter_communities($view);
+            break;
+        case 'datasets':
+        case 'studies_search':
+            _views_access_restrictions_filter_community_content($view);
+            break;
+    }
+}
+
+function _views_access_restrictions_filter_community_content(&$view) {
+    global $user;
+
+    watchdog(WATCHDOG_DEBUG, 'Running post execute '. $view->name);
+
+    $results = array();
+    foreach ($view->result as $key => $value) {   
+        // get id of node, if user has access, add item and continue
+        $nid = $value->entity->nid;
+        $node = node_load($nid);
+        if(node_access('view',$node)) {
+            array_push($results, $value);
+            continue;
+        }
+        
+        //if draft and not owner...
+        //This is not neccesary anymore because we changed permissions
+        ////if($node->status=="0" && $node->uid != $user->uid) {
+        //    continue;
+        //}
+        
+        // user has no access.. are any communities associated hidden (project communities)?
+        // if at least 1 community is hidden, is not visible 
+        
+        if(views_access_restrictions_is_hidden_project_content($nid)) {
+            continue;        
+        }
+        
+        //add element to final array
+        array_push($results, $value);
+    }
+    
+    //rewrite the final results page
+    $view->result = $results;
+    $view->query->pager->total_items = count($results);
+//    $view->query->pager->update_page_info();
+}
+
+function _views_access_restrictions_filter_communities(&$view) {
+    global $user;
+
+    watchdog(WATCHDOG_DEBUG, 'Running post execute project_community_views_post_execute '. $view->name);
+
+    // Check to see if $user has the administrator role.
+    if (in_array('administrator', array_values($user->roles))) {
+        // Don't remove anything from the result
+        return;
+    }
+
+    $results = array();
+    foreach ($view->result as $key => $value) {
+        // get id of community, if user has access, add item and continue
+        $nid = $value->nid;
+        $node = node_load($nid);
+        if (og_is_member('node', $nid)) {
+            array_push($results, $value);
+            continue;
+        }
+
+        // is not member, only show community if field_project_visibity is not hidden
+        //TODO
+        $entity = entity_load('node', array($nid));
+        $g = $entity[$nid];
+        if(property_exists($g, 'field_project_visibility') &&
+          $g->field_project_visibility[LANGUAGE_NONE][0]['value'] == '0') {
+            continue;
+        }
+        array_push($results, $value);
+
+    }
+
+    //rewrite the final results page
+    $view->result = $results;
+}
+
+/**
+ * To check if a node belongs to a hidden community / project
+ */
+function views_access_restrictions_is_hidden_project_content($nid) {
+
+    // get number of communities associated to the given node and count
+    // the hidden ones
+    $gids = og_get_entity_groups('node', $nid);
+
+    if (sizeof($gids) > 0) {
+        // get gids as keys
+        $keys = array_keys(array_flip($gids['node']));
+
+        // get complete entity of each group
+        $groups = entity_load('node', $keys);
+
+        foreach ($groups as $g) {
+            if (!property_exists($g, 'field_project_visibility')) {
+                continue;
+            }
+
+            $h = $g->field_project_visibility[LANGUAGE_NONE][0]['value'];
+
+            // return true then project visibility is hidden
+            if ($h=='0') {
+                return TRUE;
+            }
+        }
+    }
+
+    return FALSE;
+}

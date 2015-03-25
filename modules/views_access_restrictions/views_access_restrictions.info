@@ -1,0 +1,5 @@
+name = Views Access Restrictions
+description = Filter the views on Communities, Datasets and Studies to remove entries the user isn't allowed to see.
+package = Sesi
+core = 7.x
+#files[] = 
