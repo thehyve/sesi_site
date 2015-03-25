@@ -25,15 +25,15 @@ function sesi_communities_and_files_views_api($module = NULL, $api = NULL) {
  */
 function sesi_communities_and_files_field_group_info_alter(&$data) {
   if (isset($data['group_authorization_maelstrom|node|study|form'])) {
-    $data['group_authorization_maelstrom|node|study|form']->data['weight'] = 129; /* WAS: 17 */
+    $data['group_authorization_maelstrom|node|study|form']->data['weight'] = 130; /* WAS: 17 */
   }
   if (isset($data['group_authorization_specific|node|study|form'])) {
-    $data['group_authorization_specific|node|study|form']->data['weight'] = 128; /* WAS: 16 */
+    $data['group_authorization_specific|node|study|form']->data['weight'] = 129; /* WAS: 16 */
   }
   if (isset($data['group_authorization|node|study|form'])) {
     $data['group_authorization|node|study|form']->data['children']['0'] = 'og_group_ref'; /* WAS: 'group_authorization_maelstrom' */
-    $data['group_authorization|node|study|form']->data['children']['1'] = 'group_authorization_maelstrom'; /* WAS: 'group_authorization_specific' */
-    $data['group_authorization|node|study|form']->data['children']['2'] = 'group_authorization_specific'; /* WAS: '' */
+    $data['group_authorization|node|study|form']->data['children']['1'] = 'group_content_access'; /* WAS: 'group_authorization_specific' */
+    $data['group_authorization|node|study|form']->data['children']['2'] = 'group_authorization_maelstrom'; /* WAS: '' */
   }
   if (isset($data['group_general_design|node|study|form'])) {
     $data['group_general_design|node|study|form']->parent_name = ''; /* WAS: 'group_methods' */
