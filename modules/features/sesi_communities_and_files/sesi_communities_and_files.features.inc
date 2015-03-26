@@ -63,6 +63,9 @@ function sesi_communities_and_files_strongarm_alter(&$data) {
   if (isset($data['content_access_dataset'])) {
     $data['content_access_dataset']->value['priority'] = -1; /* WAS: '' */
   }
+  if (isset($data['content_access_study'])) {
+    $data['content_access_study']->value['priority'] = -1; /* WAS: '' */
+  }
   if (isset($data['content_access_variable'])) {
     $data['content_access_variable']->value['priority'] = -1; /* WAS: '' */
   }
@@ -91,4 +94,13 @@ function sesi_communities_and_files_node_info() {
     ),
   );
   return $items;
+}
+
+/**
+ * Implements hook_views_default_views_alter().
+ */
+function sesi_communities_and_files_views_default_views_alter(&$data) {
+  if (isset($data['studies_search'])) {
+    $data['studies_search']->display['default']->display_options['query']['options']['search_api_bypass_access'] = 1; /* WAS: '' */
+  }
 }
