@@ -952,10 +952,11 @@ function sesi_communities_and_files_field_default_field_instances() {
         'weight' => 0,
       ),
     ),
+    'display_label' => '',
     'entity_type' => 'node',
     'field_name' => 'group_content_access',
-    'label' => 'Group content visibility',
-    'required' => TRUE,
+    'label' => 'Content visibility',
+    'required' => 1,
     'settings' => array(
       'user_register_form' => FALSE,
     ),
@@ -970,12 +971,13 @@ function sesi_communities_and_files_field_default_field_instances() {
       ),
     ),
     'widget' => array(
+      'active' => 1,
       'module' => 'options',
       'settings' => array(
         'content_taxonomy_opt_groups' => FALSE,
       ),
       'type' => 'options_select',
-      'weight' => 14,
+      'weight' => 128,
     ),
     'widget_type' => 'options_select',
   );
@@ -1220,6 +1222,7 @@ function sesi_communities_and_files_field_default_field_instances() {
   // Included for use with string extractors like potx.
   t('Body');
   t('Comment');
+  t('Content visibility');
   t('Datasets');
   t('Determine if this is an OG group.');
   t('Documents');
