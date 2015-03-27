@@ -212,6 +212,13 @@ function sesi_communities_and_files_field_default_field_bases() {
         2 => 'Private - accessible only to group members',
       ),
       'allowed_values_function' => '',
+      'field_description_infos' => array(
+        'field_description' => 0,
+        'field_description_body' => '',
+        'field_description_label' => '',
+        'field_description_value_type' => 'integer',
+      ),
+      'profile2_private' => FALSE,
     ),
     'translatable' => 0,
     'type' => 'list_integer',

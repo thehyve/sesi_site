@@ -63,6 +63,9 @@ function ensure_feat() {
 isenabled seven && drush --yes pm-disable seven
 isenabled bartik && drush --yes pm-disable bartik
 isenabled locale && drush --yes dis locale
+isenabled project_community && drush --yes dis project_community
+isenabled project_dataset && drush --yes dis project_dataset
+isenabled sesi_studies && drush --yes dis sesi_studies
 
 # Enable some modules that must be enabled.
 isdisabled features && drush --yes pm-enable features
@@ -203,6 +206,9 @@ ensure_mod sesi_addtogroup
 ensure_mod contact
 ensure_feat sesi_contact_form
 
+# Views restrictions
+isenabled views_access_restrictions || drush --yes en views_access_restrictions
+
 #
 ensure_feat sesi_communities_and_files
 ensure_feat sesi_user_profile_fields
@@ -236,12 +242,6 @@ ensure_mod text_hierarchical
 # Statistics
 ensure_mod better_statistics
 ensure_mod userflow
-
-# project datasets
-ensure_mod project_dataset
-
-# project community
-ensure_mod project_community
 
 # og admin role
 ensure_mod og_admin_role 

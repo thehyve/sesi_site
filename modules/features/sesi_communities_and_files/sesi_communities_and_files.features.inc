@@ -25,15 +25,15 @@ function sesi_communities_and_files_views_api($module = NULL, $api = NULL) {
  */
 function sesi_communities_and_files_field_group_info_alter(&$data) {
   if (isset($data['group_authorization_maelstrom|node|study|form'])) {
-    $data['group_authorization_maelstrom|node|study|form']->data['weight'] = 129; /* WAS: 17 */
+    $data['group_authorization_maelstrom|node|study|form']->data['weight'] = 130; /* WAS: 17 */
   }
   if (isset($data['group_authorization_specific|node|study|form'])) {
-    $data['group_authorization_specific|node|study|form']->data['weight'] = 128; /* WAS: 16 */
+    $data['group_authorization_specific|node|study|form']->data['weight'] = 129; /* WAS: 16 */
   }
   if (isset($data['group_authorization|node|study|form'])) {
     $data['group_authorization|node|study|form']->data['children']['0'] = 'og_group_ref'; /* WAS: 'group_authorization_maelstrom' */
-    $data['group_authorization|node|study|form']->data['children']['1'] = 'group_authorization_maelstrom'; /* WAS: 'group_authorization_specific' */
-    $data['group_authorization|node|study|form']->data['children']['2'] = 'group_authorization_specific'; /* WAS: '' */
+    $data['group_authorization|node|study|form']->data['children']['1'] = 'group_content_access'; /* WAS: 'group_authorization_specific' */
+    $data['group_authorization|node|study|form']->data['children']['2'] = 'group_authorization_maelstrom'; /* WAS: '' */
   }
   if (isset($data['group_general_design|node|study|form'])) {
     $data['group_general_design|node|study|form']->parent_name = ''; /* WAS: 'group_methods' */
@@ -63,6 +63,9 @@ function sesi_communities_and_files_strongarm_alter(&$data) {
   if (isset($data['content_access_dataset'])) {
     $data['content_access_dataset']->value['priority'] = -1; /* WAS: '' */
   }
+  if (isset($data['content_access_study'])) {
+    $data['content_access_study']->value['priority'] = -1; /* WAS: '' */
+  }
   if (isset($data['content_access_variable'])) {
     $data['content_access_variable']->value['priority'] = -1; /* WAS: '' */
   }
@@ -91,4 +94,13 @@ function sesi_communities_and_files_node_info() {
     ),
   );
   return $items;
+}
+
+/**
+ * Implements hook_views_default_views_alter().
+ */
+function sesi_communities_and_files_views_default_views_alter(&$data) {
+  if (isset($data['studies_search'])) {
+    $data['studies_search']->display['default']->display_options['query']['options']['search_api_bypass_access'] = 1; /* WAS: '' */
+  }
 }
