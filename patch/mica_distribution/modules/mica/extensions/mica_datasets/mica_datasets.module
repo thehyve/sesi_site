@@ -331,31 +331,34 @@ function mica_datasets_menu_local_tasks_alter(&$data, $router_item, $root_path) 
 
         if (node_access('view', $node)) {
           // highlight queries and harmonization
+          $is_admin = function_exists('query_access_rights_user_is_admin')
+              && query_access_rights_user_is_admin($node);
           foreach ($data['actions']['output'] as $key => $link) {
             if (isset($link['#link']['path']) && $link['#link']['path'] == 'node/%/queries') {
-          
-                // The label of the button is different for admins and non-admins
-                $is_admin = false;
-                if (function_exists('query_access_rights_user_is_admin')) {
-                    $is_admin = query_access_rights_user_is_admin($node);
-                }          
-                if( !$is_admin ) {
-                    $data['actions']['output'][$key][ "#link" ]['title'] = "Example queries";
+
+              $data['actions']['output'][$key]['#weight'] = 40;
+
+              // The label of the button is different for admins and non-admins
+              if(!$is_admin) {
+                if(dataset_access_form_member_of_global_group($node->nid)) {
+                  $data['actions']['output'][$key][ "#link" ]['title'] = "Example queries";
+                } else {
+                  // Non-admin users can't see dataset queries except examples on global datasets.
+                  // They see their own queries in the 'My Queries' page, so remove this link.
+                  unset($data['actions']['output'][$key]);
                 }
-                
-                $data['actions']['output'][$key]['#weight'] = 40;
-                
-                // Add a 'add query' button
-                $data['actions']['output']['add-query'] = array(
-                  '#theme' => 'menu_local_action',
-                  '#weight' => 41,
-                  '#link' => array(
-                    'title' => t('Add query'),
-                    'href' => 'node/' . $node->nid . '/queries/add',
-                    'localized_options' => array( 'attributes' => array( 'class' => 'highlight' ) )
-                  )
-                );
-          
+              }
+
+              // Add a 'add query' button
+              $data['actions']['output']['add-query'] = array(
+                '#theme' => 'menu_local_action',
+                '#weight' => 41,
+                '#link' => array(
+                  'title' => t('Add query'),
+                  'href' => 'node/' . $node->nid . '/queries/add',
+                  'localized_options' => array( 'attributes' => array( 'class' => 'highlight' ) )
+                )
+              );
             }
 
             if (isset($link['#link']['path']) && $link['#link']['path'] == 'node/%/dataset-harmonization') {

@@ -333,3 +333,27 @@ function _dataset_access_form_pet_send_mail($pet, $recipients, $options) {
   // return message status
   return $message_status;
 }
+
+/*
+ * Returns true if object with id $id is a member (or content) of the GLOBAL group.
+ * If the GLOBAL group cannot be found, returns NULL
+ *
+ * @param $id
+ * @return bool|null
+ */
+function dataset_access_form_member_of_global_group($id) {
+  assert(is_numeric($id));
+
+  $global_path = drupal_get_normal_path('content/global');
+  $global_id = explode('/', $global_path);
+  $global_id = $global_id[1];
+  if(((string)(int) $global_id) !== $global_id) {
+    watchdog('dataset_access_form', "No global group set", array(), WATCHDOG_WARNING);
+    return NULL;
+  }
+
+  $query = db_select("og_membership");
+  $query->condition("etid", $id, "=");
+  $query->condition("gid", $global_id, '=');
+  return (boolean) $query->countQuery()->execute()->fetchField();
+}
