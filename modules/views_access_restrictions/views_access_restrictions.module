@@ -24,7 +24,7 @@ function _views_access_restrictions_filter_community_content(&$view) {
         $nid = $value->entity->nid;
         $node = node_load($nid);
        
-        //Criteria 1 : if draft and not owner...         
+        //Criteria 1 : if draft and not owner... first this criteria need to be checked.        
         if($node->status == "0" && $node->uid != $user->uid){
              continue;
         }
