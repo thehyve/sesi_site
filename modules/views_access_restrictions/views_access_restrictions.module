@@ -23,6 +23,12 @@ function _views_access_restrictions_filter_community_content(&$view) {
         // get id of node, if user has access, add item and continue
         $nid = $value->entity->nid;
         $node = node_load($nid);
+       
+        //Criteria 1 : if draft and not owner...         
+        if($node->status == "0" && $node->uid != $user->uid){
+             continue;
+        }
+        
         if(node_access('view',$node)) {
             array_push($results, $value);
             continue;
@@ -30,9 +36,10 @@ function _views_access_restrictions_filter_community_content(&$view) {
         
         //if draft and not owner...
         //This is not neccesary anymore because we changed permissions
-        ////if($node->status=="0" && $node->uid != $user->uid) {
+        //if($node->status=="0" && $node->uid != $user->uid) {
         //    continue;
         //}
+        
         
         // user has no access.. are any communities associated hidden (project communities)?
         // if at least 1 community is hidden, is not visible 
