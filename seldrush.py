@@ -185,14 +185,14 @@ class Drush(SeleniumBase):
 
         chkbox = self.css("#edit-4-access-user-profiles")
         self.setcheckbox(chkbox, True)
- 
-        #changes
-	chkbox = self.css("#edit-4-bypass-workbench-moderation")
+
+        # changes
+        chkbox = self.css("#edit-4-bypass-workbench-moderation")
         self.setcheckbox(chkbox, True)
 
-	#disable permissions
-        entities=['page','forum','data-access-review','documents','teleconference','blog']
-        actions =['create','edit-own','edit-any','delete-own','delete-any']
+        #disable permissions
+        entities = ['page', 'forum', 'data-access-review', 'documents', 'teleconference', 'blog']
+        actions = ['create', 'edit-own', 'edit-any', 'delete-own', 'delete-any']
         for ent in entities:
             for act in actions:
                 self.setcheckbox(self.css("#edit-4-%s-%s-content" % (act,ent)), False)
@@ -222,7 +222,7 @@ class Drush(SeleniumBase):
             driver.find_element_by_link_text('Contact')
             return True
         except:
-            None
+            pass
 
         print "Creating contact menu link"
         #create Contact menu link
