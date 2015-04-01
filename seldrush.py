@@ -268,8 +268,14 @@ class Drush(SeleniumBase):
         radio.click()
         self.clickon('#edit-submit')
 
-    def disablePromoteToFrontPage(self):
-        self.sd.get(self.base_url + "/?q=admin/structure/types/manage/community")
+    def disableCommunityPromoteToFrontPage(self):
+        self.disablePromoteToFrontPage(self.base_url + "/?q=admin/structure/types/manage/community")
+
+    def disableDataAccessFormPromoteToFrontPage(self):
+        self.disablePromoteToFrontPage(self.base_url + "/?q=admin/structure/types/manage/data-access-request-form")
+
+    def disablePromoteToFrontPage(self, url):
+        self.sd.get(url)
 
         elems = self.sd.find_elements_by_xpath("//strong[contains(., 'Publishing options')]")
         if len(elems)==0:
@@ -298,6 +304,7 @@ if __name__ == "__main__":
 
     '''
 
+    suite = None
     try:
        if len(sys.argv) == 4:
            print sys.argv[1]
@@ -314,8 +321,10 @@ if __name__ == "__main__":
            suite.changeEnableContactForm()
            suite.selectCaptchaContactForm()
            suite.changeCommunityProjectVisibilityDefault()
-           suite.disablePromoteToFrontPage()
+           suite.disableCommunityPromoteToFrontPage()
+           suite.disableDataAccessFormPromoteToFrontPage()
 
     finally:
-        suite.destroy()
+        if suite:
+            suite.destroy()
 
