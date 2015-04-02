@@ -1,0 +1,32 @@
+<?php
+
+/*
+ * Implements hook_mail_alter
+ *
+ * Mails sent by og_email (via module variable_email) can contain tokens for which the corresponding fields are not set.
+ * These tokens are not replaced but left as-is in the email text. This hook is called after the normal token
+ * replacement has already been completed, so we remove any leftover tokens.
+ */
+function sesi_variable_email_mail_alter(&$message) {
+  // only process emails sent by og_email
+  if(strpos($message['id'], 'variable_email_og_email') !== 0) {
+    return;
+  }
+
+  $message['subject'] = _sesi_variable_email_remove_tokens($message['subject']);
+  foreach($message['body'] as $key => $val) {
+    $message['body'][$key] = _sesi_variable_email_remove_tokens($val);
+  }
+}
+
+
+function _sesi_variable_email_remove_tokens($text) {
+
+  $tokens_array = token_scan($text);
+  if(empty($tokens_array)) return $text;
+  $tokens = call_user_func_array('array_merge', array_map('array_values', $tokens_array));
+  if(empty($tokens)) return $text;
+
+  $values = array_fill(0, count($tokens), '');
+  return str_replace($tokens, $values, $text);
+}
