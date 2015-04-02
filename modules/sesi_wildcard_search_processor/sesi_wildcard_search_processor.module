@@ -1,0 +1,110 @@
+<?php
+
+
+
+/**
+ * Implements hook_search_api_processor_info().
+ */
+function sesi_wildcard_search_processor_search_api_processor_info() {
+  $processors['sesi_wildcard'] = array(
+    'name' => t('Wildcard'),
+    'description' => t('Flattens queries while keeping * and ? wildcards. '),
+    'class' => 'WildcardSearchProcessor',
+    'weight' => 100,
+  );
+  return $processors;
+}
+
+class WildcardSearchProcessor extends SearchApiAbstractProcessor {
+
+  public function configurationForm() {
+    return array();
+  }
+
+  public function configurationFormValidate(array $form, array &$values, array &$form_state) {
+    return TRUE;
+  }
+
+  public function preprocessSearchQuery(SearchApiQuery $query) {
+    $keys = &$query->getKeys();
+    if(!empty($keys) and is_array($keys)) {
+      $keys = $this->flattenKeys($keys);
+    }
+  }
+
+  static function escapeAndQuote($value) {
+    $replacements['"'] = '\"';
+    $replacements["\\"] = "\\\\";
+    return '"' . strtr($value, $replacements) . '"';
+  }
+
+  /**
+   * Copied from SearchApiSolrService->flattenKeys()
+   *
+   * This version does not quote terms that contain a wildcard (* or ?), as long as there are no spaces or other special
+   * characters in the search term.
+   *
+   * @param $keys
+   * @return mixed|string
+   */
+  function flattenKeys($keys) {
+    $k = array();
+    $or = $keys['#conjunction'] == 'OR';
+    $neg = !empty($keys['#negation']);
+    foreach (element_children($keys) as $i) {
+      $key = $keys[$i];
+      if (!$key) {
+        continue;
+      }
+      if (is_array($key)) {
+        $subkeys = $this->flattenKeys($key);
+        if ($subkeys) {
+          $nested_expressions = TRUE;
+          // If this is a negated OR expression, we can't just use nested keys
+          // as-is, but have to put them into parantheses.
+          if ($or && $neg) {
+            $subkeys = "($subkeys)";
+          }
+          $k[] = $subkeys;
+        }
+      }
+      else {
+        $key = trim($key);
+        // don't quote if the term consists of letters/digits and contains a * or ? wildcard.
+        // If there are e.g. also spaces or other characters we quote as usual.
+        if (!preg_match("/[[:alnum:]]*[?*][[:alnum:]?*]*+/u", $key)) {
+          $key = $this->escapeAndQuote($key);
+        }
+        $k[] = $key;
+      }
+    }
+    if (!$k) {
+      return '';
+    }
+
+    // Formatting the keys into a Solr query can be a bit complex. The following
+    // code will produce filters that look like this:
+    //
+    // #conjunction | #negation | return value
+    // ----------------------------------------------------------------
+    // AND          | FALSE     | A B C
+    // AND          | TRUE      | -(A B C)
+    // OR           | FALSE     | ((A) OR (B) OR (C))
+    // OR           | TRUE      | -A -B -C
+
+    // If there was just a single, unnested key, we can ignore all this.
+    if (count($k) == 1 && empty($nested_expressions)) {
+      $k = reset($k);
+      return $neg ? "*:* AND -$k" : $k;
+    }
+
+    if ($or) {
+      if ($neg) {
+        return '*:* AND -' . implode(' AND -', $k);
+      }
+      return '((' . implode(') OR (', $k) . '))';
+    }
+    $k = implode(' ', $k);
+    return $neg ? "*:* AND -($k)" : $k;
+  }
+}
