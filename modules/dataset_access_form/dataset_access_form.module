@@ -200,9 +200,11 @@ function dataset_access_form_form_alter(&$form, $form_state, $form_id) {
     return;
   }
 
-  $query = entity_load('mica_query', array((int) $_GET['query_id']));
-  $query = array_pop($query);
-  // if no query found, we received faulty _GET parameters, so just let the error happen.
+  $query = $query_full_path = NULL;
+  if(isset($_GET['query_id'])) {
+    $query = entity_load('mica_query', array((int) $_GET['query_id']));
+    $query = array_pop($query);
+  }
   if($query) {
     $query_path = entity_uri('mica_query', $query);
     $query_path = $query_path['path'];

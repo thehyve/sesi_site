@@ -240,7 +240,6 @@ class Drush(SeleniumBase):
         Select(driver.find_element_by_id("edit-captcha-form-id-overview-captcha-captcha-points-contact-site-form-captcha-type")).select_by_visible_text("Image (from module image_captcha)")
         driver.find_element_by_id("edit-submit").click()
 
-    
     def createLinksOnCommunityHome(self):
         
         #article
@@ -268,18 +267,26 @@ class Drush(SeleniumBase):
         radio.click()
         self.clickon('#edit-submit')
 
-    def disablePromoteToFrontPage(self):
-        self.sd.get(self.base_url + "/?q=admin/structure/types/manage/community")
-
+    def _selectPublishingOptions(self):
         elems = self.sd.find_elements_by_xpath("//strong[contains(., 'Publishing options')]")
         if len(elems)==0:
-            raise NoSuchElementException("Cannot find tab")
+            raise NoSuchElementException("Cannot find tab 'Publishing Options'")
         tab = elems[0]
         tab.click()
 
-        chkbox = self.css("#edit-node-options-promote")
-        self.setcheckbox(chkbox, False)
+    def disableCommunityPromoteToFrontPage(self):
+        self.sd.get(self.base_url + "/?q=admin/structure/types/manage/community")
 
+        self._selectPublishingOptions()
+        self.setcheckbox(self.css("#edit-node-options-promote"), False)
+        self.clickon('#edit-submit')
+
+    def changePublishingOptionsDataAccessRequestForm(self):
+        self.sd.get(self.base_url + "/?q=admin/structure/types/manage/data-access-request-form")
+
+        self._selectPublishingOptions()
+        self.setcheckbox(self.css("#edit-node-options-promote"), False)
+        self.setcheckbox(self.css("#edit-node-options-status"), False)
         self.clickon('#edit-submit')
 
 
@@ -298,6 +305,7 @@ if __name__ == "__main__":
 
     '''
 
+    suite = None
     try:
        if len(sys.argv) == 4:
            print sys.argv[1]
@@ -314,8 +322,10 @@ if __name__ == "__main__":
            suite.changeEnableContactForm()
            suite.selectCaptchaContactForm()
            suite.changeCommunityProjectVisibilityDefault()
-           suite.disablePromoteToFrontPage()
+           suite.disableCommunityPromoteToFrontPage()
+           suite.changePublishingOptionsDataAccessRequestForm()
 
     finally:
-        suite.destroy()
+        if suite:
+            suite.destroy()
 
