@@ -705,6 +705,10 @@ class SearchApiQuery implements SearchApiQueryInterface {
     return $this->keys;
   }
 
+  public function setKeys($keys) {
+    $this->keys = $keys;
+  }
+
   /**
    * {@inheritdoc}
    */
