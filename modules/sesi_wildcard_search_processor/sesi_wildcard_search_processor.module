@@ -25,6 +25,10 @@ class WildcardSearchProcessor extends SearchApiAbstractProcessor {
     return TRUE;
   }
 
+  public function preprocessIndexItems(array &$items) {
+    // do nothing
+  }
+
   public function preprocessSearchQuery(SearchApiQuery $query) {
     $keys = &$query->getKeys();
     if(!empty($keys) and is_array($keys)) {
@@ -72,7 +76,8 @@ class WildcardSearchProcessor extends SearchApiAbstractProcessor {
         $key = trim($key);
         // don't quote if the term consists of letters/digits and contains a * or ? wildcard.
         // If there are e.g. also spaces or other characters we quote as usual.
-        if (!preg_match("/[[:alnum:]]*[?*][[:alnum:]?*]*+/u", $key)) {
+        // This will also quote keywords as they do not contain a wildcard character.
+        if (!preg_match("/[[:alnum:]]*[?*][[:alnum:]?*]*/u", $key)) {
           $key = $this->escapeAndQuote($key);
         }
         $k[] = $key;
