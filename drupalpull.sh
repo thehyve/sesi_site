@@ -32,6 +32,9 @@ then
 fi
 
 
+# Undo the ugly hack from 4e918df93e6b6665f45a4fc0364d1d5fe44e5a57 in case it got applied to this installation
+patch --forward --reject-file=- --fuzz=0 -p0 -d "$DRUPAL_ROOT" < search_hack_undo.diff || true
+
 # PATCH ORIGINAL MICA CODE
 yes | cp -Rfv "$DRUPAL_ROOT/sites/all/patch/mica_distribution" "$DRUPAL_ROOT/profiles/"
 
