@@ -177,6 +177,7 @@ ensure_mod sesi_membership_fields
 ensure_mod sesi_og_addcontent
 ensure_mod sesi_rules
 ensure_mod sesi_variable_email
+ensure_mod sesi_wildcard_search_processor
 
 # Download Autologout module dependencies and enable it
 drush --yes dl autologout
@@ -226,6 +227,7 @@ ensure_feat sesi_dataset_redirect
 ensure_feat sesi_community_hub
 ensure_feat sesi_variable_content_type
 ensure_feat sesi_contact_configuration
+ensure_feat sesi_variable_search_wildcards
 
 #Moderation
 ensure_mod og_moderation
