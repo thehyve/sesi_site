@@ -22,5 +22,8 @@ function sesi_variable_search_wildcards_features_override_default_overrides() {
     'settings' => array(),
   );
 
+  // Exported overrides for: views_view
+  $overrides["views_view.variable_search.display|default|display_options|filters|search_api_views_fulltext|expose|description"] = 'use * and ? wildcards to search for partial words';
+
  return $overrides;
 }

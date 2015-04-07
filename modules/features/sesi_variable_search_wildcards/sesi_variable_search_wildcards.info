@@ -14,4 +14,5 @@ features[features_overrides][] = search_api_index.variable_index.options|process
 features[features_overrides][] = search_api_index.variable_index.options|processors|search_api_tokenizer|settings|spaces
 features[features_overrides][] = search_api_index.variable_index.options|processors|search_api_tokenizer|weight
 features[features_overrides][] = search_api_index.variable_index.options|processors|sesi_wildcard
+features[features_overrides][] = views_view.variable_search.display|default|display_options|filters|search_api_views_fulltext|expose|description
 features_exclude[dependencies][facetapi] = facetapi

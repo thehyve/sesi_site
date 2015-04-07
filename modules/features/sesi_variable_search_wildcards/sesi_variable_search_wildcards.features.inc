@@ -29,3 +29,12 @@ function sesi_variable_search_wildcards_default_search_api_index_alter(&$data) {
     ); /* WAS: '' */
   }
 }
+
+/**
+ * Implements hook_views_default_views_alter().
+ */
+function sesi_variable_search_wildcards_views_default_views_alter(&$data) {
+  if (isset($data['variable_search'])) {
+    $data['variable_search']->display['default']->display_options['filters']['search_api_views_fulltext']['expose']['description'] = 'use * and ? wildcards to search for partial words'; /* WAS: '' */
+  }
+}
