@@ -51,6 +51,9 @@ function sesi_communities_and_files_field_group_info_alter(&$data) {
  * Implements hook_field_default_field_instances_alter().
  */
 function sesi_communities_and_files_field_default_field_instances_alter(&$data) {
+  if (isset($data['node-community-group_access'])) {
+    $data['node-community-group_access']['default_value']['0']['value'] = 1; /* WAS: 1 */
+  }
   if (isset($data['og_membership-og_membership_type_default-field_mail_sent'])) {
     $data['og_membership-og_membership_type_default-field_mail_sent']['required'] = 0; /* WAS: 1 */
   }
