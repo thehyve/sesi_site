@@ -106,45 +106,4 @@ class SearchApiTokenizer extends SearchApiAbstractProcessor {
     }
   }
 
-  public function preprocessSearchQuery(SearchApiQuery $query) {
-
-    /*
-     * This is an ugly hack to get wildcard search working in the variable_search view. Normally this processor removes
-     * wildcards, but in the special case where we are running from the variable_search view we do not strip those.
-     * In order to prevent the separate terms from being wrapped in quotes we do the flattening here ourselves instead
-     * of letting SearchApiSolrService->flattenKeys do it as it normally would.
-     *
-     * To have a bit of safety left we quote all terms as the normal functionality would, except for terms that contain
-     * wildcards. This should prevent the usage of Solr keywords or other special characters.
-     */
-
-    $currentview = views_get_page_view();
-    if(!empty($currentview) && $currentview->name === 'variable_search') {
-      $original_spaces_regex = $this->options['spaces'];
-      try {
-        $this->options['spaces'] = "[^\p{L}\p{N}^'*?]";
-        parent::preprocessSearchQuery($query);
-        $query->setKeys($this->_flattenKeys($query->getKeys()));
-      } catch(Exception $e) {
-        $this->options['spaces'] = $original_spaces_regex;
-        throw $e;
-      }
-      $this->options['spaces'] = $original_spaces_regex;
-    } else {
-      parent::preprocessSearchQuery($query);
-    }
-  }
-
-  private function _flattenKeys($keys) {
-    $terms = array();
-    foreach(element_children($keys) as $idx) {
-      $term = $keys[$idx];
-      if(!preg_match("/[\\w?*]+/u", $term)) {
-        $term = '"'.$term.'"';
-      }
-      $terms[] = $term;
-    }
-
-    return implode(' ', $terms);
-  }
 }
