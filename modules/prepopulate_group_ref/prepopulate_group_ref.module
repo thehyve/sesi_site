@@ -8,57 +8,64 @@
  * @param $form_state
  * @param $form_id
  */
-function prepopulate_group_ref_form_alter(&$form, &$form_state, $form_id) {
+function prepopulate_group_ref_form_node_form_alter(&$form, &$form_state, $form_id) {
 
-    watchdog(WATCHDOG_DEBUG, 'prepopulate_group_ref_form_alter '.$form);
-    if ($form_id != 'variable_node_form' &&
-        $form_id != 'dataset_node_form' &&
-        $form_id != 'article_node_form' &&
-        $form_id != 'event_node_form' &&
-        $form_id != 'study_node_form' &&
-        $form_id != 'community_document_node_form' ) {
-
+    watchdog(WATCHDOG_DEBUG, 'prepopulate_group_ref_form_alter ' . $form);
+    if (!in_array($form_id, array(
+        'variable_node_form',
+        'dataset_node_form',
+        'article_node_form',
+        'event_node_form',
+        'study_node_form',
+        'community_document_node_form'
+      ))) {
         return;
     }
 
-    // if it's a new node, don't do anything
-    $node = $form_state['node'];
-    if (isset($node->nid) && !isset($node->is_new)) {
-        return;
-    }
+    $form['#after_build']['prepopulate_group_ref'] = 'prepopulate_group_ref_after_build_callback';
+}
+
+
+function prepopulate_group_ref_after_build_callback(&$form, &$form_state) {
 
     // Check to see if $user has the administrator role, and skip hiding fields..
     global $user;
-    $isadmin = (in_array('administrator', array_values($user->roles)));
-
-
-    //specific exception for variables, when dataset is specified..
-    if( $form_id == 'variable_node_form' ) {
-
-        if(isset($_GET['dataset']) && is_numeric($_GET['dataset']) && !$isadmin) {
-            $form['og_group_ref']['#access'] = FALSE;
-            //attention: prepopulation is done in dataset_inheritance_node_presave function
-        }
-
-    }
+    $isadmin = in_array('administrator', $user->roles);
+    $node = $form_state['node'];
 
     // if we came from community homepage, then the og_group_ref is specified and
     // we can add it as default value
-    if(isset($_GET['og_group_ref']) && is_numeric($_GET['og_group_ref'])) {
-        //set default value
-        $form['og_group_ref'][LANGUAGE_NONE][0]['default']['#default_value'] = array($_GET['og_group_ref']);
+    if(isset($form['og_group_ref'])) {
+        if (isset($node->nid) && !isset($node->is_new)) {
+            $og_ref = array_map(function($item) {return $item['target_id'];},  $node->og_group_ref[LANGUAGE_NONE]);
+        } elseif (isset($_GET['og_group_ref']) && is_numeric($_GET['og_group_ref'])) {
+            $og_ref = array($_GET['og_group_ref']);
+        } elseif (!$isadmin && !isset($form_state['triggering_element']['#ajax'])) {
+            drupal_set_message("This community content must be created in a community", 'error');
+        }
 
-        if(!$isadmin) {
+        if(isset($og_ref)) {
+            //set default value
+            if (empty($form['og_group_ref'][LANGUAGE_NONE][0]['default']['#default_value'])) {
+                $form['og_group_ref'][LANGUAGE_NONE][0]['default']['#default_value'] = $og_ref;
+            }
+
+            // set actual value. Only admins can manually modify it.
+            if (!$isadmin || empty($form['og_group_ref'][LANGUAGE_NONE][0]['default']['#value'])) {
+                $form['og_group_ref'][LANGUAGE_NONE][0]['default']['#value'] = array_combine($og_ref, $og_ref);
+            }
+        }
+
+        if (!$isadmin) {
             $form['og_group_ref']['#access'] = FALSE;
         }
-
     }
 
-    if(!$isadmin) {
+    if(!$isadmin && isset($form['group_content_access'])) {
         //try to hide always group_content_access
         //(user will use always the default)
-        if (isset($form['group_content_access'])) {
-            $form['group_content_access']['#access'] = FALSE;
-        }
+        $form['group_content_access']['#access'] = FALSE;
     }
+
+    return $form;
 }
