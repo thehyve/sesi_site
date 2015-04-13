@@ -25,6 +25,7 @@ function sesi_communities_and_files_features_override_default_overrides() {
   $overrides["field_group.group_general_info|node|study|form.data|children|5"]["DELETED"] = TRUE;
 
   // Exported overrides for: field_instance
+  $overrides["field_instance.node-community-group_access.default_value|0|value"] = 1;
   $overrides["field_instance.og_membership-og_membership_type_default-field_mail_sent.required"] = 0;
 
   // Exported overrides for: variable
