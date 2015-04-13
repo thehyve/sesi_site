@@ -1,6 +1,18 @@
 <?php
 
+function og_admin_role_og_membership_insert(OgMembership $og_membership) {
+    og_admin_role_set_consortium_admin($og_membership);
+}
+
+function og_admin_role_og_membership_delete(OgMembership $og_membership) {
+    og_admin_role_set_consortium_admin($og_membership);
+}
+
 function og_admin_role_og_membership_update(OgMembership $og_membership) {
+    og_admin_role_set_consortium_admin($og_membership);
+}
+
+function og_admin_role_set_consortium_admin(OgMembership $og_membership) {
     //print_r($og_membership);
     $uid = $og_membership->etid;
 
@@ -20,6 +32,5 @@ function og_admin_role_og_membership_update(OgMembership $og_membership) {
         //revoke permissions
         user_multiple_role_edit(array($uid), 'remove_role', $role->rid);
     }
-
 
 }
