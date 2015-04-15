@@ -33,6 +33,11 @@ function prepopulate_group_ref_after_build_callback(&$form, &$form_state) {
     $isadmin = in_array('administrator', $user->roles);
     $node = $form_state['node'];
 
+    if($isadmin && isset($form_state['triggering_element']['#type']) && $form_state['triggering_element']['#type'] == 'submit') {
+        // Don't change these fields for admins submitting the form
+        return $form;
+    }
+
     // if we came from community homepage, then the og_group_ref is specified and
     // we can add it as default value
     if(isset($form['og_group_ref'])) {

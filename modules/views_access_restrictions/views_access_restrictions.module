@@ -1,6 +1,12 @@
 <?php
 
 function views_access_restrictions_views_post_execute(&$view) {
+    global $user;
+
+    if (in_array('administrator', array_values($user->roles))) {
+        // Administrator can see everything, don't remove anything from the view.
+        return;
+    }
 
     switch ($view->name) {
         case 'community_by_dataset':
@@ -16,7 +22,7 @@ function views_access_restrictions_views_post_execute(&$view) {
 function _views_access_restrictions_filter_community_content(&$view) {
     global $user;
 
-    watchdog(WATCHDOG_DEBUG, 'Running post execute '. $view->name);
+    watchdog('views_access_restrictions', 'Running post execute filter_community_content '. $view->name, array(), WATCHDOG_DEBUG);
 
     $results = array();
     foreach ($view->result as $key => $value) {   
@@ -28,46 +34,29 @@ function _views_access_restrictions_filter_community_content(&$view) {
         if($node->status == "0" && $node->uid != $user->uid){
              continue;
         }
-        
+
+        // If we have access to the node, list it.
         if(node_access('view',$node)) {
             array_push($results, $value);
             continue;
         }
-        
-        //if draft and not owner...
-        //This is not neccesary anymore because we changed permissions
-        //if($node->status=="0" && $node->uid != $user->uid) {
-        //    continue;
-        //}
-        
-        
-        // user has no access.. are any communities associated hidden (project communities)?
-        // if at least 1 community is hidden, is not visible 
-        
+
+        // user has no access. We still show this item in the listing if it is not part of any hidden community.
         if(views_access_restrictions_is_hidden_project_content($nid)) {
             continue;        
+        } else {
+            //add element to final array
+            array_push($results, $value);
         }
-        
-        //add element to final array
-        array_push($results, $value);
     }
     
     //rewrite the final results page
     $view->result = $results;
-    $view->query->pager->total_items = count($results);
-//    $view->query->pager->update_page_info();
 }
 
 function _views_access_restrictions_filter_communities(&$view) {
-    global $user;
 
-    watchdog(WATCHDOG_DEBUG, 'Running post execute project_community_views_post_execute '. $view->name);
-
-    // Check to see if $user has the administrator role.
-    if (in_array('administrator', array_values($user->roles))) {
-        // Don't remove anything from the result
-        return;
-    }
+    watchdog('views_access_restrictions', 'Running post search filter_communities on '. $view->name, array(), WATCHDOG_DEBUG);
 
     $results = array();
     foreach ($view->result as $key => $value) {
@@ -80,15 +69,12 @@ function _views_access_restrictions_filter_communities(&$view) {
         }
 
         // is not member, only show community if field_project_visibity is not hidden
-        //TODO
-        $entity = entity_load('node', array($nid));
-        $g = $entity[$nid];
-        if(property_exists($g, 'field_project_visibility') &&
-          $g->field_project_visibility[LANGUAGE_NONE][0]['value'] == '0') {
+        if(property_exists($node, 'field_project_visibility') &&
+          $node->field_project_visibility[LANGUAGE_NONE][0]['value'] == '0') {
             continue;
+        } else {
+            array_push($results, $value);
         }
-        array_push($results, $value);
-
     }
 
     //rewrite the final results page
