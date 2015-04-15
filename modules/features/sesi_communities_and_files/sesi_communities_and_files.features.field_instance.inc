@@ -1037,7 +1037,7 @@ function sesi_communities_and_files_field_default_field_instances() {
       'module' => 'og',
       'settings' => array(),
       'type' => 'og_complex',
-      'weight' => 127,
+      'weight' => 6,
     ),
   );
 
