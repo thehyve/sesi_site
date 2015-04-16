@@ -1,25 +1,35 @@
 <?php
 
+// The hook_og_membership_insert is called before OG has set all new roles, so we cannot use it here.
+function og_admin_role_og_role_grant($entity_type, $gid, $uid, $rid) {
+    og_admin_role_set_consortium_admin($uid);
+}
+
+function og_admin_role_og_membership_delete(OgMembership $og_membership) {
+    og_admin_role_set_consortium_admin($og_membership->etid);
+}
+
 function og_admin_role_og_membership_update(OgMembership $og_membership) {
-    //print_r($og_membership);
-    $uid = $og_membership->etid;
+    og_admin_role_set_consortium_admin($og_membership->etid);
+}
+
+function og_admin_role_set_consortium_admin($uid) {
+    // Adding or removing an OgMembership changes a field on the user object. In the case of OgMembership->delete we
+    // are called before the caches are flushed. To prevent a stale user object from being saved again in
+    // user_multiple_role_edit we need to flush caches and reload the user object.
+    og_invalidate_cache();
+    cache_clear_all('field:user:' . $uid, 'cache_field');
+    user_load($uid, TRUE);
 
     $role_name = 'consortium administrator'; // The name of the role to revoke.
     $role = user_role_load_by_name($role_name);
-    if(!$role) {
+    if (!$role) {
         watchdog(WATCHDOG_CRITICAL, 'Cannot find consortium admin role!');
         return;
     }
-    
+
     //check if user is community admin of SOME community
     $iscadmin = db_query("select uid from og_users_roles users, og_role role WHERE role.rid=users.rid AND role.name='administrator member' AND users.uid= :uid", array(':uid' => $uid))->fetchField();
-    
-    if ($iscadmin) {
-        user_multiple_role_edit(array($uid), 'add_role', $role->rid);
-    } else {
-        //revoke permissions
-        user_multiple_role_edit(array($uid), 'remove_role', $role->rid);
-    }
 
-
+    user_multiple_role_edit(array($uid), $iscadmin ? 'add_role' : 'remove_role', $role->rid);
 }
