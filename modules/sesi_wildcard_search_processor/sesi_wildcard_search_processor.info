@@ -1,0 +1,7 @@
+name = Sesi Wildcard search processor
+description = This search processor is designed to replace the standard Tokenizer processor from the search api. This will enable the use of * and ? wildcards. This processor should be ordered to run last as it can prevent search processors running after it from completing successfully.
+core = 7.x
+version = "7.0"
+package = sesi
+project = sesi
+dependencies[] = search_api

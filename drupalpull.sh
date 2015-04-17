@@ -32,6 +32,9 @@ then
 fi
 
 
+# Undo the ugly hack from 4e918df93e6b6665f45a4fc0364d1d5fe44e5a57 in case it got applied to this installation
+patch --forward --reject-file=- --fuzz=0 -p0 -d "$DRUPAL_ROOT" < search_hack_undo.diff || true
+
 # PATCH ORIGINAL MICA CODE
 yes | cp -Rfv "$DRUPAL_ROOT/sites/all/patch/mica_distribution" "$DRUPAL_ROOT/profiles/"
 
@@ -177,6 +180,7 @@ ensure_mod sesi_membership_fields
 ensure_mod sesi_og_addcontent
 ensure_mod sesi_rules
 ensure_mod sesi_variable_email
+ensure_mod sesi_wildcard_search_processor
 
 # Download Autologout module dependencies and enable it
 drush --yes dl autologout
@@ -226,6 +230,7 @@ ensure_feat sesi_dataset_redirect
 ensure_feat sesi_community_hub
 ensure_feat sesi_variable_content_type
 ensure_feat sesi_contact_configuration
+ensure_feat sesi_variable_search_wildcards
 
 #Moderation
 ensure_mod og_moderation
