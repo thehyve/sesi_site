@@ -875,7 +875,7 @@ function _mica_query_result_table($dataset_node, $query, $cross_variable, $add_l
     }
   }
 
-  $mica_connectors = mica_connector_query_multiple($dataset_node->nid, TRUE);
+  $mica_connectors = mica_connector_query_multiple($dataset_node->nid, TRUE, TRUE);
   $terms = mica_query_term_query($query);
 
   $cardinality_var = variable_get_value('mica_query_patients_cardinality_variable');

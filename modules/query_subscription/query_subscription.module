@@ -410,7 +410,7 @@ function query_subscription_poll($arg) {
 
 
 function query_subscription_query_result($query) {
-  $connectors = mica_connector_query_multiple($query->dataset_id);
+  $connectors = mica_connector_query_multiple($query->dataset_id, TRUE, FALSE);
 
   $fullresult = array();
   $totals = array();
