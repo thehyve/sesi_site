@@ -10,7 +10,7 @@
  */
 function prepopulate_group_ref_form_node_form_alter(&$form, &$form_state, $form_id) {
 
-    watchdog(WATCHDOG_DEBUG, 'prepopulate_group_ref_form_alter ' . $form);
+    watchdog('prepopulate_group_ref', 'prepopulate_group_ref_form_alter ' . $form_id, array(),  WATCHDOG_DEBUG);
     if (!in_array($form_id, array(
         'variable_node_form',
         'dataset_node_form',
@@ -22,11 +22,51 @@ function prepopulate_group_ref_form_node_form_alter(&$form, &$form_state, $form_
         return;
     }
 
-    $form['#after_build']['prepopulate_group_ref'] = 'prepopulate_group_ref_after_build_callback';
+    if ($form_id != 'variable_node_form') {
+        $form['#validate'][] = 'prepopulate_group_ref_validate';
+        $form['#after_build'][] = 'prepopulate_group_ref_after_build_set_value';
+    }
+    $form['#after_build'][] = 'prepopulate_group_ref_after_build_hide_fields';
+}
+
+/**
+ * Validate handler; Make sure group-only content permissions are honored.
+ * Copied from og_form_group_reference_validate, but for us consortium admin rights do not allow one to create
+ * content outside a community, only site admin rights do so.
+ */
+function prepopulate_group_ref_validate($form, &$form_state) {
+    global $user;
+    $entity_type = $form['#entity_type'];
+    $node = $form_state['node'];
+    if (empty($form_state[$entity_type])) {
+        // We are inside field settings page.
+        return;
+    }
+
+    if(in_array('administrator', $user->roles)) {
+        return;
+    }
+
+    $bundle = $form['#bundle'];
+    foreach (array_keys(og_get_group_audience_fields($entity_type, $bundle)) as $field_name) {
+        // If there is at least one group selected, return.
+        if (!empty($form_state['values'][$field_name][LANGUAGE_NONE])) {
+            return;
+        }
+    }
+
+    // No group selected, throw an error.
+    if(isset($node->nid) && !isset($node->is_new)) {
+        // Existing node, this should not happen but can happen for content that existed before this validation handler
+        // was created.
+        form_set_error('og', t('This content is not part of a community. Contact the site administrator to add this content to the appropriate community.'));
+    } else {
+        form_set_error('og', t('Use the links on a community page to create this type of content. Only the site adminstrator can change the group that content belongs to.'));
+    }
 }
 
 
-function prepopulate_group_ref_after_build_callback(&$form, &$form_state) {
+function prepopulate_group_ref_after_build_set_value(&$form, &$form_state) {
 
     // Check to see if $user has the administrator role, and skip hiding fields..
     global $user;
@@ -38,35 +78,50 @@ function prepopulate_group_ref_after_build_callback(&$form, &$form_state) {
         return $form;
     }
 
-    // if we came from community homepage, then the og_group_ref is specified and
-    // we can add it as default value
-    if(isset($form['og_group_ref'])) {
-        if (isset($node->nid) && !isset($node->is_new)) {
-            $og_ref = array_map(function($item) {return $item['target_id'];},  $node->og_group_ref[LANGUAGE_NONE]);
-        } elseif (isset($_GET['og_group_ref']) && is_numeric($_GET['og_group_ref'])) {
-            $og_ref = array($_GET['og_group_ref']);
-        } elseif (!$isadmin && !isset($form_state['triggering_element']['#ajax'])) {
-            drupal_set_message("This community content must be created in a community", 'error');
-        }
-
-        if(isset($og_ref)) {
-            //set default value
-            if (empty($form['og_group_ref'][LANGUAGE_NONE][0]['default']['#default_value'])) {
-                $form['og_group_ref'][LANGUAGE_NONE][0]['default']['#default_value'] = $og_ref;
-            }
-
-            // set actual value. Only admins can manually modify it.
-            if (!$isadmin || empty($form['og_group_ref'][LANGUAGE_NONE][0]['default']['#value'])) {
-                $form['og_group_ref'][LANGUAGE_NONE][0]['default']['#value'] = array_combine($og_ref, $og_ref);
-            }
-        }
-
-        if (!$isadmin) {
-            $form['og_group_ref']['#access'] = FALSE;
-        }
+    if(!isset($form['og_group_ref'])) {
+        return $form;
     }
 
-    if(!$isadmin && isset($form['group_content_access'])) {
+    // if we came from community homepage, then the og_group_ref GET parameter is specified and
+    // we can add it as default value
+    if (isset($node->nid) && !isset($node->is_new) && isset($node->og_group_ref[LANGUAGE_NONE])) {
+        $og_ref = array_map(function($item) {return $item['target_id'];},  $node->og_group_ref[LANGUAGE_NONE]);
+    } elseif (isset($_GET['og_group_ref']) && is_numeric($_GET['og_group_ref'])) {
+        $og_ref = array($_GET['og_group_ref']);
+    } elseif (!$isadmin && !isset($form_state['triggering_element']['#ajax'])) {
+        drupal_set_message("This community content must be created in a community. Use the links on a community page to create this type of content.", 'error');
+    }
+
+    if(isset($og_ref)) {
+        //set default value
+        if (empty($form['og_group_ref'][LANGUAGE_NONE][0]['default']['#default_value'])) {
+            $form['og_group_ref'][LANGUAGE_NONE][0]['default']['#default_value'] = $og_ref;
+        }
+
+        // set actual value. Only admins can manually modify it.
+        if (!$isadmin || empty($form['og_group_ref'][LANGUAGE_NONE][0]['default']['#value'])) {
+            $form['og_group_ref'][LANGUAGE_NONE][0]['default']['#value'] = array_combine($og_ref, $og_ref);
+        }
+    }
+    return $form;
+}
+
+
+function prepopulate_group_ref_after_build_hide_fields(&$form, &$form_state) {
+
+    // Check to see if $user has the administrator role, and skip hiding fields..
+    global $user;
+    $isadmin = in_array('administrator', $user->roles);
+
+    if($isadmin) {
+        return $form;
+    }
+
+    if(isset($form['og_group_ref'])) {
+        $form['og_group_ref']['#access'] = FALSE;
+    }
+
+    if(isset($form['group_content_access'])) {
         //try to hide always group_content_access
         //(user will use always the default)
         $form['group_content_access']['#access'] = FALSE;
