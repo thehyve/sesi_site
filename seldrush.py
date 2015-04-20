@@ -190,6 +190,9 @@ class Drush(SeleniumBase):
         chkbox = self.css("#edit-4-bypass-workbench-moderation")
         self.setcheckbox(chkbox, True)
 
+        chkbox = self.css("#edit-4-view-any-unpublished-content")
+        self.setcheckbox(chkbox, False)
+
         #disable permissions
         entities = ['page', 'forum', 'data-access-review', 'documents', 'teleconference', 'blog']
         actions = ['create', 'edit-own', 'edit-any', 'delete-own', 'delete-any']
