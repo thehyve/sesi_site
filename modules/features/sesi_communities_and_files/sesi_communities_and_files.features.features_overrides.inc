@@ -14,15 +14,13 @@ function sesi_communities_and_files_features_override_default_overrides() {
   // Exported overrides for: field_group
   $overrides["field_group.group_authorization_maelstrom|node|study|form.data|weight"] = 130;
   $overrides["field_group.group_authorization_specific|node|study|form.data|weight"] = 129;
-  $overrides["field_group.group_authorization|node|study|form.data|children|0"] = 'og_group_ref';
-  $overrides["field_group.group_authorization|node|study|form.data|children|1"] = 'group_content_access';
-  $overrides["field_group.group_authorization|node|study|form.data|children|2"] = 'group_authorization_maelstrom';
+  $overrides["field_group.group_authorization|node|study|form.data|children|0"] = 'group_content_access';
+  $overrides["field_group.group_authorization|node|study|form.data|children|1"] = 'group_authorization_maelstrom';
   $overrides["field_group.group_general_design|node|study|form.data|children|0"]["DELETED"] = TRUE;
   $overrides["field_group.group_general_design|node|study|form.data|children|1"]["DELETED"] = TRUE;
   $overrides["field_group.group_general_design|node|study|form.data|children|2"]["DELETED"] = TRUE;
   $overrides["field_group.group_general_design|node|study|form.parent_name"] = '';
-  $overrides["field_group.group_general_info|node|study|form.data|children|4"] = 'group_study_name';
-  $overrides["field_group.group_general_info|node|study|form.data|children|5"]["DELETED"] = TRUE;
+  $overrides["field_group.group_general_info|node|study|form.data|children|4"] = 'og_group_ref';
 
   // Exported overrides for: field_instance
   $overrides["field_instance.node-community-group_access.default_value|0|value"] = 1;
