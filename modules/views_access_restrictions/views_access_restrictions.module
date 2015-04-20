@@ -27,9 +27,8 @@ function _views_access_restrictions_filter_community_content(&$view) {
     $results = array();
     foreach ($view->result as $key => $value) {   
         // get id of node, if user has access, add item and continue
-        $nid = $value->entity->nid;
-        $node = node_load($nid);
-       
+        $node = $value->entity;
+
         //Criteria 1 : if draft and not owner... first this criteria need to be checked.        
         if($node->status == "0" && $node->uid != $user->uid){
              continue;
@@ -42,7 +41,7 @@ function _views_access_restrictions_filter_community_content(&$view) {
         }
 
         // user has no access. We still show this item in the listing if it is not part of any hidden community.
-        if(views_access_restrictions_is_hidden_project_content($nid)) {
+        if(views_access_restrictions_is_hidden_project_content($node->nid)) {
             continue;        
         } else {
             //add element to final array
