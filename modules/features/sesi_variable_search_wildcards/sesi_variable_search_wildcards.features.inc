@@ -20,7 +20,7 @@ function sesi_variable_search_wildcards_default_search_api_index_alter(&$data) {
   if (isset($data['variable_index'])) {
     $data['variable_index']->options['processors']['search_api_case_ignore']['weight'] = 0; /* WAS: 0 */
     $data['variable_index']->options['processors']['search_api_html_filter']['weight'] = 10; /* WAS: 10 */
-    $data['variable_index']->options['processors']['search_api_tokenizer']['settings']['spaces'] = '[^\\p{L}\\p{N}?*^\']'; /* WAS: '[^\\p{L}\\p{N}^\']' */
+    $data['variable_index']->options['processors']['search_api_tokenizer']['settings']['spaces'] = '[^\\p{L}\\p{N}?*^_\']'; /* WAS: '[^\\p{L}\\p{N}^\']' */
     $data['variable_index']->options['processors']['search_api_tokenizer']['weight'] = 20; /* WAS: 20 */
     $data['variable_index']->options['processors']['sesi_wildcard'] = array(
       'status' => 1,
