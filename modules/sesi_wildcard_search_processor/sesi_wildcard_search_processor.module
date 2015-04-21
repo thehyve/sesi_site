@@ -8,7 +8,7 @@
 function sesi_wildcard_search_processor_search_api_processor_info() {
   $processors['sesi_wildcard'] = array(
     'name' => t('Wildcard'),
-    'description' => t('Flattens queries while keeping * and ? wildcards. '),
+    'description' => t('Flattens queries while keeping * and ? wildcards. This processor is not compatible with quoted phrase search terms, e.g. searching for "some phrase" (including quotes).'),
     'class' => 'WildcardSearchProcessor',
     'weight' => 100,
   );
@@ -73,14 +73,17 @@ class WildcardSearchProcessor extends SearchApiAbstractProcessor {
         }
       }
       else {
-        $key = trim($key);
-        // don't quote if the term consists of letters/digits and contains a * or ? wildcard.
-        // If there are e.g. also spaces or other characters we quote as usual.
-        // This will also quote keywords as they do not contain a wildcard character.
-        if (!preg_match("/[[:alnum:]]*[?*][[:alnum:]?*]*/u", $key)) {
-          $key = $this->escapeAndQuote($key);
+        // Split up on whitespace. The Tokenizer processor replaces punctuation and other configured characters by
+        // spaces, and we want to quote the tokenized items separately. FIXME: This looks like a bug in SearchApiTokenizer,
+        // it should not replace characters by spaces, it should split strings into multiple items in the $keys array.
+        foreach(preg_split('/\s+/', $key) as $key) {
+          // Don't quote if the term contains a * or ? wildcard, quote otherwise.
+          // This will also quote keywords as they do not contain a wildcard character.
+          if (!preg_match("/[?*]/", $key)) {
+            $key = $this->escapeAndQuote($key);
+          }
+          $k[] = $key;
         }
-        $k[] = $key;
       }
     }
     if (!$k) {
