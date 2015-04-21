@@ -272,7 +272,7 @@ function sesi_community_hub_default_page_manager_handlers() {
     );
     $pane->configuration = array(
       'admin_title' => '',
-      'title' => 'Owner',
+      'title' => 'Community manager',
       'body' => '<p>%node:author</p>',
       'format' => 'filtered_html',
       'substitute' => 1,
