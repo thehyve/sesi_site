@@ -205,7 +205,11 @@ class Drush(SeleniumBase):
         actions =['create','edit-own','edit-any','delete-own','delete-any']
         for ent in entities:
             for act in actions:
-                self.setcheckbox(self.css("#edit-4-%s-%s-content" % (act,ent)), True)                
+                self.setcheckbox(self.css("#edit-4-%s-%s-content" % (act,ent)), True)
+
+        #activate field permissions
+        for act in ['create', 'edit-own', 'edit', 'view-own', 'view']:
+            self.setcheckbox(self.css('#edit-4-%s-field-project-visibility' % act), True)
 
         self.clickon('#edit-submit')
 

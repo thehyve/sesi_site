@@ -134,7 +134,7 @@ function sesi_communities_and_files_field_default_field_bases() {
     'entity_types' => array(),
     'field_name' => 'field_project_visibility',
     'field_permissions' => array(
-      'type' => 1,
+      'type' => 2,
     ),
     'foreign keys' => array(),
     'indexes' => array(
