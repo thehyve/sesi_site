@@ -14,7 +14,7 @@ function sesi_variable_search_wildcards_features_override_default_overrides() {
   // Exported overrides for: search_api_index
   $overrides["search_api_index.variable_index.options|processors|search_api_case_ignore|weight"] = 0;
   $overrides["search_api_index.variable_index.options|processors|search_api_html_filter|weight"] = 10;
-  $overrides["search_api_index.variable_index.options|processors|search_api_tokenizer|settings|spaces"] = '[^\\p{L}\\p{N}?*^\']';
+  $overrides["search_api_index.variable_index.options|processors|search_api_tokenizer|settings|spaces"] = '[^\\p{L}\\p{N}?*^_\']';
   $overrides["search_api_index.variable_index.options|processors|search_api_tokenizer|weight"] = 20;
   $overrides["search_api_index.variable_index.options|processors|sesi_wildcard"] = array(
     'status' => 1,
