@@ -25,6 +25,10 @@ argparser.add_argument('--config', '-c', type=argparse.FileType('r'), help=
                        'The user configuration file, defaults to config.yaml')
 argparser.add_argument('--delete', '-D', action='store_true', help=
                        'If set, delete test data after testing')
+argparser.add_argument('--only-opal', action='store_true', help=
+                       'Only run the Opal tests')
+argparser.add_argument('--only-mica', action='store_true', help=
+                       'Only run the Mica test, assume the Opal data is set up and ready to go')
 args = argparser.parse_args()
 if args.data_dir:
     if not os.path.isdir(args.data_dir):
@@ -46,6 +50,15 @@ if not args.config:
         args.config = open('config.yaml')
     except OSError as e:
         args.error("Unable to open configuration file: "+str(e))
+
+if args.only_opal:
+    args.run_opal = True
+    args.run_mica = False
+elif args.only_mica:
+    args.run_opal = False
+    args.run_mica = True
+else:
+    args.run_opal = args.run_mica = True
 
 
 # Configure yaml to use our modified dict class so we have attribute access
@@ -369,15 +382,19 @@ def remove_opal_data(browser):
     
 
 def main():
-    print('Testing Opal and loading data')
-    opal = test_opal()
-    print('Testing Mica')
-    mica = test_mica()
+    if args.run_opal:
+        print('Testing Opal and loading data')
+        opal = test_opal()
+    if args.run_mica:
+        print('Testing Mica')
+        mica = test_mica()
     if args.delete:
-        print('Removing Mica data')
-        remove_mica_data(mica)
-        print('Removing Opal data')
-        remove_opal_data(opal)
+        if args.run_mica:
+            print('Removing Mica data')
+            remove_mica_data(mica)
+        if args.run_opal:
+            print('Removing Opal data')
+            remove_opal_data(opal)
 
 
 if __name__ == '__main__':
