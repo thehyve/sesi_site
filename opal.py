@@ -134,6 +134,7 @@ class Projects (OpalPage):
         self.findByLabel('Title').send_keys(name)
         self.driver.find_element(link_text='Save').click()
         self.waitForCondition(C.not_or_gone(C.element_present(xpath=find_by_label('Name'))))
+        self.waitForCondition(lambda: self.hasProject(name))
 
     def hasProject(self, name):
         return bool(self._projectlinks(name))
@@ -262,13 +263,22 @@ class Project (OpalPage):
 
         self.findByLabel('Name').send_keys(name)
         for table in tables:
-            self.findByLabel('Table References', class_=None).send_keys(' ')
-            # the first element is from the current project, which is listed first
-            target = self.driver.find_elements(xpath=
-                contains('li', table, prefix=
-                         find_by_label('Table References', class_=None, target_element='li')
+            # The Table References field is a javascript custom dropdown. The headers with the projects
+            # only appear once you start typing into the field.
+            references_field = self.findByLabel('Table References', class_=None)
+            references_field.click()
+            references_field.clear()
+            time.sleep(.5)
+            references_field.send_keys(table)
+            time.sleep(.5)
+            xpath = contains('li', self.name, prefix=find_by_label('Table References', 
+                                                                   class_=None, target_element='li')
                              +'/self::')
-                )[0]
+            project_lis = self.waitForCondition(lambda: self.driver.find_elements(xpath=xpath))
+            assert len(project_lis) == 1, ("Project not found or name collision between project "
+                                           "%s and another table or project name" % self.name)
+            project_li = project_lis[0]
+            target = project_li.find_element(xpath=contains('following-sibling::li', table, prefix=''))
             self.waitForCondition(C.element_visible(element=target))
             target.click()
         self.findElement(link_text='Browse').click()
