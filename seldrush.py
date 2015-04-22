@@ -213,6 +213,16 @@ class Drush(SeleniumBase):
 
         self.clickon('#edit-submit')
 
+    def changeAdminPerm(self):
+
+        self.sd.get(self.base_url + "/?q=admin/people/permissions/3")
+
+        #activate field permissions
+        for act in ['create', 'edit-own', 'edit', 'view-own', 'view']:
+            self.setcheckbox(self.css('#edit-3-%s-field-project-visibility' % act), True)
+
+        self.clickon('#edit-submit')
+   
     def changeDACF(self):
         self.sd.get(self.base_url + "/?q=admin/people/permissions/4")
 
@@ -323,6 +333,7 @@ if __name__ == "__main__":
 
        if suite.login():       
            suite.changePermissions()
+           suite.changeAdminPerm()
            suite.changePermConsAdmin()
            suite.changePermDefaultCommunity()
            suite.changePermCommunity()
