@@ -23,7 +23,7 @@ class MicaPage (Page):
     def loggedIn(self):
         # The User Menu link is not visible if the browser window is too narrow
         self.ensureScreenWidth()
-        return C.element_present(link_text='User menu').test(self.driver)
+        return C.element_present(css='#user-menu').test(self.driver)
 
     def ensureScreenWidth(self):
         size = self.driver.window_size
@@ -90,12 +90,12 @@ class HomePage (MicaPage):
         passwordfield = self.driver.find_element(id='edit-pass')
         passwordfield.send_keys(password)
         passwordfield.submit()
-        self.driver.wait_until(C.any(C.element_visible(link_text='User menu'), 
+        self.driver.wait_until(C.any(C.element_visible(link_text=self.browser.username), 
                                      C.element_visible(css='div.alert.alert-error')))
         
     def logOut(self):
         assert self.loggedIn()
-        self.clickDropdown('User menu', 'Log out')
+        self.clickDropdown(self.browser.username, 'Log out')
 
 
 class Paged (object):
@@ -120,6 +120,7 @@ class Paged (object):
         if self.currentPage() == num:
             return
         self.pages[num].click()
+        self.waitForCondition(lambda: self.currentPage() == num)
         self.loadPagination()
 
 

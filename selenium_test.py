@@ -191,7 +191,8 @@ def newdriver():
 
 def test_mica():
     global mica
-    browser = mica = Browser(newdriver(), conf.mica.url, HomePage)
+    browser = mica = Browser(newdriver(), conf.mica.url, HomePage, 
+                             username=conf.mica.username, password=conf.mica.password)
 
     print("page title: " + browser.title)
 
