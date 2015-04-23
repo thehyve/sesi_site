@@ -152,21 +152,27 @@ function dataset_access_form_node_insert($node) {
 
     $recipients = $admin_mails; 
     $froms = array();
-    
-    $query_uri = $node->field_query_path['und']['0']['value'];
-    $txt_message = $node->body['und']['0']['value'];
-    
+
     // check pet validity
     if (pet_is_valid($pet)) {
+
+        $query_uri = $node->field_query_path['und']['0']['value'];
+        $txt_message = $node->body['und']['0']['value'];
+
+        $dataset = node_load($dataset_id);
+        $dataset_name = $dataset->title;
+        $dataset_url = url(drupal_get_path_alias('node/'.$dataset_id), array('absolute' => TRUE));
         
         $search = array(
             '__QUERY_URI__',
             '__DATASET__',
+            '__DATASET_URI__',
             '__MESSAGE__',
         );
         $replace = array(
             $query_uri,
-            $dataset_id,
+            $dataset_name,
+            $dataset_url,
             $txt_message,            
         );
         $pet->subject = $node->title_field['und']['0']['value'];
@@ -226,7 +232,7 @@ function dataset_access_form_form_alter(&$form, $form_state, $form_id) {
     $form['field_query_path']['und'][0]['value']['#default_value'] = $query_full_path;
     // set og group
     $form['og_group_ref']['und'][0]['default']['#default_value'] = $gids;
-    if (!user_access('administer nodes')) {
+    if (!in_array('administrator', $user->roles)) {
       // hide it from normal users
        $form['og_group_ref']['und']['#prefix'] = '<div id="og-group-ref-add-more-wrapper" style="display:none;">';
     }
