@@ -449,7 +449,7 @@ class VariableEdit (VariableBase):
         return self.header() == 'Edit Variable '+self.variablename
 
     def setTaxonomy(self, taxonomy):
-        self.findElement(xpath=contains("div[@id='edit-field-taxonomy']//select/option", "ICD10")).click()
+        self.findElement(xpath=contains("div[@id='edit-field-taxonomy']//select/option", taxonomy)).click()
 
     def save(self):
         self.clickButton('Save')
