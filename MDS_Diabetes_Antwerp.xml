@@ -147,8 +147,8 @@ unknown / missing
       </variable>
       <variable name="donor_diagnosis_sampling" valueType="text" entityType="Participant" unit="" mimeType="" referencedEntityType="" index="0" repeatable="true" occurrenceGroup="">
         <attributes>
-          <attribute name="vocabulary_url" valueType="text">https://localhost/mica/sites/default/files/ICD10codes.txt</attribute>
-          <attribute name="vocabulary_url" valueType="text" locale="en"></attribute>
+          <!--attribute name="vocabulary_url" valueType="text">https://localhost/sites/default/files/ICD10codes.txt</attribute>
+          <attribute name="vocabulary_url" valueType="text" locale="en"></attribute-->
           <attribute name="script" valueType="text">newSequence([$(&apos;DonorDiagnosis&apos;).map({
     &apos;E11.x&apos;: &apos;E11_x&apos;,
     &apos;E14.x&apos;: &apos;E14_x&apos;,

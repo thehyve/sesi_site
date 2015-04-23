@@ -147,7 +147,7 @@ mica:
           dataset: regression_test_project
           table: MDS_Diabetes_Antwerp
       variables:
-        donor_diagnosis_sampling: {taxonomy: ICD10}
+        donor_diagnosis_sampling: {taxonomy: icd_10}
       queries:
         Query test 1:
           variables:
