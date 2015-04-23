@@ -278,7 +278,7 @@ class Drush(SeleniumBase):
         self.clickon('#edit-submit')
 
 
-    def changeCommunityProjectVisibilityDefault(self):
+    def changeCommunityProjectVisibilityDefault(self): 
         self.sd.get(self.base_url + "/?q=admin/structure/types/manage/community/fields/field_project_visibility")
         radio = self.sd.find_element_by_css_selector("#edit-field-project-visibility-und-0")
         radio.click()
