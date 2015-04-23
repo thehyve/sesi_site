@@ -12,6 +12,8 @@ module_load_include('inc', 'query_interface', 'query_interface.handling_terms');
 function query_interface_form_mica_query_edit_form_alter(&$form, $form_state, $form_id) {
     if (ORIGINAL_FORM)
         return $form;
+
+    global $user;
     
     // If no query has been created, create a new one and 
     // store it in cache
@@ -36,12 +38,7 @@ function query_interface_form_mica_query_edit_form_alter(&$form, $form_state, $f
     $form["general"]["description"]["#type"] = "hidden";    
     
     // Determine whether the user can put the query to published
-    $is_admin = false;
-    if (function_exists('query_access_rights_user_is_admin')) {
-        $is_admin = query_access_rights_user_is_admin($dataset);
-    }    
-    
-    if( $is_admin ) {
+    if (in_array('administrator', $user->roles)) {
         $form["general"]["publish"]["#title"] = "Public"; 
     } else {
         $form["general"]["publish"]["#type"] = "hidden";    
