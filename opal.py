@@ -2,7 +2,8 @@
 from __future__ import unicode_literals
 
 import os
-from urlparse import urlparse
+import six
+from six.moves.urllib.parse import urlparse
 import time
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait

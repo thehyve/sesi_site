@@ -4,7 +4,7 @@ from __future__ import unicode_literals, print_function
 import sys
 import time
 import re
-import httplib
+#import httplib
 from collections import OrderedDict
 
 from selenium.common.exceptions import TimeoutException
@@ -141,12 +141,14 @@ class Paginator (object):
         self.currentpage = 0
         return self
 
-    def next(self):
+    def __next__(self):
         if self.currentpage >= self.page.numPages():
             raise StopIteration()
         self.currentpage += 1
         self.page.gotoPage(self.currentpage)
         return self.currentpage
+
+    next = __next__
         
 
 class ViewsTable (Paged):
@@ -217,7 +219,7 @@ class Dataset (NamedMicaPage):
         self.clickLink('Import Variables')
         self.waitForProcessing()
         if not self.hasMessage('Import finished'):
-            raise StandardError('Importing variables failed')
+            raise Exception('Importing variables failed')
 
     def gotoVariables(self):
         self.findElement(xpath=contains('ul[%s]/li/a[%s]' % (xpath_class('action-links'), 
@@ -251,7 +253,7 @@ class DatasetCreate (MicaPage):
         self.clickButton('Save')
         name = self.header()
         if not self.hasMessage('Dataset {} has been created'.format(name)):
-            raise StandardError("Dataset creation failed")
+            raise Exception("Dataset creation failed")
         return Dataset(self.driver, name)        
 
 
@@ -266,7 +268,7 @@ class DatasetEdit (NamedMicaPage, DatasetCreate):
         self.waitForProcessing()
         d = Datasets(self.driver).waitFor()
         if not self.hasMessage('Dataset successfully deleted'):
-            raise StandardError("Deleting dataset {} failed".format(self.name))
+            raise Exception("Deleting dataset {} failed".format(self.name))
         return d
 
 class DatasetStudies (NamedMicaPage):
@@ -303,7 +305,7 @@ class DatasetStudies (NamedMicaPage):
         self.waitForCondition(lambda: not self.elementExists(css='div.modal-content'), timeout=15)
         if not self.elementExists(xpath=contains('/following-sibling::td', 'Opal',
                                                  prefix=contains(self.fieldxpath, study))):
-            raise StandardError('Failed to configure study {}'.format(study))
+            raise Exception('Failed to configure study {}'.format(study))
         return
 
     def testConnections(self):
@@ -322,7 +324,7 @@ class DatasetStudies (NamedMicaPage):
         self.waitForCondition(C.element_visible(css='div.alert'))
         if not self.hasMessage('All connections are successful'):
             errtxt = '\n'.join(e.text for e in self.driver.find_elements(css='div.alert.alert-error'))
-            raise StandardError('Connecting to Opal failed: '+errtxt)
+            raise Exception('Connecting to Opal failed: '+errtxt)
 
     def gotoDataset(self):
         self.findElement(css='ul.breadcrumb li:last-of-type a').click()
@@ -379,7 +381,7 @@ class StudyCreate (MicaPage):
         self.clickButton('Save')
         name = self.header()
         if not self.hasMessage('Study {} has been created'.format(name)):
-            raise StandardError("Study creation failed")
+            raise Exception("Study creation failed")
         return Study(self.driver, name)        
 
 
@@ -394,7 +396,7 @@ class StudyEdit (NamedMicaPage, StudyCreate):
         self.waitForProcessing()
         s = HomePage(self.driver).waitFor()
         if not self.hasMessage('Study {} has been deleted'.format(self.name)):
-            raise StandardError("Deleting study {} failed".format(self.name))
+            raise Exception("Deleting study {} failed".format(self.name))
         return s
 
 
@@ -453,7 +455,7 @@ class VariableEdit (VariableBase):
         self.clickButton('Save')
         page = Variable(self.driver, self.datasetname, self.variablename).waitFor()
         if not self.hasMessage('Variable {} has been updated.'.format(self.variablename)):
-            raise StandardError('Failed to save variable {}'.format(self.variablename))
+            raise Exception('Failed to save variable {}'.format(self.variablename))
         return page
 
         
@@ -600,7 +602,7 @@ class QueryResult (MicaPage):
                    for e in table.find_elements(css='tr:first-child th')]
         num_fixed_headers = 3 # Study, Matched, Total
         if len(headers) <= num_fixed_headers:
-            raise StandardError("Result table incomplete. Headers found: "+', '.join(headers))
+            raise Exception("Result table incomplete. Headers found: "+', '.join(headers))
         
         variables = headers[2:-1]
         result = OrderedDict()
@@ -609,7 +611,7 @@ class QueryResult (MicaPage):
         data = [e.text for e in table.find_elements(css='tr:nth-child({}) td'.format(rowidx))]
         while data:
             if len(data) != len(headers):
-                raise StandardError("Error: Length of data does not match length of header.\nheader: {}\ndata: {}"
+                raise Exception("Error: Length of data does not match length of header.\nheader: {}\ndata: {}"
                                     .format(', '.join(headers), ', '.join(data)))
             study = data[0]
             row = OrderedDict()

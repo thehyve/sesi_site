@@ -20,19 +20,19 @@ def xpath_class(cls):
     return '''contains(concat(' ',normalize-space(@class),' '),%s)''' % xpath_string_escape(' '+cls+' ')
 
 class namespace(OrderedDict):
-    def __init__(self, *args, **kwargs):
-        # Set this to prevent recursion with OrderedDict's methods
-        root = []
-        object.__setattr__(self, '_OrderedDict__root', root)
-        root[:] = [root, root, None]
-        object.__setattr__(self, '_OrderedDict__map', {})
-        super(namespace, self).__init__(*args, **kwargs)
 
     def __getattr__(self, attr):
+        # Make sure we don't mess with OrderedDict's internals (private variables)
+        if attr.startswith('_OrderedDict_'):
+            return object.__getattr__(self, attr)
         return self[attr]
 
     def __setattr__(self, attr, data):
+        if attr.startswith('_OrderedDict_'):
+            return object.__setattr__(self, attr, data)
         self[attr] = data
 
     def __delattr__(self, attr):
+        if attr.startswith('_OrderedDict_'):
+            return object.__delattr_(self, attr)
         del self[attr]

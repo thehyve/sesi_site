@@ -75,7 +75,7 @@ def construct_map(loader, node):
         key = loader.construct_object(key_node)
         try:
             hash(key)
-        except TypeError, exc:
+        except TypeError as exc:
             raise ConstructorError("while constructing a mapping", node.start_mark,
                     "found unacceptable key (%s)" % exc, key_node.start_mark)
         value = loader.construct_object(value_node)
@@ -107,7 +107,7 @@ def represent_map(self, mapping):
     return node
 yaml.add_representer(namespace, represent_map)
 yaml.add_representer(OrderedDict, represent_map)
-yaml.add_representer(unicode, yaml.representer.SafeRepresenter.represent_unicode)
+yaml.add_representer(six.text_type, getattr(yaml.representer.SafeRepresenter, 'represent_'+six.text_type.__name__))
 
 
 user_conf = yaml.load(args.config.read())
