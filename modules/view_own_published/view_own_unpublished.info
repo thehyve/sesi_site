@@ -1,0 +1,7 @@
+name = View Own Unpublished
+description = "Show a user's own unpublished content in listings and views for users that have the 'view own unpublished content' permission"
+package = "Permissions"
+version = 7.x-1.0-beta
+core = 7.x
+project = "view_own_unpublished"
+

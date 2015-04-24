@@ -98,6 +98,16 @@ class Drush(SeleniumBase):
         self.passwd = passwd
     
     def changePermissions(self):
+        self.sd.get(self.base_url + "/?q=admin/people/permissions")
+
+        # Remove 'view all unpublished content' for everyone except system administrator
+        for i in [1,2,4,5,6,7,8,9,10]:
+            chkbox = self.css("#edit-%s-view-all-unpublished-content" % i)
+            self.setcheckbox(chkbox, False)
+
+        self.clickon('#edit-submit')
+
+
         self.sd.get(self.base_url + "/?q=admin/people/permissions/2")
 
         #change permissions for authenticated user

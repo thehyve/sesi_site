@@ -1,0 +1,36 @@
+<?php
+
+/**
+ * @file
+ * Main functions and hook implementations of the View Own Unpublished module.
+ */
+
+/**
+ * Implements hook_node_access_records().
+ */
+function view_own_unpublished_node_access_records($node) {
+  // We only care about the node if is unpublished. If not, ignore it.
+  $grants = array();
+  if ($node->status == 0) {
+    $grants[] = array(
+      'realm' => 'view_own_unpublished',
+      'gid' => $node->uid,
+      'grant_view' => 1,
+      'grant_update' => 0,
+      'grant_delete' => 0,
+      'priority' => 0,
+    );
+  }
+  return $grants;
+}
+
+/**
+ * Implements hook_node_grants().
+ */
+function view_own_unpublished_node_grants($account, $op) {
+  $grants = array();
+  if (user_access('view own unpublished content', $account)) {
+    $grants['view_own_unpublished'] = array($account->uid);
+  }
+  return $grants;
+}
