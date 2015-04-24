@@ -181,6 +181,7 @@ ensure_mod sesi_og_addcontent
 ensure_mod sesi_rules
 ensure_mod sesi_variable_email
 ensure_mod sesi_wildcard_search_processor
+ensure_mod view_own_unpublished
 
 # Download Autologout module dependencies and enable it
 drush --yes dl autologout
@@ -357,5 +358,7 @@ sed -i.bak "s/version = .*$/$REPLACEMENT/g" $DRUPAL_ROOT/profiles/mica_distribut
 cd $DRUPAL_ROOT
 drush vset maintenance_mode 1
 drush cc all
+# make sure the access grants are up to date
+drush eval 'node_access_rebuild();'
 drush vset maintenance_mode 0
 
