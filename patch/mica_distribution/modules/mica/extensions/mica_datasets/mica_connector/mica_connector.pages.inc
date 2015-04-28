@@ -31,8 +31,8 @@ function mica_connector_dataset_connection_modal_page($js = NULL, $connection_en
  */
 function mica_connector_dataset_connection_page($connection_entity, $dataset_node, $study_node) {
   drupal_set_title(t('!dataset -- !study', array(
-    '!dataset' => check_plain($dataset_node->title),
-    '!study' => check_plain($study_node->title)
+    '!dataset' => $dataset_node->title,
+    '!study' => $study_node->title
   )));
 
   return drupal_get_form('mica_connector_dataset_connection_form', $connection_entity, $dataset_node, $study_node);

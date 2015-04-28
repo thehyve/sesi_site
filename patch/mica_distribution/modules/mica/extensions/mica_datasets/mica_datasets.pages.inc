@@ -12,7 +12,7 @@ include_once(drupal_get_path('module', 'mica_connector') . '/mica_connector.conn
  * Display form for linking datsets to a given study.
  */
 function mica_datasets_study_datasets_edit_page($node) {
-  drupal_set_title(t('!title -- Datasets', array('!title' => check_plain($node->title))));
+  drupal_set_title(t('!title -- Datasets', array('!title' => $node->title)));
   if (!property_exists($node, 'mica_dataset')) {
     drupal_set_message(t('dataset content type is broken, missing field: mica_dataset'), 'error');
     return '';
@@ -26,7 +26,7 @@ function mica_datasets_study_datasets_edit_page($node) {
  * Display form for linking studies to a given dataset.
  */
 function mica_datasets_dataset_studies_edit_page($node) {
-  drupal_set_title(t('!title -- Studies', array('!title' => check_plain($node->title))));
+  drupal_set_title(t('!title -- Studies', array('!title' => $node->title)));
   return drupal_get_form('mica_datasets_dataset_studies_form', $node);
 }
 
@@ -34,7 +34,7 @@ function mica_datasets_dataset_studies_edit_page($node) {
  * Display form for fetching variables for a given dataset.
  */
 function mica_datasets_dataset_variables_edit_page($node) {
-  drupal_set_title(t('!title -- Variables', array('!title' => check_plain($node->title))));
+  drupal_set_title(t('!title -- Variables', array('!title' => $node->title)));
   return drupal_get_form('mica_datasets_dataset_variables_form', $node);
 }
 
