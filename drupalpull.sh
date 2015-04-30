@@ -331,7 +331,7 @@ if [ ! -z "$seluser" ] ; then
 fi
 passwd=`date | md5sum | cut -c1-12`
 echo "$passwd" > $DRUPAL_ROOT/selenium.passwd
-drush user-create selenium --password="$passwd"
+drush user-create selenium --password="$passwd" --mail="mica+selenium@thehyve.nl"
 drush urol administrator selenium
 
 passwd=`cat $DRUPAL_ROOT/selenium.passwd`
