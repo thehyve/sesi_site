@@ -83,35 +83,26 @@ function dataset_inheritance_node_insert($node) {
     if (isset($_REQUEST['ignore_inheritance'])) {
         return;
     }
-    
-    $wrapper = entity_metadata_wrapper( 'node', $node );
+
+    $wrapper = entity_metadata_wrapper('node', $node);
 
     // check if has a parent field defined
-    $parent_nid = _dataset_inheritance_get_parent_from_dataset( $wrapper );
-    
-    if( !$parent_nid ) {
+    $parent_nid = _dataset_inheritance_get_parent_from_dataset($wrapper);
+
+    if (!$parent_nid) {
         return;
     }
 
     $added_variable_ids = _dataset_inheritance_clone_variables_from_parent($wrapper, $parent_nid);
-    $num_variables = count( $added_variable_ids );
-    if ( $num_variables > 0 ) {
+    $num_variables = count($added_variable_ids);
+    if ($num_variables > 0) {
         drupal_set_message(t("Added @entries variables from parent dataset.", array('@entries' => $num_variables)), 'status');
     }
 
-    drupal_set_message("The variables indexing process is triggered every hour. Before variables have been re-indexed you may not see all variables in the variables search screen.", 'warning');
-
     // Set reference to newly added variables in dataset object
     // without resaving the node itself
-    $wrapper->field_dataset_variables->set( $added_variable_ids );
-    field_attach_update( 'node', $node );
-    
-    $search_api_index = search_api_index_load('dataset_index');
-    search_api_index_items($search_api_index, -1);
-    
-    $var_api_index = search_api_index_load('variable_index');
-    search_api_index_items($var_api_index, -1);
-    
+    $wrapper->field_dataset_variables->set($added_variable_ids);
+    field_attach_update('node', $node);
 }
 
 /**
@@ -406,11 +397,11 @@ function _dataset_inheritance_clone_variables_from_parent($child_dataset, $paren
     $result = $query->execute();
 
     $variable_ids = array();
-    
+
     if (isset($result['node'])) {
         // Load parent variables
         $vars_items_nids = array_keys($result['node']);
-        $parent_variables = entity_load('node', $vars_items_nids);
+        $parent_variables = node_load_multiple($vars_items_nids);
         
         // Also load existing child variables, to make sure that fields with
         // the same name are not overwritten.
@@ -425,7 +416,7 @@ function _dataset_inheritance_clone_variables_from_parent($child_dataset, $paren
         }
 
         foreach ($parent_variables as $parent_variable) {
-            $variable_node = node_load($parent_variable->nid );
+            $variable_node = clone $parent_variable;
             $variable_wrapper = entity_metadata_wrapper( 'node', $variable_node );
             
             // If a variable with the same name already exists, skip copying
@@ -451,10 +442,26 @@ function _dataset_inheritance_clone_variables_from_parent($child_dataset, $paren
             $variable_node->status = NODE_PUBLISHED;
 
             node_save($variable_node);
-            
-            // Set moderation state to published
-            workbench_moderation_moderate( $variable_node, workbench_moderation_state_published() );
-            
+            // Reload the variable so it gets saved in the entity cache. We need this as a workaround for an issue:
+            //
+            // Both search_index and workbench_moderation use delayed processing. Search_api marks nodes to be indexed
+            // and then does the actual indexing in a shutdown hook. The workbench_moderation_moderate below first sets
+            // the current revision of the variable to unpublished because it thinks that may be an old revision. It
+            // then registers a shutdown hook to sets the node revision back to published because workbench_moderation
+            // thinks the current version might still be in use for other things and some non-versionable related
+            // content may not have been updated yet. (see comments in workbench_moderation_moderate)
+            // The result is that the shutdown hook from search_api is run first, and loads the to-be-indexed variable
+            // from the db, which still is set to draft and is thus indexed as draft. After that the
+            // workbench_moderation shutdown hook sets the variable to published, but then the index is stale and the
+            // variable is not marked as change.
+            //
+            // As a workaround we make sure the variable nodes are loaded into the entity cache here.
+            // Workbench_moderation doesn't clear that cache, so search_api will load the nodes from the cache (that
+            // contains the published version) instead of the database.
+            $variable_node = node_load($variable_node->nid);
+
+            workbench_moderation_moderate($variable_node, workbench_moderation_state_published());
+
             $variable_ids[] = $variable_node->nid;
         }
     }
