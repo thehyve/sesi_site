@@ -28,12 +28,12 @@ drush vset maintenance_mode 1
 test=`drush status | grep 'Drupal version' | python -c "print tuple(raw_input().split(':')[1].strip().split('.')) < ('7','32')"`
 if [ "$test" = "True" ]
 then
-        patch --forward --reject-file=- "$DRUPAL_ROOT/includes/database/database.inc" < SA-CORE-2014-005-D7.patch || true
+        patch --forward --reject-file=- "$DRUPAL_ROOT/includes/database/database.inc" < "$DRUPAL_ROOT/sites/all/SA-CORE-2014-005-D7.patch" || true
 fi
 
 
 # Undo the ugly hack from 4e918df93e6b6665f45a4fc0364d1d5fe44e5a57 in case it got applied to this installation
-patch --forward --reject-file=- --fuzz=0 -p0 -d "$DRUPAL_ROOT" < search_hack_undo.diff || true
+patch --forward --reject-file=- --fuzz=0 -p0 -d "$DRUPAL_ROOT" < "$DRUPAL_ROOT/sites/all/search_hack_undo.patch" || true
 
 # PATCH ORIGINAL MICA CODE
 yes | cp -Rfv "$DRUPAL_ROOT/sites/all/patch/mica_distribution" "$DRUPAL_ROOT/profiles/"
