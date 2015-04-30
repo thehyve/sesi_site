@@ -28,18 +28,18 @@ drush vset maintenance_mode 1
 test=`drush status | grep 'Drupal version' | python -c "print tuple(raw_input().split(':')[1].strip().split('.')) < ('7','32')"`
 if [ "$test" = "True" ]
 then
-        patch --forward --reject-file=- "$DRUPAL_ROOT/includes/database/database.inc" < SA-CORE-2014-005-D7.patch || true
+        patch --forward --reject-file=- "$DRUPAL_ROOT/includes/database/database.inc" < "$DRUPAL_ROOT/sites/all/SA-CORE-2014-005-D7.patch" || true
 fi
 
 
 # Undo the ugly hack from 4e918df93e6b6665f45a4fc0364d1d5fe44e5a57 in case it got applied to this installation
-patch --forward --reject-file=- --fuzz=0 -p0 -d "$DRUPAL_ROOT" < search_hack_undo.diff || true
+patch --forward --reject-file=- --fuzz=0 -p0 -d "$DRUPAL_ROOT" < "$DRUPAL_ROOT/sites/all/search_hack_undo.patch" || true
 
 # PATCH ORIGINAL MICA CODE
 yes | cp -Rfv "$DRUPAL_ROOT/sites/all/patch/mica_distribution" "$DRUPAL_ROOT/profiles/"
 
 # ----------------------------- activate common functions
-drush pm-list --pipe --type=module --status=enabled > /tmp/enabledmods
+#drush pm-list --pipe --type=module --status=enabled > /tmp/enabledmods
 drush pm-list --pipe --type=module --no-core > /tmp/allmods
 function isenabled() { grep -Fxq "$1" /tmp/enabledmods  ;}
 function isdisabled() { ! grep -Fxq "$1" /tmp/enabledmods  ;}
@@ -230,6 +230,7 @@ ensure_feat sesi_search_index_immediately
 ensure_feat sesi_dataset_redirect
 ensure_feat sesi_community_hub
 ensure_feat sesi_variable_content_type
+ensure_feat sesi_contact_configuration
 ensure_feat sesi_variable_search_wildcards
 
 #Moderation
@@ -292,6 +293,9 @@ chmod 775 $DRUPAL_ROOT/sites/default/files/private
 
 #rebuild permissions
 drush php-eval 'node_access_rebuild();'
+
+drush cc all
+drush cron
 drush vset maintenance_mode 0
 
 #change temporarely the snapshot
@@ -327,7 +331,7 @@ if [ ! -z "$seluser" ] ; then
 fi
 passwd=`date | md5sum | cut -c1-12`
 echo "$passwd" > $DRUPAL_ROOT/selenium.passwd
-drush user-create selenium --password="$passwd" --mail="mica+selenium@xxxxxxxxxxxxx.com"
+drush user-create selenium --password="$passwd"
 drush urol administrator selenium
 
 passwd=`cat $DRUPAL_ROOT/selenium.passwd`
@@ -354,6 +358,7 @@ sed -i.bak "s/version = .*$/$REPLACEMENT/g" $DRUPAL_ROOT/profiles/mica_distribut
 cd $DRUPAL_ROOT
 drush vset maintenance_mode 1
 drush cc all
-drush cron
+# make sure the access grants are up to date
+drush eval 'node_access_rebuild();'
 drush vset maintenance_mode 0
 
