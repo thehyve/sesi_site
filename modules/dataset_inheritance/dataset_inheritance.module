@@ -98,7 +98,9 @@ function dataset_inheritance_node_insert($node) {
     if ( $num_variables > 0 ) {
         drupal_set_message(t("Added @entries variables from parent dataset.", array('@entries' => $num_variables)), 'status');
     }
-    
+
+    drupal_set_message("The variables indexing process is triggered every hour. Before variables have been re-indexed you may not see all variables in the variables search screen.", 'warning');
+
     // Set reference to newly added variables in dataset object
     // without resaving the node itself
     $wrapper->field_dataset_variables->set( $added_variable_ids );
@@ -436,6 +438,7 @@ function _dataset_inheritance_clone_variables_from_parent($child_dataset, $paren
             // Remove ids to clone the field
             unset($variable_node->nid);
             unset($variable_node->vid);
+            unset($variable_node->created);
             
             // Store the new variable with the new child dataset
             $variable_wrapper->field_dataset->set( $child_dataset->getIdentifier() );
