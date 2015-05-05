@@ -397,7 +397,7 @@ function beididp_authentication($response) {
     
     user_set_authmaps($account, array("authname_$module" => $identity ));
     
-    drupal_set_message(t('You must change your email address for future logins. Your current temporary password is: @pass ', array('@pass' => $pass)));
+    drupal_set_message(t('You must change your email address for future logins. Your current temporary password is: @pass .Changed it at User menu / my account / Edit tab', array('@pass' => $pass)));
     
     $created = TRUE;
     
