@@ -232,7 +232,7 @@ function dataset_access_form_form_alter(&$form, $form_state, $form_id) {
     $form['field_query_path']['und'][0]['value']['#default_value'] = $query_full_path;
     // set og group
     $form['og_group_ref']['und'][0]['default']['#default_value'] = $gids;
-    if (!in_array('administrator', $user->roles)) {
+    if (!user_access('administer nodes')) {
       // hide it from normal users
        $form['og_group_ref']['und']['#prefix'] = '<div id="og-group-ref-add-more-wrapper" style="display:none;">';
     }
