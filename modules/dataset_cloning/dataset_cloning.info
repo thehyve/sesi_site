@@ -1,0 +1,9 @@
+name = Dataset Cloning
+description = This module contains some code that is shared between Dataset Inheritance and Dataset Versioning
+package = Sesi
+
+; Information added by Drupal.org packaging script on 2014-07-10
+version = "7.x-1.0b"
+core = "7.x"
+project = "sesi"
+

@@ -273,7 +273,7 @@ function dataset_inheritance_form_alter(&$form, $form_state, $form_id) {
         $node = $form_state['node'];
         $wrapper = entity_metadata_wrapper('node', $node);
         if( $wrapper->field_variable_inherited_flag->value() ) {
-            drupal_set_message(t("Please note that this variable has been inherited from the parent dataset. Change the field with caution", array()), 'warning');
+            drupal_set_message(t("Please note that this variable has been inherited from the parent dataset. If you edit it, it will no longer be marked as an inherited variable.", array()), 'warning');
         }
     }
 }
@@ -480,4 +480,85 @@ function _dataset_inheritance_get_parent_from_dataset( $node ) {
     }
     
     return intval( $parent->nid );
+}
+
+/**
+ * Copy a list of variables and attach them to a dataset
+ *
+ * @param array $variables The array of variable objects to copy
+ * @param $to_ds The target dataset, as object or node id
+ * @param array $options
+ *     $options['set_inherited'] Sets the inherited flag on the new variables
+ *     $options['publish'] Set the new variables to published
+ * @return An array of the new variables
+ */
+function dataset_cloning_copy_dataset_variables(array $variables, $to_ds, $options = array()) {
+    $new_vars = array();
+
+    if(is_int($to_ds)) {
+        $to_ds_nid = $to_ds;
+    } else {
+        $to_ds_nid = $to_ds->nid;
+    }
+
+    // Guard against an unsaved $to_ds object being passed
+    assert($to_ds_nid);
+
+    foreach($variables as $variable) {
+        $variable = dataset_cloning_clone_node($variable);
+
+        $variable_wrapper = entity_metadata_wrapper('node', $variable);
+
+        // Store the new variable with the new target dataset
+        $variable_wrapper->field_dataset->set($to_ds_nid);
+
+        if(!empty($options['set_inherited'])) {
+            $variable_wrapper->field_variable_inherited_flag->set(1);
+        }
+
+        if(!empty($options['publish'])) {
+            //by default publish variable
+            $variable->status = NODE_PUBLISHED;
+        }
+
+        node_save($variable);
+        // Reload the variable so it gets saved in the entity cache. We need this as a workaround for an issue, but
+        // it is also a good idea for consistency in general since we are returning these nodes. The issue:
+        //
+        // Both search_index and workbench_moderation use delayed processing. Search_api marks nodes to be indexed
+        // and then does the actual indexing in a shutdown hook. The workbench_moderation_moderate below first sets
+        // the current revision of the variable to unpublished because it thinks that may be an old revision. It
+        // then registers a shutdown hook to sets the node revision back to published because workbench_moderation
+        // thinks the current version might still be in use for other things and some non-versionable related
+        // content may not have been updated yet. (see comments in workbench_moderation_moderate)
+        // The result is that the shutdown hook from search_api is run first, and loads the to-be-indexed variable
+        // from the db, which still is set to draft and is thus indexed as draft. After that the
+        // workbench_moderation shutdown hook sets the variable to published, but then the index is stale and the
+        // variable is not marked as change.
+        //
+        // As a workaround we make sure the variable nodes are loaded into the entity cache here.
+        // Workbench_moderation doesn't clear that cache, so search_api will load the nodes from the cache (that
+        // contains the published version) instead of the database.
+        $variable = node_load($variable->nid);
+
+        if(!empty($options['publish'])) {
+            workbench_moderation_moderate($variable, workbench_moderation_state_published());
+        }
+
+        $new_vars[] = $variable;
+    }
+
+    return $new_vars;
+}
+
+
+function dataset_cloning_clone_node($node) {
+    // Unlinke other types in PHP, objects are passed by reference. (But a different kind of reference than standard PHP references)
+    $node = clone $node;
+
+    unset($node->nid);
+    unset($node->vid);
+    unset($node->created);
+
+    return $node;
 }
