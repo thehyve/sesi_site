@@ -316,6 +316,16 @@ class Drush(SeleniumBase):
         self.setcheckbox(self.css("#edit-node-options-status"), False)
         self.clickon('#edit-submit')
 
+    def changeLoginToboggan(self):
+        self.sd.get(self.base_url + "/?q=admin/config/system/logintoboggan")
+        self.setcheckbox(self.css("#edit-logintoboggan-unified-login"), True)
+        radio = self.sd.find_element_by_css_selector("#edit-logintoboggan-site-403-toboggandenied")
+        radio.click()
+        self.clickon('#edit-submit')
+
+
+
+
 
 if __name__ == "__main__":
 
@@ -352,6 +362,7 @@ if __name__ == "__main__":
            suite.changeCommunityProjectVisibilityDefault()
            suite.disableCommunityPromoteToFrontPage()
            suite.changePublishingOptionsDataAccessRequestForm()
+           suite.changeLoginToboggan()
 
     finally:
         if suite:
