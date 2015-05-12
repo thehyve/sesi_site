@@ -110,6 +110,19 @@ function sesi_wildcard_content_search_views_default_views_alter(&$data) {
     unset($data['datasets']->display['default']->display_options['header']['area']['content']);
   }
   if (isset($data['studies_search'])) {
+    $data['studies_search']->display['default']->display_options['filters']['search_api_views_fulltext']['expose']['description'] = 'use * and ? wildcards to search for partial words'; /* WAS: '' */
+    $data['studies_search']->display['default']->display_options['filters']['search_api_views_fulltext']['expose']['remember_roles'] = array(
+      2 => 2,
+      1 => 0,
+      3 => 0,
+      4 => 0,
+      6 => 0,
+      5 => 0,
+      7 => 0,
+      8 => 0,
+      10 => 0,
+      9 => 0,
+    ); /* WAS: '' */
     $data['studies_search']->display['page_1']->display_options['filters']['search_api_views_fulltext'] = array(
       'id' => 'search_api_views_fulltext',
       'table' => 'search_api_index_studies_index',

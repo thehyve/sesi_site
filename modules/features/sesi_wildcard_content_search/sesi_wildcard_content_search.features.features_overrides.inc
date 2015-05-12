@@ -92,6 +92,19 @@ function sesi_wildcard_content_search_features_override_default_overrides() {
   );
   $overrides["views_view.datasets.display|default|display_options|filters|type|group"] = 1;
   $overrides["views_view.datasets.display|default|display_options|header|area|content"]["DELETED"] = TRUE;
+  $overrides["views_view.studies_search.display|default|display_options|filters|search_api_views_fulltext|expose|description"] = 'use * and ? wildcards to search for partial words';
+  $overrides["views_view.studies_search.display|default|display_options|filters|search_api_views_fulltext|expose|remember_roles"] = array(
+    2 => 2,
+    1 => 0,
+    3 => 0,
+    4 => 0,
+    6 => 0,
+    5 => 0,
+    7 => 0,
+    8 => 0,
+    10 => 0,
+    9 => 0,
+  );
   $overrides["views_view.studies_search.display|page_1|display_options|filters|search_api_views_fulltext"] = array(
     'id' => 'search_api_views_fulltext',
     'table' => 'search_api_index_studies_index',
