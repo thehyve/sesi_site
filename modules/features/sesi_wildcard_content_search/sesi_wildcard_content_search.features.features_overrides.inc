@@ -1,13 +1,13 @@
 <?php
 /**
  * @file
- * sesi_variable_search_wildcards.features.features_overrides.inc
+ * sesi_wildcard_content_search.features.features_overrides.inc
  */
 
 /**
  * Implements hook_features_override_default_overrides().
  */
-function sesi_variable_search_wildcards_features_override_default_overrides() {
+function sesi_wildcard_content_search_features_override_default_overrides() {
   // This code is only used for UI in features. Exported alters hooks do the magic.
   $overrides = array();
 

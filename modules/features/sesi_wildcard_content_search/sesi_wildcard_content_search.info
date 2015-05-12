@@ -1,9 +1,9 @@
-name = Sesi Variable Search Wildcards
+name = Sesi Wildcard Content Search
 description = Enable wildcard search for variables
 core = 7.x
 package = Sesi
 version = 7.x-1.7
-project = sesi_variable_search_wildcards
+project = sesi_wildcard_content_search
 dependencies[] = ctools
 dependencies[] = mica_datasets
 dependencies[] = sesi_wildcard_search_processor
