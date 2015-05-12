@@ -61,7 +61,7 @@ function dataset_cloning_copy_dataset_variables(array $variables, EntityMetadata
         // contains the published version) instead of the database.
         $variable = node_load($variable->nid);
 
-        if(!empty($options['publish'])) {
+        if(!empty($options['publish']) && function_exists('workbench_moderation_moderate')) {
             workbench_moderation_moderate($variable, workbench_moderation_state_published());
 
             // Second workaround: workbench_moderation_moderate changes the database directly, and for nodes that are
