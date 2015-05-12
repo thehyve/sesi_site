@@ -4,8 +4,7 @@ This project is part of Mica Core (https://github.com/cmicognizant/mica) that re
 
 - Run **drupalpull.sh**
 
-
-````
+```
 $ sudo sh drupalpull.sh
 ```
 
