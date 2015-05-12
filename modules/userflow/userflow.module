@@ -25,11 +25,15 @@ function userflow_controller($ds) {
   }
     
   // if is anonymous user goto registration page
+  //note: this is now driven by loginTobbogan
+  /*
   if( !user_is_logged_in()) {
-      drupal_goto('user/register');
+      drupal_goto('user', array('destination'=>'node/'.$ds));
+      //drupal_goto('user/register');
       return;
   }
-  
+  */
+
   // if already has access to that dataset..
   $node = node_load($ds);
   if(node_access('view',$node)) {
