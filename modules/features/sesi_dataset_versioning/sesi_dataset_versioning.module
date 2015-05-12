@@ -1,5 +1,107 @@
 <?php
+
+//                           .__              .__
+// ___  __ ___________  _____|__| ____   ____ |__| ____    ____
+// \  \/ // __ \_  __ \/  ___/  |/  _ \ /    \|  |/    \  / ___\
+//  \   /\  ___/|  | \/\___ \|  (  <_> )   |  \  |   |  \/ /_/  >
+//   \_/  \___  >__|  /____  >__|\____/|___|  /__|___|  /\___  /
+//            \/           \/               \/        \//_____/
+
 /**
- * @file
- * Drupal needs this blank file.
+ * adds a button to dataset edit form to permit creating new version from there
  */
+
+function sesi_dataset_versioning_form_alter(&$form, $form_state, $form_id) {
+
+  if($form_id != 'dataset_node_form' ) {
+    return;
+  }
+
+  //if it's not editing
+  $node = $form_state['node'];
+  if (!isset($node->nid) || isset($node->is_new)) {
+    return;
+  }
+
+  //insert button after version text box: edit-field-dataset-version
+  $newbutton = array(
+    '#type'   => 'submit',
+    '#value'  => 'Create a new version',
+    '#weight' => $form['field_dataset_version']['#weight'] - 0.5,
+    '#submit' => array('sesi_dataset_versioning_custom_form_submit')
+  );
+
+  $pos = array_search('field_dataset_version', array_keys($form)) +1;
+  $form = array_merge(array_slice($form, 0, $pos), array('new_version_button' => $newbutton), array_slice($form, $pos));
+
+}
+
+
+/**
+ * create new version button onclick action
+ */
+function sesi_dataset_versioning_custom_form_submit($form, &$form_state) {
+  $nid = $form_state['node']->nid;
+  $original_dataset = node_load($nid);
+  $original_wrapper = entity_metadata_wrapper('node', $original_dataset);
+
+  if(!$original_dataset) {
+    drupal_set_message(t("Unable to load node with id @id.", array('@id' => $nid)), 'error');
+    return;
+  }
+
+  $dataset = dataset_cloning_clone_node($original_dataset);
+
+  $dataset->status = NODE_NOT_PUBLISHED;
+  $dataset->log = "New version created (old version id {$original_dataset->nid})";
+
+  // Create a wrapper to access complex fields later on.
+  // The wrapper refers to the original array, so we can use both of them
+  $wrapper = entity_metadata_wrapper( 'node', $dataset );
+
+  // -- increments version
+  $current_version = intval($wrapper->field_dataset_version->value());
+  $wrapper->field_dataset_version->set($current_version + 1);
+
+  // Remove all variables
+  $dataset->field_dataset_variables = array();
+
+  // Don't copy inherited values from parent, we will copy them ourselves from the old version.
+  if(function_exists('sesi_dataset_inheritance_dont_update')) {
+    sesi_dataset_inheritance_dont_update(array($dataset));
+  }
+
+  $wrapper->save();
+
+  $variables = $original_wrapper->field_dataset_variables->value();
+
+  $new_vars = dataset_cloning_copy_dataset_variables($variables, $wrapper, array('publish' => TRUE));
+
+  if(function_exists('sesi_dataset_inheritance_keep_inherited_status')) {
+    sesi_dataset_inheritance_keep_inherited_status($new_vars);
+  }
+
+  // redirects to you created ds
+  drupal_set_message(t('New version saved.', array()));
+  $form_state['redirect'] = "/node/".$dataset->nid."/edit";
+}
+
+/**
+ * This hook is called before saving a new dataset, and is used to add
+ * the version number to the title. See SESI-220 for specifications
+ * @param type $node
+ * @return void
+ */
+function sesi_dataset_versioning_node_presave($node) {
+  if( $node->type == 'dataset' ) {
+    $dataset = entity_metadata_wrapper( 'node', $node );
+    $title = $dataset->title->value();
+
+    // If the title already contains the version number
+    // then the old one should be removed
+    $title = preg_replace( '/ v\d+$/', '', $title );
+
+    // Add the new version number to the title
+    $dataset->title->set( trim( $title ) . " v" . $dataset->field_dataset_version->value() );
+  }
+}
