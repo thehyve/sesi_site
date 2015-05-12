@@ -1,13 +1,13 @@
 <?php
 /**
  * @file
- * sesi_variable_search_wildcards.features.inc
+ * sesi_wildcard_content_search.features.inc
  */
 
 /**
  * Implements hook_ctools_plugin_api().
  */
-function sesi_variable_search_wildcards_ctools_plugin_api($module = NULL, $api = NULL) {
+function sesi_wildcard_content_search_ctools_plugin_api($module = NULL, $api = NULL) {
   if ($module == "facetapi" && $api == "facetapi_defaults") {
     return array("version" => "1");
   }
@@ -16,7 +16,7 @@ function sesi_variable_search_wildcards_ctools_plugin_api($module = NULL, $api =
 /**
  * Implements hook_default_search_api_index_alter().
  */
-function sesi_variable_search_wildcards_default_search_api_index_alter(&$data) {
+function sesi_wildcard_content_search_default_search_api_index_alter(&$data) {
   if (isset($data['variable_index'])) {
     $data['variable_index']->options['processors']['search_api_case_ignore']['weight'] = 0; /* WAS: 0 */
     $data['variable_index']->options['processors']['search_api_html_filter']['weight'] = 10; /* WAS: 10 */
@@ -33,7 +33,7 @@ function sesi_variable_search_wildcards_default_search_api_index_alter(&$data) {
 /**
  * Implements hook_views_default_views_alter().
  */
-function sesi_variable_search_wildcards_views_default_views_alter(&$data) {
+function sesi_wildcard_content_search_views_default_views_alter(&$data) {
   if (isset($data['variable_search'])) {
     $data['variable_search']->display['default']->display_options['filters']['search_api_views_fulltext']['expose']['description'] = 'use * and ? wildcards to search for partial words'; /* WAS: '' */
   }
