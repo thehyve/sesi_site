@@ -8,7 +8,7 @@
 function sesi_wildcard_search_processor_search_api_processor_info() {
   $processors['sesi_wildcard'] = array(
     'name' => t('Wildcard'),
-    'description' => t('Flattens queries while keeping * and ? wildcards. This processor is not compatible with quoted phrase search terms, e.g. searching for "some phrase" (including quotes).'),
+    'description' => t('Flattens queries while keeping * and ? wildcards. This processor is not compatible with quoted phrase search terms, e.g. searching for "some phrase" (including quotes). Place this processor last in your processor ordering as it may interfere with other processors.'),
     'class' => 'WildcardSearchProcessor',
     'weight' => 100,
   );
