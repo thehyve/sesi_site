@@ -181,7 +181,7 @@ ensure_mod sesi_og_addcontent
 ensure_mod sesi_rules
 ensure_mod sesi_variable_email
 ensure_mod sesi_wildcard_search_processor
-ensure_mod view_own_published
+ensure_mod view_own_unpublished
 
 # Download Autologout module dependencies and enable it
 drush --yes dl autologout
