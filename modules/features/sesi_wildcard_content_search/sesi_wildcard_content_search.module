@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Sesi Wildcard Content Search feature.
+ */
+
+include_once 'sesi_wildcard_content_search.features.inc';

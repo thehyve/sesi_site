@@ -231,7 +231,7 @@ ensure_feat sesi_dataset_redirect
 ensure_feat sesi_community_hub
 ensure_feat sesi_variable_content_type
 ensure_feat sesi_contact_configuration
-ensure_feat sesi_variable_search_wildcards
+ensure_feat sesi_wildcard_content_search
 
 #Moderation
 ensure_mod og_moderation
