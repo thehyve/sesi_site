@@ -1,7 +1,0 @@
-<?php
-/**
- * @file
- * Code for the Sesi Variable Search Wildcards feature.
- */
-
-include_once 'sesi_variable_search_wildcards.features.inc';
