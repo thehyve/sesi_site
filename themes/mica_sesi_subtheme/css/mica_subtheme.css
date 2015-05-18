@@ -180,7 +180,8 @@ browser window is small */
     padding: 5px;
 }
 
-#block-panels-mini-sesi-homepage-unregistered  .panel-col-first input
+#block-panels-mini-sesi-homepage-unregistered  .panel-col-first input[type=text],
+#block-panels-mini-sesi-homepage-unregistered  .panel-col-first input[type=password]
 {width: 200px;}
 #block-panels-mini-sesi-homepage-unregistered  .panel-col-first .control-group 
 {margin-bottom: 0px;}
@@ -192,3 +193,4 @@ browser window is small */
 {margin-bottom: 40px;}
 
 #user-profile-form #edit-block {display: none !important;}
+
