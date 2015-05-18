@@ -12,6 +12,39 @@ function sesi_homepage_default_fe_block_settings() {
 
   $export['version'] = '2.0';
 
+  $export['beididp_block-0'] = array(
+    'cache' => -1,
+    'custom' => 0,
+    'delta' => 0,
+    'module' => 'beididp_block',
+    'node_types' => array(),
+    'pages' => 'user/register
+user',
+    'roles' => array(),
+    'themes' => array(
+      'bartik' => array(
+        'region' => '',
+        'status' => 0,
+        'theme' => 'bartik',
+        'weight' => 0,
+      ),
+      'mica_subtheme' => array(
+        'region' => 'footer',
+        'status' => 1,
+        'theme' => 'mica_subtheme',
+        'weight' => -55,
+      ),
+      'seven' => array(
+        'region' => '',
+        'status' => 0,
+        'theme' => 'seven',
+        'weight' => 0,
+      ),
+    ),
+    'title' => '',
+    'visibility' => 1,
+  );
+
   $export['panels_mini-sesi_homepage_registered'] = array(
     'cache' => -1,
     'custom' => 0,
