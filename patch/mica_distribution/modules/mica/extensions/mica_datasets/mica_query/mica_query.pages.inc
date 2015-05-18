@@ -1140,7 +1140,10 @@ function _mica_query_result_table($dataset_node, $query, $cross_variable, $add_l
 
 function _mica_query_run_page_header($dataset_node, $query, $term, $cross_variable, $has_multiple_terms, &$header_matched_tooltip, $add_links = TRUE) {
   $impl = $term->termImpl();
-  $title = $impl->toString();
+  $title = views_trim_text(array('max_length' => 80,
+                                 'word_boundary'=>TRUE,
+                                 'ellipsis' => TRUE),
+                           $impl->toString());
   $variable = node_load($term->variable_id);
 
   if (!empty($header_matched_tooltip)) {
