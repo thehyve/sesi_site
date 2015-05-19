@@ -242,6 +242,12 @@ class MicaDatasetOpalConnectionClass extends MicaDatasetAbstractConnection imple
     try {
       $result = $this->esQueryApi->query($terms, $cardinality);
     } catch (HttpClientException $e) {
+      if($e->getCode() == 503 && $e->getResponse() && $e->getResponse()->body == 'ObjectNotIndexed') {
+        // The Opal dataset is not indexed. Don't try the fallback as that won't help, just show a decent error message
+        $study = node_load($this->connector->study_id);
+        drupal_set_message(t('Opal dataset for %s is not indexed or validation failed', array('%s' => $study->title)), 'error');
+        throw $e;
+      }
       if(!is_null($cardinality)) {
         watchdog('mica_opal', "Error connecting to Opal (and cardinality queries are not supported in the fallback query service). @e",
           array('@e' => $e), WATCHDOG_ERROR);
