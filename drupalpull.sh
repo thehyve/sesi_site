@@ -97,16 +97,13 @@ fi
 isdisabled rules_admin && drush --yes en rules rules_admin
 
 # Install and enable entityreference
-ensure_mod entityreference
+drush --yes en entityreference
 
 # Enable Date Popup
 isdisabled date_popup && drush --yes en date_popup
 
 # Activate organic groups
-if isdisabled og; then
-    drush --yes dl og
-fi
-drush --yes en og og_ui og_context og_access 
+drush --yes en og og_ui og_context og_access
 
 # Install and enable og_email
 ensure_mod og_email
