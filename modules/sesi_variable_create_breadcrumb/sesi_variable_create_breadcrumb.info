@@ -1,0 +1,6 @@
+name = Sesi Variable Create Breadcrumb
+description = Show a nicer breadcrumb on the Variable creation/edit menu
+version = "7.x"
+core = "7.x"
+package = Sesi
+project = sesi
