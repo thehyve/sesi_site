@@ -22,7 +22,7 @@ function sesi_homepage_features_override_default_overrides() {
       'dataset' => 'dataset',
       'event' => 'event',
       'study' => 'study',
-        'community' => 'community',
+      'community' => 'community',
     ),
   );
 
