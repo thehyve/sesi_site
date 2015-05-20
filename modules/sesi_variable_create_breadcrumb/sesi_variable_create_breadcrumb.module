@@ -1,0 +1,51 @@
+<?php
+
+/*
+ * implement hook_form_FORM_ID_alter
+ */
+function sesi_variable_create_breadcrumb_form_variable_node_form_alter(&$form, &$form_state, $form_id) {
+
+  $variable = $form_state['node'];
+
+  if(isset($variable->nid)) {
+    $wrapper = entity_metadata_wrapper('node', $variable);
+    $dataset = $wrapper->field_dataset->value();
+  } else {
+    $dataset = _sesi_variable_create_breadcrumb_load_dataset_from_GET();
+  }
+
+  $breadcrumb = array(
+    l('Home', '<front>'),
+    l('Resources', 'resources'),
+    l('Datasets', 'datasets')
+  );
+
+  if(isset($dataset)) {
+    $breadcrumb[] = l($dataset->title, drupal_get_path_alias('node/' . $dataset->nid));
+  }
+
+  if(empty($variable->nid)) {
+    $breadcrumb[] = l('Add variable', 'node/add');
+  }
+
+  drupal_set_breadcrumb($breadcrumb);
+}
+
+/**
+ * Load a dataset from $_GET['dataset'], safely and only if the user has access.
+ *
+ * @return stdClass|null
+ */
+function _sesi_variable_create_breadcrumb_load_dataset_from_GET() {
+  if(!isset($_GET['dataset'])) return NULL;
+
+  $dsid = (int) $_GET['dataset'];
+  if($dsid == 0) return NULL;
+
+  $dataset = node_load($dsid);
+  if(empty($dataset)) return NULL;
+  if($dataset->type != 'dataset') return NULL;
+  if(!node_access('view', $dataset)) return NULL;
+
+  return $dataset;
+}
