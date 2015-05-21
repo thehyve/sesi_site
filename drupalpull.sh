@@ -294,6 +294,10 @@ drush php-eval 'node_access_rebuild();'
 
 drush cc all
 drush cron
+
+# Run query_ontologies database updates
+drush eval '_query_ontologies_update_schema();'
+
 drush vset maintenance_mode 0
 
 #change temporarely the snapshot

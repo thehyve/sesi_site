@@ -33,3 +33,28 @@ function query_ontologies_menu() {
     
     return $items;
 }
+
+/**
+ * implements hook_schema_alter
+ */
+function query_ontologies_schema_alter(&$schema) {
+    $options = &$schema['mica_query_term']['fields']['options'];
+    if(!isset($options['size']) || $options['size'] != 'large') {
+        $options['size'] = 'medium';
+    }
+}
+
+/*
+ * The query term table by default uses a normal text type for the 'options' field that stores the contents of a term.
+ * In Mysql that has a maximum of 64KB. The ontology term contents can get very large if all ICD10 codes are selected
+ * (about 12000), and that doesn't fit. This function idempotently enlarges the field to medium, which is 16MB in
+ * Mysql.
+ *
+ * This function is not inlined in hook_install so that we can easily call it from our installation script.
+ */
+function _query_ontologies_update_schema() {
+    $schema = drupal_get_schema('mica_query_term');
+    $options = $schema['fields']['options'];
+    // Our hook_schema_alter should have run before, so we have the new size.
+    db_change_field('mica_query_term', 'options', 'options', $options);
+}
