@@ -213,7 +213,10 @@ function mica_query_edit_form($form, &$form_state) {
     foreach ($terms as $query_term) {
       $data[] = array(
         'id' => $query_term->id,
-        'title' => $query_term->toString(),
+        'title' => views_trim_text(array('max_length' => 1500,
+                                         'word_boundary' => TRUE,
+                                         'ellipsis' => TRUE),
+                                   $query_term->toString()),
         'vid' => $query_term->variable_id,
         'weight' => $query_term->weight,
         'depth' => $query_term->depth,
