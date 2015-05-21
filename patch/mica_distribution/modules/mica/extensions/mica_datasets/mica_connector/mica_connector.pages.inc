@@ -110,14 +110,14 @@ function mica_connector_dataset_connection_form($form, &$form_state, $connection
 
   $form['dataset-link'] = array(
     '#type' => 'link',
-    '#title' => check_plain($dataset_node->title),
+    '#title' => $dataset_node->title,
     '#href' => 'node/' . $dataset_node->nid . '/studies',
     '#attributes' => array('style' => 'margin:0 5px 0 5px;'),
   );
 
   $form['study-link'] = array(
     '#type' => 'link',
-    '#title' => check_plain($study_node->title),
+    '#title' => $study_node->title,
     '#href' => 'node/' . $study_node->nid . '/datasets',
     '#attributes' => array('style' => 'margin:0 5px 0 5px;'),
   );
