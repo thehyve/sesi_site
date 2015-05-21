@@ -258,15 +258,18 @@ function sesi_community_hub_default_page_manager_handlers() {
     $pane->shown = TRUE;
     $pane->access = array(
       'plugins' => array(
-        0 => array(
-          'name' => 'role',
+        1 => array(
+          'name' => 'og_member',
           'settings' => array(
-            'rids' => array(
-              0 => 1,
+            'state' => array(
+              1 => '1',
             ),
           ),
-          'context' => 'logged-in-user',
-          'not' => TRUE,
+          'context' => array(
+            0 => 'logged-in-user',
+            1 => 'argument_entity_id:node_1',
+          ),
+          'not' => FALSE,
         ),
       ),
     );
@@ -296,14 +299,17 @@ function sesi_community_hub_default_page_manager_handlers() {
     $pane->access = array(
       'plugins' => array(
         0 => array(
-          'name' => 'role',
+          'name' => 'og_member',
           'settings' => array(
-            'rids' => array(
-              0 => 1,
+            'state' => array(
+              1 => '1',
             ),
           ),
-          'context' => 'logged-in-user',
-          'not' => TRUE,
+          'context' => array(
+            0 => 'logged-in-user',
+            1 => 'argument_entity_id:node_1',
+          ),
+          'not' => FALSE,
         ),
       ),
     );
