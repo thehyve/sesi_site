@@ -39,6 +39,7 @@ function query_ontologies_menu() {
  */
 function query_ontologies_schema_alter(&$schema) {
     $options = &$schema['mica_query_term']['fields']['options'];
+    // Set size to medium, but don't decrease it if it is already set to large.
     if(!isset($options['size']) || $options['size'] != 'large') {
         $options['size'] = 'medium';
     }
@@ -55,6 +56,7 @@ function query_ontologies_schema_alter(&$schema) {
 function _query_ontologies_update_schema() {
     $schema = drupal_get_schema('mica_query_term');
     $options = $schema['fields']['options'];
-    // Our hook_schema_alter should have run before, so we have the new size.
+    // Our hook_schema_alter should have run before, so we have the new size. If any other module changed the size 
+    // after us we use that.
     db_change_field('mica_query_term', 'options', 'options', $options);
 }
