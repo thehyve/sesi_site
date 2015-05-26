@@ -15,11 +15,10 @@ function sesi_filter_search_strongarm() {
   $strongarm->api_version = 1;
   $strongarm->name = 'search_active_modules';
   $strongarm->value = array(
+    'node' => 'node',
     'og_filter_search' => 'og_filter_search',
     'user' => 'user',
     'advanced_help' => 0,
-    'ds_search' => 0,
-    'node' => 0,
   );
   $export['search_active_modules'] = $strongarm;
 
