@@ -1,0 +1,212 @@
+<?php
+
+
+function sesi_default_menus_enable() {
+  _sesi_default_menus_create();
+}
+
+function _sesi_default_menus_create() {
+
+  $menus = array(
+    'Organisatie' => array(
+      'Doelstellingen',
+      'Geschiedenis',
+      'Samenwerkingsovereenkomst',
+      'Struktuur',
+      'Internationaal kader',
+      'Workshops',
+    ),
+    'Vlaamse Biobank' => array(
+      'Ethisch legaal kader',
+      'Inter-academische Kwaliteitsborging',
+      'Infrastructuur en data management',
+      'Aanvraag procedure',
+      array('Variabelen', 'variable-search'),
+      array('Vlaamse biobank catalogus', 'datasets'),
+    ),
+    'Translationeel onderzoek' => array(
+      'Thematische domeinen',
+      'Onderzoeksplatformen',
+      'Samenwerking met industrie',
+      'Valorisatie',
+      array('Studies', 'studies'),
+      array('Translationeel onderzoeksplatformen', 'community_by_dataset'),
+    ),
+    'Donor informatie' => array(
+      'Privacy en rechten',
+      'Vaak gestelde vragen',
+      'Patiënten organisaties',
+      'Donatie menselijk lichaams materiaal',
+    ),
+    'Nieuws en events' => array(
+      array('Nieuws', 'news'),
+      array('Events', 'events'),
+      array('Kalender', 'calendar-field-event-date/year'),
+    ),
+    'Contact' => array()
+    );
+
+
+//  $menus = array(
+//    'Organisatie' => array(
+//      'Doelstellingen',
+//      'Geschiedenis',
+//      'Samenwerkingsovereenkomst',
+//      'Struktuur',
+//      'Internationaal kader',
+//      'Workshops',
+//    ));
+
+
+  _sesi_default_menus_create_nodes($menus);
+  _sesi_default_menus_create_menus($menus);
+}
+
+function _sesi_default_menus_create_nodes($menus) {
+  $nids = array();
+
+  foreach($menus as $key => $val) {
+    $alias = _sesi_default_menus_alias($key);
+    if(drupal_get_normal_path($alias) === $alias) {
+      $nids[] = _sesi_default_menus_create_node($key);
+    }
+
+    foreach($val as $item) {
+      if(is_array($item)) continue;
+      $alias = _sesi_default_menus_alias($item);
+      if(drupal_get_normal_path($alias) === $alias) {
+        $nids[] = _sesi_default_menus_create_node($item);
+      }
+    }
+  }
+
+  return $nids;
+}
+
+function _sesi_default_menus_create_node($name, $parent=NULL) {
+  $node = array(
+    'type' => 'page',
+    'uid' => 1,
+    'status' => 1,
+    'comment' => 1,
+    'promote' => 0,
+    'sticky' => 0);
+
+  $node = entity_create('node', $node);
+  $node->field_hide_title = array();
+  $wrapper = entity_metadata_wrapper('node', $node);
+  $wrapper->title->set($name);
+  $wrapper->save();
+
+  $nid = $wrapper->getIdentifier();
+
+  return $nid;
+}
+
+function _sesi_default_menus_create_menus($menus) {
+
+  $weight = 0;
+
+  $menu_tree = menu_tree_all_data('main-menu');
+
+  foreach($menus as $key => $val) {
+    $alias = _sesi_default_menus_alias($key);
+    $path = drupal_get_normal_path($alias);
+    if($path === $alias) {
+      continue;
+    }
+
+    $weight++;
+
+    $menu = _sesi_default_menus_find_menu($menu_tree, $key);
+    if($menu) {
+      $plid = $menu['mlid'];
+    } else {
+      $has_children = (is_array($val) && count($val)) ? 1 : 0;
+      $menu = array(
+        'menu_name' => 'main-menu',
+        'link_path' => $path,
+        'router_path' => 'node/%',
+        'link_title' => $key,
+        'module' => 'menu',
+        'hidden' => 0,
+        'external' => 0,
+        'has_children' => $has_children,
+        'expanded' => 1,
+        'weight' => $weight,
+      );
+
+      $plid = menu_link_save($menu);
+    }
+
+    foreach($val as $item) {
+      if(is_array($item)) {
+        list($item, $path) = $item;
+      } else {
+        $alias = _sesi_default_menus_alias($item);
+        $path = drupal_get_normal_path($alias);
+        if($path === $alias) {
+          // Page doesn't exist
+          continue;
+        }
+      }
+
+      $weight++;
+
+      $menu = _sesi_default_menus_find_menu($menu_tree, $item, $key);
+      if(empty($menu)) {
+        $menu = array(
+          'menu_name' => 'main-menu',
+          'link_path' => $path,
+          'router_path' => 'node/%',
+          'link_title' => $item,
+          'module' => 'menu',
+          'hidden' => 0,
+          'external' => 0,
+          'has_children' => 0,
+          'expanded' => 1,
+          'plid' => $plid,
+          'weight' => $weight,
+        );
+        menu_link_save($menu);
+      }
+
+    }
+  }
+}
+
+function _sesi_default_menus_alias($name) {
+  $slug = str_replace(' ', '-', strtolower($name));
+  return "content/$slug";
+
+}
+
+function _sesi_default_menus_find_menu($menu, $name, $parent=NULL) {
+
+  $find = $name;
+  if(!empty($parent)) $find = $parent;
+
+  foreach($menu as $key => $sub) {
+    if($sub['link']['link_title'] == $find) {
+      if(empty($parent)) {
+        return $sub['link'];
+      } else {
+        return _sesi_default_menus_find_menu($sub['below'], $name);
+      }
+    }
+  }
+  return NULL;
+}
+
+
+function _sesi_dm_remove_disabled_menus($menu) {
+  if(empty($menu)) return;
+
+  foreach($menu as $key => $sub) {
+    if(!$sub['link']['hidden']) continue;
+
+    _sesi_dm_remove_disabled_menus($sub['below']);
+
+    menu_link_delete($sub['link']['mlid']);
+  }
+}

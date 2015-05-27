@@ -5,16 +5,6 @@
  */
 
 /**
- * Implements hook_menu_default_menu_links_alter().
- */
-function sesi_menu_links_menu_default_menu_links_alter(&$data) {
-  if (isset($data['main-menu:node/4'])) {
-    $data['main-menu:node/4']['weight'] = -40; /* WAS: -50 */
-    unset($data['main-menu:node/4']['parent_path']);
-  }
-}
-
-/**
  * Implements hook_views_default_views_alter().
  */
 function sesi_menu_links_views_default_views_alter(&$data) {
