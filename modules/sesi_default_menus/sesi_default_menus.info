@@ -1,5 +1,5 @@
 name = Sesi Default Menus
-description = When this module is enabled, it ensures that all the default menus exist or are created. Action is only taken on enabling, not while enabled.
+description = When this module is enabled, it ensures that all the default menus exist or are created. Action is only taken on enabling, not while enabled. It also makes the search box a bit smaller.
 core = 7.x
 version = "7.0"
 package =

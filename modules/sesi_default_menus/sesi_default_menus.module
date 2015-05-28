@@ -1,11 +1,10 @@
 <?php
-
+/**
+ * When this module is enabled, it configures the drupal menu to look like the tree below. Any other links are disabled.
+ * If there is no page that corresponds to a menu item it will be created.
+ */
 
 function sesi_default_menus_enable() {
-  _sesi_default_menus_create();
-}
-
-function _sesi_default_menus_create() {
 
   $menus = array(
     'Organisatie' => array(
@@ -15,8 +14,9 @@ function _sesi_default_menus_create() {
       'Struktuur',
       'Internationaal kader',
       'Workshops',
+      'Contact',
     ),
-    'Vlaamse Biobank' => array(
+    'Biobank' /*Vlaamse Biobank*/ => array(
       'Ethisch legaal kader',
       'Inter-academische Kwaliteitsborging',
       'Infrastructuur en data management',
@@ -32,34 +32,28 @@ function _sesi_default_menus_create() {
       array('Studies', 'studies'),
       array('Translationeel onderzoeksplatformen', 'community_by_dataset'),
     ),
-    'Donor informatie' => array(
+    'Donors' /*Donor informatie*/ => array(
       'Privacy en rechten',
       'Vaak gestelde vragen',
       'Patiënten organisaties',
       'Donatie menselijk lichaams materiaal',
     ),
-    'Nieuws en events' => array(
+    'Nieuws & events' /*Nieuws en events*/ => array(
       array('Nieuws', 'news'),
       array('Events', 'events'),
       array('Kalender', 'calendar-field-event-date/year'),
     ),
-    'Contact' => array()
-    );
-
-
-//  $menus = array(
-//    'Organisatie' => array(
-//      'Doelstellingen',
-//      'Geschiedenis',
-//      'Samenwerkingsovereenkomst',
-//      'Struktuur',
-//      'Internationaal kader',
-//      'Workshops',
-//    ));
-
+  );
 
   _sesi_default_menus_create_nodes($menus);
   _sesi_default_menus_create_menus($menus);
+}
+
+/*
+ * Implements hook_form_FORM_ID_alter
+ */
+function sesi_default_menus_form_search_block_form_alter(&$form, &$form_state, $form_id) {
+  $form['search_block_form']['#size'] = 10;
 }
 
 function _sesi_default_menus_create_nodes($menus) {
@@ -105,9 +99,19 @@ function _sesi_default_menus_create_node($name, $parent=NULL) {
 
 function _sesi_default_menus_create_menus($menus) {
 
+  $menu_template = array(
+    'menu_name' => 'main-menu',
+    'router_path' => 'node/%',
+    'module' => 'menu',
+    'hidden' => 0,
+    'external' => 0,
+    'expanded' => 1,
+  );
+
   $weight = 0;
 
   $menu_tree = menu_tree_all_data('main-menu');
+  $seen_menus = array();
 
   foreach($menus as $key => $val) {
     $alias = _sesi_default_menus_alias($key);
@@ -119,25 +123,20 @@ function _sesi_default_menus_create_menus($menus) {
     $weight++;
 
     $menu = _sesi_default_menus_find_menu($menu_tree, $key);
-    if($menu) {
+    if($menu && $menu['link_path'] == $path) {
       $plid = $menu['mlid'];
     } else {
       $has_children = (is_array($val) && count($val)) ? 1 : 0;
-      $menu = array(
-        'menu_name' => 'main-menu',
+      $menu = $menu_template + array(
         'link_path' => $path,
-        'router_path' => 'node/%',
         'link_title' => $key,
-        'module' => 'menu',
-        'hidden' => 0,
-        'external' => 0,
         'has_children' => $has_children,
-        'expanded' => 1,
         'weight' => $weight,
       );
 
       $plid = menu_link_save($menu);
     }
+    $seen_menus[$plid] = 1;
 
     foreach($val as $item) {
       if(is_array($item)) {
@@ -154,29 +153,32 @@ function _sesi_default_menus_create_menus($menus) {
       $weight++;
 
       $menu = _sesi_default_menus_find_menu($menu_tree, $item, $key);
-      if(empty($menu)) {
-        $menu = array(
-          'menu_name' => 'main-menu',
+      if($menu && $menu['link_path'] == $path) {
+        $mlid = $menu['mlid'];
+      } else {
+        $menu = $menu_template + array(
           'link_path' => $path,
-          'router_path' => 'node/%',
           'link_title' => $item,
-          'module' => 'menu',
-          'hidden' => 0,
-          'external' => 0,
           'has_children' => 0,
-          'expanded' => 1,
           'plid' => $plid,
           'weight' => $weight,
         );
-        menu_link_save($menu);
+        $mlid = menu_link_save($menu);
       }
-
+      $seen_menus[$mlid] = 1;
     }
   }
+  _sesi_default_menus_enable($menu_tree, $seen_menus);
 }
 
 function _sesi_default_menus_alias($name) {
-  $slug = str_replace(' ', '-', strtolower($name));
+  $loaded = &drupal_static(__FUNCTION__);
+  if(!$loaded) {
+    module_load_include('inc', 'pathauto');
+    $loaded = TRUE;
+  }
+
+  $slug = pathauto_cleanstring($name);
   return "content/$slug";
 
 }
@@ -196,6 +198,27 @@ function _sesi_default_menus_find_menu($menu, $name, $parent=NULL) {
     }
   }
   return NULL;
+}
+
+/*
+ * Enable all used menus, and disable all not used menus
+ */
+function _sesi_default_menus_enable($menu, $used_links) {
+  if(empty($menu)) return;
+
+  foreach($menu as $sub) {
+    $link = $sub['link'];
+    if(!empty($used_links[$link['mlid']])) {
+      _sesi_default_menus_enable($sub['below'], $used_links);
+      if($link['hidden']) {
+        $link['hidden'] = 0;
+        menu_link_save($link);
+      }
+    } elseif(!$link['hidden']) {
+      $link['hidden'] = 1;
+      menu_link_save($link);
+    }
+  }
 }
 
 
