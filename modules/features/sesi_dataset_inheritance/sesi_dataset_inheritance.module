@@ -5,3 +5,324 @@
  */
 
 include_once 'sesi_dataset_inheritance.features.inc';
+
+
+/*
+  .__       .__                 .__  __             .___     .___       __                        __
+  |__| ____ |  |__   ___________|__|/  |_  ____   __| _/   __| _/____ _/  |______    ______ _____/  |_
+  |  |/    \|  |  \_/ __ \_  __ \  \   __\/ __ \ / __ |   / __ |\__  \\   __\__  \  /  ___// __ \   __\
+  |  |   |  \   Y  \  ___/|  | \/  ||  | \  ___// /_/ |  / /_/ | / __ \|  |  / __ \_\___ \\  ___/|  |
+  |__|___|  /___|  /\___  >__|  |__||__|  \___  >____ |  \____ |(____  /__| (____  /____  >\___  >__|
+  \/     \/     \/                    \/     \/       \/     \/          \/     \/     \/
+
+ * 
+ * This module provides functionality to inherit variables from parent datasets.
+ *
+ * The main functionality is accomplished by hooking hook_node_insert and hook_node_presave. These hooks will update a
+ * dataset's variables based on the parent dataset that is set if it changed. The real work is done in
+ * _sesi_dataset_inheritance_update_inheritance.
+ *
+ * If a variable is changed, it is marked as no longer being inherited.
+ *
+ * To avoid updating of a dataset if the parent field changed, pass it to sesi_dataset_inheritance_dont_update.
+ * To avoid variable nodes being marked as not inherited if they are saved, pass the nodes to
+ * sesi_dataset_inheritance_keep_inherited_status.
+ */
+
+/*
+ * The keys of this array are node ids for variable nodes that were updated by the inheritance system. Therefore their
+ * field_variable_inherited_flag should not be cleared in hook_node_presave.
+ *
+ * The workbench_moderation module uses shutdown hooks to modify variable nodes, so we need a request scoped mechanism
+ * to indicate that some variables must not be marked as user edited.
+ */
+$_sesi_dataset_inheritance_keep_inherited_status = array();
+
+/*
+ * If this variable is set to the nid of a dataset, variables on that dataset will be updated even if the parent did
+ * not change.
+ */
+$_sesi_dataset_inheritance_force_update = NULL;
+
+/*
+ * This array contains dataset objects that should not have their variables updated for inheritance. Objects are stored
+ * both by node id and spl_object_hash. The latter in order to store objects that don't have a node id set yet.
+ */
+$_sesi_dataset_inheritance_dont_update = array();
+
+
+/**
+ * If an inherited variable is modified it will be marked as not inherited. This function will prevent that from
+ * happening. Call this function on variables that will be modified internally by the system and you don't want them to
+ * lose their inherited status.
+ *
+ * @param array $nodes
+ */
+function sesi_dataset_inheritance_keep_inherited_status(array $nodes) {
+  global $_sesi_dataset_inheritance_keep_inherited_status;
+
+  foreach($nodes as $var) {
+    $_sesi_dataset_inheritance_keep_inherited_status[$var->nid] = TRUE;
+  }
+}
+
+/**
+ * Call this function on a dataset to prevent inherited variables from being updated if the dataset_parent field
+ * changed.
+ *
+ * @param array $nodes
+ */
+function sesi_dataset_inheritance_dont_update(array $nodes) {
+  global $_sesi_dataset_inheritance_dont_update;
+  foreach($nodes as $ds) {
+    $_sesi_dataset_inheritance_dont_update[spl_object_hash($ds)] = $ds;
+    if(isset($ds->nid)) {
+      $_sesi_dataset_inheritance_dont_update[$ds->nid] = $ds;
+    }
+  }
+}
+
+/**
+ * Inherit fields from the parent dataset, if one is specified.
+ *
+ * This hook is called when inserting a new dataset.
+ * @global type $user
+ * @param type $node
+ * @return void
+ */
+function sesi_dataset_inheritance_node_insert($node) {
+  // i'm only interested in datasets
+  if ($node->type != 'dataset') {
+    return;
+  }
+
+  // i only want new registers
+  // (if you don't put this, when you import from csv, this is triggered also)
+  if (!$node->is_new) {
+    return;
+  }
+
+  _sesi_dataset_inheritance_update_inheritance(entity_metadata_wrapper('node', $node));
+}
+
+/**
+ * @param $node
+ */
+function sesi_dataset_inheritance_node_presave($node) {
+  global $_sesi_dataset_inheritance_keep_inherited_status;
+  global $_sesi_dataset_inheritance_force_update;
+
+  // Only process datasets that already have a nid. New inserts will be caught by hook_node_insert;
+  if($node->type == 'dataset' && isset($node->nid)) {
+    // We do this in the presave hook so we can get at the original parent data, so we don't copy all variables if the parent
+    // didn't change.
+    $node_wrapper = entity_metadata_wrapper('node', $node);
+
+    // Check the old node. As the changes have not been committed to the
+    // database yet, we can retrieve them from the database.
+    // See https://api.drupal.org/api/drupal/modules!node!node.api.php/function/hook_node_update/7
+    // Use a direct query to bypass the entity cache. Drupal provides functions to load directly from the db, but they
+    // also populate the entity cache with the original node, and we don't want two copies of node objects existing at
+    // the same time.
+    $original_parent_nid = db_query("SELECT field_dataset_parent_nid
+                                     FROM {field_data_field_dataset_parent}
+                                     WHERE entity_id = :nid",
+      array(':nid' => $node->nid))->fetchField() ?: NULL;
+
+    $parent_nid = _sesi_dataset_inheritance_get_dataset_parent($node_wrapper);
+
+    // note: $parent_nid and $original_parent_nid can potentially be NULL
+    if ($parent_nid != $original_parent_nid || $_sesi_dataset_inheritance_force_update == $node->nid) {
+      _sesi_dataset_inheritance_update_inheritance($node_wrapper);
+    }
+  }
+
+  elseif ($node->type == 'variable' && !$node->is_new && !isset($_sesi_dataset_inheritance_keep_inherited_status[$node->nid])) {
+    $wrapper = entity_metadata_wrapper('node', $node);
+    // Mark variable as not inherited as it has been changed
+    $wrapper->field_variable_inherited_flag->set(0);
+  }
+}
+
+
+function _sesi_dataset_inheritance_update_inheritance(EntityMetadataWrapper $node) {
+  global $_sesi_dataset_inheritance_dont_update;
+
+  $nid = $node->getIdentifier();
+  if (isset($nid) && isset($_sesi_dataset_inheritance_dont_update[$nid])) {
+    return;
+  } elseif (isset($_sesi_dataset_inheritance_dont_update[spl_object_hash($node->value())])) {
+    return;
+  }
+
+  $deleted_count = _sesi_dataset_inheritance_delete_inherited_variables($node);
+  $new_variables = _sesi_dataset_inheritance_copy_variables_from_parent($node);
+
+  $num_variables = count($new_variables);
+  if ($num_variables > 0) {
+    drupal_set_message(t("Added @entries variables from parent dataset.", array('@entries' => $num_variables)), 'status');
+  }
+  if ($num_variables == 0 && $deleted_count) {
+    drupal_set_message(t("Removed inherited variables from dataset"));
+  }
+}
+
+/**
+ * adds a button to dataset edit form, next to the 'parent' field to permit
+ * updating a child if the parent has changed.
+ */
+function sesi_dataset_inheritance_form_alter(&$form, $form_state, $form_id) {
+  if ($form_id == 'dataset_node_form') {
+    // only add the button if the user edits the dataset (as opposed to adding
+    // a new one)
+    $node = $form_state['node'];
+    if (!isset($node->nid) || isset($node->is_new)) {
+      return;
+    }
+
+    // Define a new button to update inherited fields
+    $newbutton = array(
+      '#type' => 'submit',
+      '#value' => 'Update inherited fields',
+      '#weight' => $form['field_dataset_parent']['#weight'] + 1,
+      '#submit' => array('sesi_dataset_inheritance_update_inherited_fields'),
+    );
+
+    // Insert the button in the group "Inheritance" in the form
+    $form["#groups"]["group_dataset_inheritance"]->children[] = "button_update_parent";
+    $form["#group_children"]["button_update_parent"] = "group_dataset_inheritance";
+    $form["button_update_parent"] = $newbutton;
+    return;
+  }
+
+  if( $form_id == 'variable_node_form' ) {
+    // This should be visible to administrators, but the layout is not properly set so that would be very ugly.
+    //if(!user_access('administer nodes')) {
+      // Remove the variable-inherited flag from the form
+      $form['field_variable_inherited_flag'] = array();
+    //}
+
+    // Add a message if the user edits a variable that has been inherited
+    // only add the button if the user edits the dataset (as opposed to adding
+    // a new one)
+    $node = $form_state['node'];
+    $wrapper = entity_metadata_wrapper('node', $node);
+    if( $wrapper->field_variable_inherited_flag->value() ) {
+      drupal_set_message(t("Please note that this variable has been inherited from the parent dataset. If you edit it, it will no longer be marked as an inherited variable.", array()), 'warning');
+    }
+  }
+}
+
+/**
+ * callback method to be executed if the user clicks 'update inherited fields' button
+ */
+function sesi_dataset_inheritance_update_inherited_fields($form, &$form_state) {
+  // All the logic of updating variables is handled by node hooks, so we only need to set the right redirect
+
+  global $_sesi_dataset_inheritance_force_update;
+  $_sesi_dataset_inheritance_force_update = $form_state['node']->nid;
+
+  // Process form the normal way
+  node_form_submit($form, $form_state);
+
+  // Redirect the user
+  $form_state['redirect'] = "/node/" . $form_state['node']->nid . "/edit";
+}
+
+/**
+ * Deletes all inherited variables from a child dataset.
+ *
+ * @see _sesi_dataset_inheritance_copy_variables_from_parent
+ * @param EntityMetadataWrapper $child_dataset
+ * @return int The number of variables deleted
+ */
+function _sesi_dataset_inheritance_delete_inherited_variables($child_dataset) {
+
+  // get all variables corresponding to the child_dataset
+  // that have been inherited
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'variable')
+    ->fieldCondition('field_dataset', 'nid', $child_dataset->getIdentifier(), '=')
+    ->fieldCondition('field_variable_inherited_flag', 'value', 1, '=');
+  $result = $query->execute();
+
+  if (array_key_exists( 'node', $result ) && is_array( $result[ 'node' ] )) {
+    // Delete all nodes found 
+    $inherited_variable_nids = array_keys($result['node']);
+    node_delete_multiple( $inherited_variable_nids );
+
+    // Remove the deleted variables from the dataset. corresponding_node_references doesn't do this correctly if the
+    // dataset node is new.
+    $old_variable_nids = $child_dataset->field_dataset_variables->raw();
+    $child_dataset->field_dataset_variables->set(array_diff($old_variable_nids, $inherited_variable_nids));
+
+    return count($inherited_variable_nids);
+  }
+
+  return 0;
+}
+
+/**
+ * Clones variables from the parent dataset into the child dataset.
+ *
+ * Existing variables (i.e. with the same name) are NOT overwritten
+ *
+ * @param EntityMetadataWrapper $child_dataset
+ * @return Array of cloned variables
+ */
+function _sesi_dataset_inheritance_copy_variables_from_parent(EntityMetadataWrapper $child_dataset) {
+
+  $parent_dataset_id = _sesi_dataset_inheritance_get_dataset_parent($child_dataset);
+
+  //get all variables corresponding to parent_nid
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', 'node')
+    ->entityCondition('bundle', 'variable')
+    ->fieldCondition('field_dataset', 'nid', $parent_dataset_id, '=');
+
+  $result = $query->execute();
+
+  if (!isset($result['node'])) return array();
+
+  $all_parent_variables = node_load_multiple(array_keys($result['node']));
+
+  // Also load existing child variables, to make sure that fields with
+  // the same name are not overwritten.
+  $existing_variable_titles = array();
+  foreach ($child_dataset->field_dataset_variables->getIterator() as $delta => $variable) {
+    $existing_variable_titles[$variable->label()] = TRUE;
+  }
+
+  $parent_variables = array();
+  foreach ($all_parent_variables as $parent_variable) {
+    if (isset($existing_variable_titles[$parent_variable->title])) {
+      drupal_set_message(t("The variable @variable_name has been added or updated manually and will not be overwritten by the parent's version.", array("@variable_name" => $parent_variable->title)), 'warning', false);
+    } else {
+      $parent_variables[] = $parent_variable;
+    }
+  }
+
+  $new_variables = dataset_cloning_copy_dataset_variables($parent_variables, $child_dataset, array('set_inherited' => TRUE, 'publish' => TRUE));
+  sesi_dataset_inheritance_keep_inherited_status($new_variables);
+
+  return $new_variables;
+}
+
+/**
+ * Returns the ID of the parent dataset for the given child dataset
+ *
+ * If no parent is specified, NULL is returned
+ * @param EntityMetadataWrapper $node or NULL
+ * @return int  Parent dataset ID or NULL
+ */
+function _sesi_dataset_inheritance_get_dataset_parent( $node ) {
+  // Test whether the field for a dataset parent is defined. This may
+  // not be the case if the field has been removed.
+  try {
+    $parent = $node->field_dataset_parent->raw();
+    return is_null($parent) ? $parent : intval($parent);
+  } catch(EntityMetadataWrapperException $e) {
+    return NULL;
+  }
+}
