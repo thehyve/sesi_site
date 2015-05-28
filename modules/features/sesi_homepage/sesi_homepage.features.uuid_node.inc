@@ -378,16 +378,15 @@ Installing a site with Mica demo profile will help to illustrate its functionali
 	</div>
 	<div id="navcontainer">
 		<ul>
-			<li><a href="?q=content/workshops"><i class="flaticon-adn1"></i><br> Workshops </a></li>
-			<li><a href="?q=datasets"><i class="flaticon-medical55"></i><br> Vlaamse biobank catalogus </a></li>
-			<li><a href="?q=community_by_dataset"><i class="flaticon-molecules1"></i><br> Translationeel onderzoeksplatformen </a></li>
-			<li><a href="?q=content/donatie-menselijk-lichaams-materiaal"><i class="flaticon-conference2"></i><br> Donatie menselijk lichaams materiaal </a></li>
-			<!--<li><a href="?q=datasets"><span class="flaticon-medicine13"></span> Catalogues</a></li>-->
+			<li><a href="?q=content/workshops" title=\'Workshops\'><i class="flaticon-adn1"></i> Workshops </a></li>
+			<li><a href="?q=datasets" title=\'Vlaamse biobank catalogus\'><i class="flaticon-medical55"></i> Biobank catalogus </a></li>
+			<li><a href="?q=community_by_dataset" title=\'Translationeel onderzoeksplatformen\'><i class="flaticon-molecules1"></i> Translationeel onderzoek </a></li>
+			<li><a href="?q=content/donatie-menselijk-lichaams-materiaal" title=\'Donatie menselijk lichaams materiaal\'><i class="flaticon-conference2"></i> Donatie lichaamsmateriaal </a></li>
 		</ul>	
 	</div>
-</div>
+</div><!--break-->
 <br>
-<!--break-->',
+',
         'summary' => '',
         'format' => 'bootstrap',
         'safe_value' => '<div class="field-item even" property="content:encoded"><div class="home-panel">
@@ -396,16 +395,15 @@ Installing a site with Mica demo profile will help to illustrate its functionali
 	</div>
 	<div id="navcontainer">
 		<ul>
-			<li><a href="?q=content/workshops"><i class="flaticon-adn1"></i><br> Workshops </a></li>
-			<li><a href="?q=datasets"><i class="flaticon-medical55"></i><br> Vlaamse biobank catalogus </a></li>
-			<li><a href="?q=community_by_dataset"><i class="flaticon-molecules1"></i><br> Translationeel onderzoeksplatformen </a></li>
-			<li><a href="?q=content/donatie-menselijk-lichaams-materiaal"><i class="flaticon-conference2"></i><br> Donatie menselijk lichaams materiaal </a></li>
-			<!--<li><a href="?q=datasets"><span class="flaticon-medicine13"></span> Catalogues</a></li>-->
+			<li><a href="?q=content/workshops" title=\'Workshops\'><i class="flaticon-adn1"></i> Workshops </a></li>
+			<li><a href="?q=datasets" title=\'Vlaamse biobank catalogus\'><i class="flaticon-medical55"></i> Biobank catalogus </a></li>
+			<li><a href="?q=community_by_dataset" title=\'Translationeel onderzoeksplatformen\'><i class="flaticon-molecules1"></i> Translationeel onderzoek </a></li>
+			<li><a href="?q=content/donatie-menselijk-lichaams-materiaal" title=\'Donatie menselijk lichaams materiaal\'><i class="flaticon-conference2"></i> Donatie lichaamsmateriaal </a></li>
 		</ul>	
 	</div>
-</div>
+</div><!--break-->
 <br>
-<!--break-->',
+',
         'safe_summary' => '',
       ),
     ),
