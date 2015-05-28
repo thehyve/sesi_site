@@ -16,7 +16,7 @@ function _sesi_default_menus_create() {
       'Internationaal kader',
       'Workshops',
     ),
-    'Vlaamse Biobank' => array(
+    'Biobank' /*Vlaamse Biobank*/ => array(
       'Ethisch legaal kader',
       'Inter-academische Kwaliteitsborging',
       'Infrastructuur en data management',
@@ -24,7 +24,7 @@ function _sesi_default_menus_create() {
       array('Variabelen', 'variable-search'),
       array('Vlaamse biobank catalogus', 'datasets'),
     ),
-    'Translationeel onderzoek' => array(
+    'Onderzoek' /*Translationeel onderzoek*/ => array(
       'Thematische domeinen',
       'Onderzoeksplatformen',
       'Samenwerking met industrie',
@@ -32,13 +32,13 @@ function _sesi_default_menus_create() {
       array('Studies', 'studies'),
       array('Translationeel onderzoeksplatformen', 'community_by_dataset'),
     ),
-    'Donor informatie' => array(
+    'Donors' /*Donor informatie*/ => array(
       'Privacy en rechten',
       'Vaak gestelde vragen',
       'Patiënten organisaties',
       'Donatie menselijk lichaams materiaal',
     ),
-    'Nieuws en events' => array(
+    'Nieuws' /*Nieuws en events*/ => array(
       array('Nieuws', 'news'),
       array('Events', 'events'),
       array('Kalender', 'calendar-field-event-date/year'),
