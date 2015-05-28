@@ -17,10 +17,11 @@
 	font-family: Flaticon;
         font-size: 50px;
 font-style: normal;
-margin-left: 1px;
-margin-bottom: -100px;
+/*margin-left: 1px;*/
+/*margin-bottom: -100px;*/
 
-}.flaticon-adn1:before {
+}
+.flaticon-adn1:before {
 	content: "\e000";
 }
 .flaticon-biology:before {
@@ -122,18 +123,24 @@ browser window is small */
 
 #navcontainer 
 { 
-    width:100%; height: 200px; text-align: center; padding-top:5px;
+    width:100%; height: 200px; text-align: center; padding-top:0px;
 }
 
 #navcontainer ul
 {
-    margin: 0;
+    width: 80%;
+    margin: 0 10%;
     padding: 0;
     list-style-type: none;
     text-align: center;
+    display: table;
 }
 
-#navcontainer ul li { display: inline; }
+#navcontainer ul li {
+    display: table-cell;
+    margin: 0;
+    padding: 0;
+}
 
 #navcontainer ul li a
 {
@@ -152,11 +159,11 @@ browser window is small */
 {
     color: #495961;
     text-decoration: none;
-    
+
 }
 #navcontainer ul li span
 {
-    color: #CC0000;   
+    color: #CC0000;
     text-decoration: none;
 }
 
