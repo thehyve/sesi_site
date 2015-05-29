@@ -43,3 +43,93 @@ function sesi_communities_and_files_sesi() {
         }
     }
 }
+
+
+/**
+ * Percolate group settings from dataset to variables to study variable attributes. This hook should make sure that
+ * when the group setting on a dataset/variable/sva is changed, the groups on its constituents are also updated. This
+ * only works in one direction from dataset -> variable -> sva, not the other way around.
+ *
+ * @param $node
+ */
+function sesi_communities_and_files_node_presave($node) {
+    // Only process datasets that already have a nid. New inserts will be caught by hook_node_insert;
+    if(isset($node->nid) && $node->type == 'dataset') {
+        // We do this in the presave hook so we can get at the original parent, so we don't copy all variables if the parent
+        // didn't change.
+        $node_wrapper = entity_metadata_wrapper('node', $node);
+        $original_groups = _sesi_communities_and_files_load_db_og_group_ref($node->nid);
+
+        if(!_sesi_communities_and_files_equals_unordered($node_wrapper->og_group_ref->raw(), $original_groups)) {
+
+            if(function_exists('sesi_dataset_inheritance_keep_inherited_status')) {
+                sesi_dataset_inheritance_keep_inherited_status($node_wrapper->field_dataset_variables->value());
+            }
+
+            foreach ($node_wrapper->field_dataset_variables->getIterator() as $delta => $variable) {
+                // re-save the variable. The hooks on save will update the variable's group
+                $variable->value();
+                $variable->save();
+            }
+        }
+    }
+
+    elseif ($node->type == 'variable') {
+        $wrapper = entity_metadata_wrapper('node', $node);
+
+        // Sync self
+        sesi_communities_and_files_synchronize_og_groups($wrapper->field_dataset, $wrapper);
+
+        if(isset($node->nid)) {
+            $original_groups = _sesi_communities_and_files_load_db_og_group_ref($node->nid);
+            if (!_sesi_communities_and_files_equals_unordered($wrapper->og_group_ref->raw(), $original_groups)) {
+                foreach ($wrapper->field_variable_study_var_att->getIterator() as $delta => $sva) {
+                    // re-save the sva. The hooks on save will update the sva's group
+                    $sva->value();
+                    $sva->save();
+                }
+            }
+        }
+    }
+
+    // Associate the variable with the same og_groups as the dataset
+    // that it belongs to
+    elseif ($node->type == 'study_variable_attributes') {
+        $sva_wrapper = entity_metadata_wrapper('node', $node);
+        sesi_communities_and_files_synchronize_og_groups($sva_wrapper->field_sva_variable, $sva_wrapper);
+    }
+}
+
+/**
+ * Load the og_group_ref field from the database without touching the entity cache.
+ *
+ * @param $nid
+ * @return An array with the data
+ */
+function _sesi_communities_and_files_load_db_og_group_ref($nid) {
+    return db_query("SELECT gid FROM {og_membership} WHERE etid = :nid AND entity_type = 'node'",
+      array(':nid' => $nid))->fetchCol() ?: array();
+}
+
+/*
+ * Compare the values of two arrays as sets, without taking order into account
+ */
+function _sesi_communities_and_files_equals_unordered($arr1, $arr2) {
+    return array_fill_keys($arr1, 1) == array_fill_keys($arr2, 1);
+}
+
+/**
+ * Synchronize the og_group_ref for two nodes. The latter one will be associated
+ * with those groups that the former one is associated with.
+ * @param entity_metadata_wrapper $wrapper_from entity_metadata_wrapper
+ * @param entity_metadata_wrapper $wrapper_to
+ */
+function sesi_communities_and_files_synchronize_og_groups( $wrapper_from, $wrapper_to ) {
+    try {
+        $groups = $wrapper_from->og_group_ref->raw();
+        $wrapper_to->og_group_ref->set($groups);
+    } catch(EntityMetadataWrapperException $e) {
+        watchdog_exception('sesi_communities_and_files', $e);
+    }
+}
+

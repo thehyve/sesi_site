@@ -1,0 +1,131 @@
+<?php
+
+/*
+ * This module contains some utility functions to clone nodes and to copy variables from one dataset to another.
+ * This module is used by sesi_dataset_inheritance and sesi_dataset_versioning.
+ */
+
+
+/**
+ * Copy a list of variables and attach them to a dataset
+ *
+ * @param array $variables The array of variable objects to copy
+ * @param $to_ds The target dataset, EntityMetadataWrapper
+ * @param array $options
+ *     $options['set_inherited'] Sets the inherited flag on the new variables
+ *     $options['publish'] Set the new variables to published
+ * @return An array of the new variables
+ */
+function dataset_cloning_copy_dataset_variables(array $variables, EntityMetadataWrapper $to_ds, $options = array()) {
+    $new_vars = array();
+
+    foreach($variables as $variable) {
+        $orig_nid = $variable->nid;
+        $variable = dataset_cloning_clone_node($variable);
+        $variable->log = "Variable copied from original variable (node $orig_nid)";
+
+        $variable_wrapper = entity_metadata_wrapper('node', $variable);
+
+        // Store the new variable with the new target dataset
+        $variable_wrapper->field_dataset->set($to_ds->getIdentifier());
+
+        if(!empty($options['set_inherited'])) {
+            $variable_wrapper->field_variable_inherited_flag->set(1);
+        }
+
+        if(!empty($options['publish'])) {
+            //by default publish variable
+            $variable->status = NODE_PUBLISHED;
+        }
+
+        node_save($variable);
+        // Reload the variable so it gets saved in the entity cache, and we have the same object as will be returned by
+        // future node_loads. We need this as a workaround for an issue, but it is also a good idea for consistency in
+        // general.
+        //
+        // The issue:
+        //
+        // Both search_index and workbench_moderation use delayed processing. Search_api marks nodes to be indexed
+        // and then does the actual indexing in a shutdown hook. The workbench_moderation_moderate below first sets
+        // the current revision of the variable to unpublished because it thinks that may be an old revision. It
+        // then registers a shutdown hook to sets the node revision back to published because workbench_moderation
+        // thinks the current version might still be in use for other things and some non-versionable related
+        // content may not have been updated yet. (see comments in workbench_moderation_moderate)
+        // The result is that the shutdown hook from search_api is run first, and loads the to-be-indexed variable
+        // from the db, which still is set to draft and is thus indexed as draft. After that the
+        // workbench_moderation shutdown hook sets the variable to published, but then the index is stale and the
+        // variable is not marked as change.
+        //
+        // As a workaround we make sure the variable nodes are loaded into the entity cache here.
+        // Workbench_moderation doesn't clear that cache, so search_api will load the nodes from the cache (that
+        // contains the published version) instead of the database.
+        $variable = node_load($variable->nid);
+
+        if(!empty($options['publish']) && function_exists('workbench_moderation_moderate')) {
+            workbench_moderation_moderate($variable, workbench_moderation_state_published());
+
+            // Second workaround: workbench_moderation_moderate changes the database directly, and for nodes that are
+            // new and published the edit is wrong, so undo. This workaround is an alternative to the one mentioned
+            // above of loading the node into the entity cache. One of them should be sufficient, but I've implemented
+            // both just to be sure. The entity cache could be cleared by some other module inadvertently.
+            db_update('node_revision')
+              ->condition('nid', $variable->nid)
+              ->fields(array('status' => NODE_PUBLISHED))
+              ->execute();
+        }
+
+        $new_vars[$variable->nid] = $variable;
+    }
+
+    // If the $to_ds object is the same as the one in the entity cache (i.e. this object was loaded from the database),
+    // the $to_ds->field_dataset_variables has already been updated by the corresponding_node_references module.
+    //
+    // If the $to_ds object is not in the entity cache, e.g. because it was constructed from a form submit instead of
+    // being loaded from the database, the corresponding_node_references module has updated a different copy of the
+    // $to_ds dataset. If that is the case and this function is called from a node_presave hook,
+    // the field_dataset_variables on this object will take precedence and the dataset variables will be in an
+    // incoherent state.
+    //
+    // To make sure everything goes ok and there are no duplicates in the field, we take care to update the
+    // field_dataset_variables here consistently.
+
+    $existing = array_fill_keys($to_ds->field_dataset_variables->raw(), TRUE);
+    foreach($new_vars as $nid => $var) {
+        if(!isset($existing[$nid])) {
+            $to_ds->field_dataset_variables[] = $var;
+        }
+    }
+
+    return $new_vars;
+}
+
+/**
+ * Clone a node. This function does not save the new node.
+ *
+ * @param $node
+ * @return mixed
+ */
+function dataset_cloning_clone_node($node) {
+    global $user;
+
+    // Unlinke other types in PHP, objects are passed by reference. (But a different kind of reference than standard PHP references)
+    $node = clone $node;
+
+    $node->uid = $user->uid;
+    unset($node->nid);
+    unset($node->vid);
+    unset($node->created);
+    unset($node->changed);
+    unset($node->tnid);
+    unset($node->log);
+    unset($node->uuid);
+    unset($node->vuuid);
+    unset($node->revision_timestamp);
+
+    // Workbench moderation also stores all kinds of stuff in nodes, including references to previous versions.
+    unset($node->workbench_moderation);
+    unset($node->workbench_moderation_state_current);
+    unset($node->workbench_moderation_state_new);
+
+    return $node;
+}
