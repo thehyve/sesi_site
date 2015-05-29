@@ -880,6 +880,11 @@ function _mica_query_result_table($dataset_node, $query, $cross_variable, $add_l
 
   $mica_connectors = mica_connector_query_multiple($dataset_node->nid, TRUE, TRUE);
   $terms = mica_query_term_query($query);
+  //fixes for: error when requesting data
+   if(!is_array($terms)){
+   	$terms = array();
+   }
+  // end of fixes   
 
   $cardinality_var = variable_get_value('mica_query_patients_cardinality_variable');
   $variable_names = array_map(function($var) {return $var->title;}, mica_dataset_dataset_variables($dataset_node->nid));
