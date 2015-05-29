@@ -180,6 +180,7 @@ ensure_mod sesi_variable_email
 ensure_mod sesi_wildcard_search_processor
 ensure_mod view_own_unpublished
 ensure_mod sesi_variable_create_breadcrumb
+ensure_mod sesi_default_menus
 
 # Download Autologout module dependencies and enable it
 drush --yes dl autologout
