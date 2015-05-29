@@ -382,6 +382,8 @@ class CategoryTerm extends AbstractTerm {
 
     // One column for the category name and one per study
     $headers = array('Value');
+    $headers[] = "Label"; //Added for extra column SESISUP-15,16
+    
     $connectors = $this->getConnectors();
     foreach ($connectors as $connector) {
       $study = node_load($connector->study_id);
@@ -398,6 +400,8 @@ class CategoryTerm extends AbstractTerm {
       $category_name = $category["name"];
       $defaultValues[$category_name] = 0;
       $row = array($category_name);
+      $category_label = $category["label"]; 
+      $row[] = $category_label;   //Added for extra column SESISUP-15,16
       foreach ($connectors as $connector) {
         if (isset($facets[$connector->study_id][$category_name])) {
           $row[] = $facets[$connector->study_id][$category_name];
