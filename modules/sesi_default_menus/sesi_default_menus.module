@@ -122,8 +122,8 @@ function _sesi_default_menus_create_menus($menus) {
 
     $weight++;
 
-    $menu = _sesi_default_menus_find_menu($menu_tree, $key);
-    if($menu && $menu['link_path'] == $path) {
+    $menu = _sesi_default_menus_find_menu($menu_tree, $path, $key);
+    if($menu) {
       $plid = $menu['mlid'];
     } else {
       $has_children = (is_array($val) && count($val)) ? 1 : 0;
@@ -152,8 +152,8 @@ function _sesi_default_menus_create_menus($menus) {
 
       $weight++;
 
-      $menu = _sesi_default_menus_find_menu($menu_tree, $item, $key);
-      if($menu && $menu['link_path'] == $path) {
+      $menu = _sesi_default_menus_find_menu($menu_tree, $item, $path, $plid);
+      if($menu) {
         $mlid = $menu['mlid'];
       } else {
         $menu = $menu_template + array(
@@ -183,18 +183,22 @@ function _sesi_default_menus_alias($name) {
 
 }
 
-function _sesi_default_menus_find_menu($menu, $name, $parent=NULL) {
+function _sesi_default_menus_find_menu($menu, $name, $path, $parent_mlid=NULL) {
 
-  $find = $name;
-  if(!empty($parent)) $find = $parent;
+  if(isset($parent_mlid)) {
+    foreach($menu as $key => $sub) {
+      if($sub['link']['mlid'] == $parent_mlid) {
+        unset($parent_mlid);
+        $menu = $sub['below'];
+        break;
+      }
+    }
+    if(isset($parent_mlid)) return NULL;
+  }
 
   foreach($menu as $key => $sub) {
-    if($sub['link']['link_title'] == $find) {
-      if(empty($parent)) {
-        return $sub['link'];
-      } else {
-        return _sesi_default_menus_find_menu($sub['below'], $name);
-      }
+    if($sub['link']['link_title'] == $name && $sub['link']['link_path'] == $path) {
+      return $sub['link'];
     }
   }
   return NULL;
@@ -222,14 +226,17 @@ function _sesi_default_menus_enable($menu, $used_links) {
 }
 
 
-function _sesi_dm_remove_disabled_menus($menu) {
-  if(empty($menu)) return;
+function _sesi_default_menus_delete_all_disabled_menus($menu=NULL, $_also_visible=FALSE) {
+  if($menu === NULL) {
+    $menu = menu_tree_all_data('main-menu');
+  }
 
   foreach($menu as $key => $sub) {
-    if(!$sub['link']['hidden']) continue;
-
-    _sesi_dm_remove_disabled_menus($sub['below']);
-
-    menu_link_delete($sub['link']['mlid']);
+    if($sub['link']['hidden'] || $_also_visible) {
+      if(count($sub['below'])) {
+        _sesi_default_menus_delete_all_disabled_menus($sub['below'], TRUE);
+      }
+      menu_link_delete($sub['link']['mlid']);
+    }
   }
 }
