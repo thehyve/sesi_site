@@ -35,7 +35,7 @@ function sesi_menu_links_menu_default_menu_links() {
     'link_title' => 'Home',
     'options' => array(),
     'module' => 'menu',
-    'hidden' => 0,
+    'hidden' => 1,
     'external' => 1,
     'has_children' => 0,
     'expanded' => 0,
@@ -64,7 +64,7 @@ function sesi_menu_links_menu_default_menu_links() {
     'link_title' => 'Calendar',
     'options' => array(),
     'module' => 'menu',
-    'hidden' => 0,
+    'hidden' => 1,
     'external' => 0,
     'has_children' => 0,
     'expanded' => 0,
@@ -79,7 +79,7 @@ function sesi_menu_links_menu_default_menu_links() {
     'link_title' => 'Communities',
     'options' => array(),
     'module' => 'system',
-    'hidden' => 0,
+    'hidden' => 1,
     'external' => 0,
     'has_children' => 0,
     'expanded' => 0,
@@ -173,7 +173,7 @@ function sesi_menu_links_menu_default_menu_links() {
       ),
     ),
     'module' => 'menu',
-    'hidden' => 0,
+    'hidden' => 1,
     'external' => 0,
     'has_children' => 0,
     'expanded' => 1,
@@ -188,9 +188,9 @@ function sesi_menu_links_menu_default_menu_links() {
     'link_title' => 'Events',
     'options' => array(),
     'module' => 'menu',
-    'hidden' => 0,
+    'hidden' => 1,
     'external' => 0,
-    'has_children' => 1,
+    'has_children' => 0,
     'expanded' => 1,
     'weight' => 15,
     'parent_path' => 'node/5',
@@ -218,7 +218,7 @@ function sesi_menu_links_menu_default_menu_links() {
     'link_title' => 'News',
     'options' => array(),
     'module' => 'menu',
-    'hidden' => 0,
+    'hidden' => 1,
     'external' => 0,
     'has_children' => 0,
     'expanded' => 0,
@@ -233,11 +233,48 @@ function sesi_menu_links_menu_default_menu_links() {
     'link_title' => 'Resources',
     'options' => array(),
     'module' => 'menu',
+    'hidden' => 1,
+    'external' => 0,
+    'has_children' => 0,
+    'expanded' => 1,
+    'weight' => -45,
+  );
+  // Exported menu link: main-menu:node/2359
+  $menu_links['main-menu:node/2359'] = array(
+    'menu_name' => 'main-menu',
+    'link_path' => 'node/2359',
+    'router_path' => 'node/%',
+    'link_title' => 'Organisatie',
+    'options' => array(
+      'attributes' => array(
+        'title' => '',
+      ),
+    ),
+    'module' => 'menu',
     'hidden' => 0,
     'external' => 0,
     'has_children' => 1,
     'expanded' => 1,
-    'weight' => -45,
+    'weight' => 0,
+  );
+  // Exported menu link: main-menu:node/2360
+  $menu_links['main-menu:node/2360'] = array(
+    'menu_name' => 'main-menu',
+    'link_path' => 'node/2360',
+    'router_path' => 'node/%',
+    'link_title' => 'Doelstellingen',
+    'options' => array(
+      'attributes' => array(
+        'title' => '',
+      ),
+    ),
+    'module' => 'menu',
+    'hidden' => 0,
+    'external' => 0,
+    'has_children' => 0,
+    'expanded' => 1,
+    'weight' => 0,
+    'parent_path' => 'node/2359',
   );
   // Exported menu link: main-menu:node/244
   $menu_links['main-menu:node/244'] = array(
@@ -251,7 +288,7 @@ function sesi_menu_links_menu_default_menu_links() {
       ),
     ),
     'module' => 'menu',
-    'hidden' => 0,
+    'hidden' => 1,
     'external' => 0,
     'has_children' => 0,
     'expanded' => 0,
@@ -284,12 +321,11 @@ function sesi_menu_links_menu_default_menu_links() {
       ),
     ),
     'module' => 'menu',
-    'hidden' => 0,
+    'hidden' => 1,
     'external' => 0,
-    'has_children' => 1,
+    'has_children' => 0,
     'expanded' => 1,
-    'weight' => -50,
-    'parent_path' => 'node/4',
+    'weight' => -40,
   );
   // Exported menu link: main-menu:node/5
   $menu_links['main-menu:node/5'] = array(
@@ -303,9 +339,9 @@ function sesi_menu_links_menu_default_menu_links() {
       ),
     ),
     'module' => 'menu',
-    'hidden' => 0,
+    'hidden' => 1,
     'external' => 0,
-    'has_children' => 1,
+    'has_children' => 0,
     'expanded' => 1,
     'weight' => -41,
   );
@@ -366,7 +402,7 @@ function sesi_menu_links_menu_default_menu_links() {
       ),
     ),
     'module' => 'menu',
-    'hidden' => 0,
+    'hidden' => 1,
     'external' => 0,
     'has_children' => 1,
     'expanded' => 1,
@@ -396,7 +432,7 @@ function sesi_menu_links_menu_default_menu_links() {
     'link_title' => 'Variables Search',
     'options' => array(),
     'module' => 'menu',
-    'hidden' => 0,
+    'hidden' => 1,
     'external' => 0,
     'has_children' => 0,
     'expanded' => 0,
@@ -434,7 +470,7 @@ function sesi_menu_links_menu_default_menu_links() {
     'module' => 'system',
     'hidden' => 0,
     'external' => 0,
-    'has_children' => 0,
+    'has_children' => 1,
     'expanded' => 0,
     'weight' => -10,
   );
@@ -465,6 +501,7 @@ function sesi_menu_links_menu_default_menu_links() {
   t('Data Access Committee');
   t('Data Access Request');
   t('Datasets');
+  t('Doelstellingen');
   t('Events');
   t('Forums');
   t('Home');
@@ -473,6 +510,7 @@ function sesi_menu_links_menu_default_menu_links() {
   t('My Data Access Requests');
   t('News');
   t('News & Events');
+  t('Organisatie');
   t('Projects');
   t('Publications');
   t('Research');
