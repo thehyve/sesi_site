@@ -171,6 +171,7 @@ ensure_feat sesi_dataset_versioning
 ensure_feat sesi_dataset_access_form
 ensure_feat sesi_vocabulary
 
+ensure_mod sesi_misc_fixes
 ensure_mod sesi_addtogroup
 ensure_mod sesi_notifyexpiration
 ensure_mod sesi_membership_fields
