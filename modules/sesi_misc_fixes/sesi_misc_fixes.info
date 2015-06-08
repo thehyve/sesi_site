@@ -1,0 +1,8 @@
+name = Some miscellaneous fixes
+description = Correctly size admin toolbars on small windows
+core = 7.x
+version = "7.x-1.0"
+package = sesi
+project = sesi
+
+scripts[] = fixToolbarHeight.js
