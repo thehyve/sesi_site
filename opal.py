@@ -217,7 +217,7 @@ class Project (OpalPage):
             self.findElement(link_text='Yes').click()
         # file selection dialog
         selector = contains('td', filename)+'/preceding-sibling::td//input'
-        time.sleep(1)
+        time.sleep(2)
         self.waitForCondition(C.element_visible(xpath=selector))
         self.findElement(xpath=selector).click()
         self.findElement(link_text='Select').click()
@@ -331,6 +331,9 @@ class TableSummary (Table):
         return self.elementExists(xpath=contains('div', 'Table values index', class_='gwt-Label'))
 
     def index(self):
+        self.waitForCondition(C.element_present(link_text='Index Now'),
+                              C.element_present(link_text='Remove Index'),
+                              C.element_present(link_text='Cancel'))
         if self.elementExists(link_text='Index Now'):
             self.findElement(link_text='Index Now').click()
         self.waitForCondition(C.element_present(link_text='Remove Index'), timeout=60)
