@@ -1,0 +1,11 @@
+name = sesi_views_prefilter_access_restrictions
+description = Sesi Views Prefilter Access Restriction Feature for Filtering in Dataset and Studies
+core = 7.x
+package = sesi
+version = 7.x-1.0
+project = sesi_views_prefilter_access_restrictions
+features[features_api][] = api:2
+features[features_overrides][] = search_api_index.dataset_index.options|fields|og_group_ref
+features[features_overrides][] = search_api_index.fields_description_index.options|fields|og_group_ref
+features[features_overrides][] = search_api_index.studies_index.options|fields|og_group_ref
+features[features_overrides][] = search_api_index.variable_index.options|fields|og_group_ref
