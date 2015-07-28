@@ -217,6 +217,7 @@ isenabled views_access_restrictions || drush --yes en views_access_restrictions
 
 #
 ensure_feat sesi_communities_and_files
+ensure_feat sesi_views_prefilter_access_restrictions
 ensure_feat sesi_user_profile_fields
 ensure_feat sesi_default_community
 ensure_feat sesi_site_map
