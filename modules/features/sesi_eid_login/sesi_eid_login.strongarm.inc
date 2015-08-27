@@ -28,7 +28,7 @@ function sesi_eid_login_strongarm() {
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
   $strongarm->name = 'beididp_idp_url';
-  $strongarm->value = 'https://www.e-contract.be/eid-idp/endpoints/openid/auth-ident';
+  $strongarm->value = 'https://services.e-contract.be/eid-idp/endpoints/openid/auth-ident';
   $export['beididp_idp_url'] = $strongarm;
 
   $strongarm = new stdClass();

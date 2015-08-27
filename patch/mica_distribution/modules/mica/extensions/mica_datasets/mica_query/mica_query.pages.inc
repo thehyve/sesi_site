@@ -813,8 +813,9 @@ function mica_query_run_xlsx($dataset_node, $query, $cross_variable_nid = NULL) 
   $cross_variable = empty($cross_variable_nid) ? NULL : node_load($cross_variable_nid);
   $html = _mica_query_result_table($dataset_node, $query, $cross_variable, FALSE);
 
-  $filename = $dataset_node->title . ' - ' . $query->name;
+  $filename = $dataset_node->title . '-' . $query->name;
   $filename = str_replace('.','_',$filename);
+  $filename = str_replace(' ','_',$filename);
   drupal_add_http_header('Content-Type', 'application/vnd.ms-excel');
   drupal_add_http_header('Content-Disposition', "attachment; filename=$filename.xls");
 

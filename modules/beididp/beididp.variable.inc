@@ -11,7 +11,7 @@ function beididp_variable_info($options) {
   $variables['beididp_idp_url'] = array(
     'type' => 'url',
     'title' => t('eID IDP endpoint'),
-    'default' => 'https://www.e-contract.be/eid-idp/endpoints/openid/auth-ident',
+    'default' => 'https://services.e-contract.be/eid-idp/endpoints/openid/auth-ident',
     'description' => t('The HTTPS URL to the OpenID endpoint of the Belgian eID Identity Provider.'),
     'group' => 'beididp', 
     'validate callback' => 'beididp_idp_url_validate',
