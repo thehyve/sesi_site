@@ -24,7 +24,7 @@ function sesi_default_menus_enable() {
       array('Variabelen', 'variable-search'),
       array('Vlaamse biobank catalogus', 'datasets'),
     ),
-    'Translationeel onderzoek' => array(
+    'Onderzoek' => array(
       'Thematische domeinen',
       'Onderzoeksplatformen',
       'Samenwerking met industrie',
