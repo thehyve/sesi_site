@@ -318,9 +318,10 @@ function _query_interface_render_query_terms_table($termList, $buttonList) {
  * Renders a table with variables not yet used in a query term
  * @param type $form 
  */
-function _query_interface_render_variables_table($termList, $buttonList) {
+function _query_interface_render_variables_table($termList, $buttonList) {  
+    
     $renderRowFunction = "_query_interface_render_variable_row";
-    $tableHeader = array(t('Query Term'), t('Description'), t('Operations'));
+    $tableHeader = array(t('Query Term'), t('Label'), t('Description'), t('Operations')); //PARTHA
 
     return _query_interface_render_table($termList, $buttonList, $renderRowFunction, $tableHeader, "variables");
 }
@@ -333,9 +334,13 @@ function _query_interface_render_variables_table($termList, $buttonList) {
  * @param type $tableHeader 
  */
 function _query_interface_render_table($termList, $buttonList, $renderRowsFunction, $tableHeader, $id = null) {
-    $rows = array();
+    $rows = array();    
+      
+     
     foreach (element_children($termList) as $key) {
-        $variable = $termList[$key];
+        $variable = $termList[$key];       
+       
+        
         $alreadySelected = true;
 
         if (array_key_exists($key, $buttonList)) {
@@ -345,6 +350,9 @@ function _query_interface_render_table($termList, $buttonList, $renderRowsFuncti
         }
 
         $currentTermRows = call_user_func($renderRowsFunction, $variable, $buttons);
+       
+       
+        
         $rows = array_merge($rows, $currentTermRows);
     }
 
@@ -427,6 +435,10 @@ function _query_interface_render_query_term_row($variable, $buttons) {
  * @see https://api.drupal.org/api/drupal/includes%21theme.inc/function/theme_table/7
  */
 function _query_interface_render_variable_row($variable, $buttons) {
+    
+    //print_r($variable);
+    //echo "<br/>========================== <br/>";
+    
     // Loading the variable again. This is not a very performant solution
     // as the variable has been loaded in the mica code as well. However
     // the mica code only provides us with the 'title', where we need
@@ -442,7 +454,9 @@ function _query_interface_render_variable_row($variable, $buttons) {
         if ($wrapper->body->value() && $wrapper->body->value) {
             $variable["description"] = $wrapper->body->value->value();
         }
-
+        //Set field label
+        $variable["field_label"] = $wrapper->field_label->value(); //PARTHA
+        
         // Retrieve taxonomies and show them in the page
         $taxonomies = _query_interface_get_taxonomies($wrapper);
     }
@@ -453,25 +467,37 @@ function _query_interface_render_variable_row($variable, $buttons) {
     // Create the first row with title, description and buttons
     $rowData = array();
 
-    // title
-    $rowData[] = drupal_render($variable['title']);
 
+    // title
+    $rowData[] = drupal_render($variable['title']);     
+    
+    $rowData[] = $variable["field_label"];  //PARTHA 
+    
     // weight and hidden fields
     $weightElement = $variable['weight'];
     $weightElement["#type"] = "hidden";
-    $column = drupal_render($weightElement);
-
+    $column = drupal_render($weightElement);    
+    
+    
     // Add the description to the table
     // The description may contain markup, and is for that reason not escaped
     if (array_key_exists("description", $variable))
-        $column .= $variable["description"];
-
-    $rowData[] = $column;
-
+        $column .= $variable["description"];   
+    
+    
+    $rowData[] = $column; 
+    
+   
+     
     // Add operations
     $rowData[] = $buttons;
 
     $rows[] = array("data" => $rowData, "class" => array("variable_" . $variable['vid']["#value"]));
+    
+   
+    
+   
+    //$rows[] = array("data" => $rowData, "class" => array("variable_" . $variable['vid']["#value"]));
 
     // Create the second row with taxonomies. For each taxonomy, we also
     // add a hidden element with the taxonomy id
@@ -496,5 +522,3 @@ function _query_interface_render_variable_row($variable, $buttons) {
 
     return $rows;
 }
-
-

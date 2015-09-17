@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the sesi_views_prefilter_access_restrictions feature.
+ */
+
+include_once 'sesi_views_prefilter_access_restrictions.features.inc';
